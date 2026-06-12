@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>About Us | Evergreen Cleaning Services — Citrus County, FL</title>
+<meta name="description" content="Evergreen Cleaning Services is a locally owned house cleaning company in Citrus County, FL. Reliable, affordable cleaning with honest flat-rate pricing and no surprises."/>
+<meta name="robots" content="index, follow"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
+<noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/></noscript>
+<link rel="icon" type="image/png" href="CleaningServicesTransparent.png"/>
+<link rel="apple-touch-icon" href="CleaningServicesTransparent.png"/>
+
+<style>
+  :root {
+    --blue-deep:   #0d2a42;
+    --blue-mid:    #1565a8;
+    --blue-bright: #3da9e0;
+    --blue-light:  #8fd0f0;
+    --blue-pale:   #e8f4fb;
+    --cream:       #f8fbfd;
+    --text:        #1a1a1a;
+    --text-muted:  #6b7280;
+    --border:      #e5e7eb;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ── SITE HEADER ── */
+  #siteHeader { position: fixed; top: 0; left: 0; right: 0; z-index: 400; }
+
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 60px;
+    background: rgba(248,251,253,0.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(13,42,66,0.07);
+    transition: box-shadow .3s, padding .3s;
+  }
+  nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.08); padding: 13px 60px; }
+  .nav-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 32px; }
+  .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
+  .nav-links a {
+    text-decoration: none;
+    font-size: 14px; font-weight: 500; letter-spacing: .03em;
+    color: var(--blue-deep);
+    transition: color .2s;
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--blue-bright); }
+  .nav-cta {
+    background: var(--blue-mid);
+    color: #fff !important;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 14px; font-weight: 600;
+    text-decoration: none;
+    transition: background .2s;
+  }
+  .nav-cta:hover { background: var(--blue-deep); }
+  .nav-phone a { color: var(--blue-bright); font-weight: 600; text-decoration: none; font-size: 14px; }
+
+  .nav-hamburger {
+    display: none; flex-direction: column; justify-content: center; gap: 5px;
+    background: none; border: none; cursor: pointer; padding: 6px; z-index: 500;
+  }
+  .nav-hamburger span {
+    display: block; width: 24px; height: 2px;
+    background: var(--blue-deep); border-radius: 2px;
+    transition: transform .25s, opacity .2s;
+  }
+  .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+  .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .mobile-nav {
+    display: none; flex-direction: column;
+    background: rgba(248,251,253,0.98);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(13,42,66,0.08);
+    padding: 8px 20px 16px;
+    position: sticky; top: 57px; z-index: 399;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .mobile-nav.open { display: flex; }
+  .mobile-nav a {
+    padding: 13px 0; font-size: 16px; font-weight: 500;
+    color: var(--blue-deep); text-decoration: none;
+    border-bottom: 1px solid rgba(13,42,66,0.07);
+  }
+  .mobile-nav a:last-child { border-bottom: none; }
+  .mobile-nav-cta {
+    margin-top: 8px;
+    background: var(--blue-mid);
+    color: #fff !important; text-align: center;
+    padding: 14px; border-radius: 8px; font-weight: 700;
+    border-bottom: none !important;
+  }
+  .mobile-nav-phone { text-align: center; color: var(--blue-mid) !important; font-weight: 600; }
+
+  .page-content { padding-top: 80px; }
+
+  /* ── ABOUT HERO ── */
+  .about-hero {
+    background: linear-gradient(155deg, #06141f 0%, #0a2235 30%, #0d2a42 60%, #11375a 85%, #0c2740 100%);
+    padding: 80px 48px;
+    text-align: center;
+    color: #fff;
+  }
+  .about-hero img.hero-logo { width: 160px; margin-bottom: 6px; filter: drop-shadow(0 4px 14px rgba(0,0,0,.35)); }
+  .about-hero p.eyebrow {
+    text-transform: uppercase; letter-spacing: .12em;
+    font-size: 12px; font-weight: 700; color: var(--blue-light);
+    margin-bottom: 12px;
+  }
+  .about-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 5vw, 52px);
+    line-height: 1.15; color: #fff;
+    margin-bottom: 16px;
+  }
+  .about-hero .sub {
+    font-size: 16px; color: rgba(255,255,255,0.65);
+    max-width: 480px; margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* ── ABOUT BODY ── */
+  .about-body {
+    max-width: 900px; margin: 0 auto;
+    padding: 72px 24px;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 60px; align-items: start;
+  }
+  .about-body h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px; color: var(--blue-deep);
+    line-height: 1.2; margin-bottom: 20px;
+  }
+  .about-body p {
+    color: var(--text-muted); font-size: 15px;
+    line-height: 1.85; margin-bottom: 20px;
+  }
+  .about-body p:last-of-type { margin-bottom: 28px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--blue-pale); color: var(--blue-deep);
+    padding: 8px 14px; border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+  }
+
+  /* ── OWNER CARD ── */
+  .owner-card {
+    background: var(--blue-pale);
+    border-radius: 20px;
+    padding: 44px 36px;
+    text-align: center;
+  }
+  .owner-card .quote {
+    color: var(--blue-mid); font-size: 15px;
+    font-style: italic; line-height: 1.6;
+    border-left: 3px solid var(--blue-bright);
+    padding-left: 16px; text-align: left;
+    margin-bottom: 28px;
+  }
+  .owner-card .cta-btn {
+    display: block;
+    background: var(--blue-mid); color: #fff;
+    text-decoration: none; font-weight: 700;
+    font-size: 15px; padding: 14px 24px;
+    border-radius: 10px; transition: background .2s;
+  }
+  .owner-card .cta-btn:hover { background: var(--blue-deep); }
+
+  /* ── VALUES ── */
+  .values-strip {
+    background: var(--blue-deep);
+    padding: 56px 24px;
+    text-align: center;
+  }
+  .values-strip h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; color: #fff;
+    margin-bottom: 40px;
+  }
+  .values-grid {
+    max-width: 860px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+  }
+  .value-item { background: rgba(255,255,255,0.07); border-radius: 14px; padding: 28px 20px; }
+  .value-item .vi-icon { font-size: 28px; margin-bottom: 12px; }
+  .value-item .vi-title { font-weight: 700; color: #fff; font-size: 15px; margin-bottom: 8px; }
+  .value-item .vi-desc { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.65; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--blue-deep);
+    color: rgba(255,255,255,0.7);
+    padding: 48px 80px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 32px;
+    border-top: 3px solid var(--blue-mid);
+  }
+  .footer-brand-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px;
+  }
+  .footer-brand-text span { color: var(--blue-light); }
+  .footer-tagline { font-size: 13px; color: rgba(255,255,255,0.45); }
+  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; list-style: none; }
+  .footer-links a {
+    color: rgba(255,255,255,0.65); text-decoration: none;
+    font-size: 14px; transition: color .2s;
+  }
+  .footer-links a:hover { color: var(--blue-light); }
+  .footer-contact-info { text-align: right; }
+  .footer-contact-info a {
+    display: block; color: var(--blue-light);
+    text-decoration: none; font-size: 14px;
+    margin-bottom: 6px; transition: color .2s;
+  }
+  .footer-contact-info a:hover { color: #fff; }
+  .footer-copy {
+    width: 100%; text-align: center;
+    font-size: 12px; color: rgba(255,255,255,0.3);
+    padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    nav.scrolled { padding: 12px 24px; }
+    .nav-right { display: none; }
+    .nav-hamburger { display: flex; }
+    .about-body { grid-template-columns: 1fr; gap: 40px; }
+    .values-grid { grid-template-columns: repeat(2, 1fr); }
+    footer { padding: 40px 24px; }
+    .footer-contact-info { text-align: left; }
+  }
+  @media (max-width: 560px) { .values-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 600px) {
+    .about-hero { padding: 60px 24px; }
+    footer { padding: 32px 16px; }
+    .footer-copy { font-size: 11px; }
+  }
+  @media (max-width: 768px) { .nav-phone { display: none; } }
+</style>
+</head>
+<body>
+
+<div id="siteHeader">
+  <nav id="navbar">
+    <div class="nav-logo">
+      <a href="/" style="text-decoration:none;">
+        <span style="font-family:'Playfair Display',serif; font-size:19px; font-weight:700; color:var(--blue-deep);">🫧 Evergreen <span style="color:var(--blue-bright);">Cleaning Services</span></span>
+      </a>
+    </div>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleMobileMenu()" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-right">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/faq.html">FAQ</a></li>
+        <li><a href="/about.html" class="active">About</a></li>
+        <li class="nav-phone"><a href="tel:+13524620627">📞 (352) 462-0627</a></li>
+      </ul>
+      <a href="/?quote=1" class="nav-cta">Get a Quote</a>
+    </div>
+  </nav>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="/">Home</a>
+    <a href="/faq.html">FAQ</a>
+    <a href="/about.html">About</a>
+    <a href="/?quote=1" class="mobile-nav-cta">Get a Free Quote</a>
+    <a href="tel:+13524620627" class="mobile-nav-phone">📞 (352) 462-0627</a>
+  </div>
+</div>
+
+<div class="page-content">
+
+  <!-- HERO BANNER -->
+  <div class="about-hero">
+    <img class="hero-logo" src="CleaningServicesTransparent.png" alt="Evergreen Cleaning Services"/>
+    <p class="eyebrow">Our Story</p>
+    <h1>Locally Owned &amp;<br/>Operated in Citrus County</h1>
+    <p class="sub">No corporate runaround. Just honest house cleaning from locals who actually show up.</p>
+  </div>
+
+  <!-- ABOUT BODY -->
+  <div class="about-body">
+    <div>
+      <h2>Hi, we're Hunter &amp; Jon.</h2>
+      <p>We started Evergreen Cleaning Services because we saw how hard it was for homeowners in Citrus County to find a cleaning service that was actually reliable — one that showed up when they said they would, did great work, and didn't overcharge.</p>
+      <p>So we built that service ourselves. We're locals, we know these neighborhoods, and we genuinely care about doing right by the people we work for. When you book with Evergreen, you're not calling a call center — you're calling us.</p>
+      <p>We serve Citrus County and surrounding areas. Every clean is done with eco-friendly supplies, priced by the size of your home, and backed by our 5-star service guarantee. No shortcuts, no add-ons you didn't ask for, no surprises on the invoice.</p>
+      <div class="badge-row">
+        <span class="badge">✓ Fully Insured</span>
+        <span class="badge">🌱 Eco-Friendly Supplies</span>
+        <span class="badge">⭐ 5-Star Service</span>
+        <span class="badge">📍 Citrus County Local</span>
+      </div>
+    </div>
+
+    <div class="owner-card">
+      <div style="display:flex;justify-content:center;gap:20px;margin-bottom:20px;">
+        <div style="text-align:center;">
+          <div style="font-size:42px;margin-bottom:8px;">🫧</div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--blue-deep);font-weight:700;">Hunter</div>
+          <div style="color:var(--text-muted);font-size:13px;">Co-Owner</div>
+        </div>
+        <div style="width:1px;background:rgba(13,42,66,0.15);margin:4px 0;"></div>
+        <div style="text-align:center;">
+          <div style="font-size:42px;margin-bottom:8px;">🫧</div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--blue-deep);font-weight:700;">Jon</div>
+          <div style="color:var(--text-muted);font-size:13px;">Co-Owner</div>
+        </div>
+      </div>
+      <div class="quote">"Your home is where life happens. We want every house we clean to feel like a fresh start — because that's what it should be."</div>
+      <a href="/?quote=1" class="cta-btn">Get Your Free Quote →</a>
+    </div>
+  </div>
+
+  <!-- VALUES -->
+  <div class="values-strip">
+    <h2>What We Stand For</h2>
+    <div class="values-grid">
+      <div class="value-item">
+        <div class="vi-icon">🤝</div>
+        <div class="vi-title">Reliability</div>
+        <div class="vi-desc">We show up when we say we will. No ghosting, no last-minute cancellations.</div>
+      </div>
+      <div class="value-item">
+        <div class="vi-icon">💰</div>
+        <div class="vi-title">Fair Pricing</div>
+        <div class="vi-desc">Flat rates based on your home's size. No hidden fees, no surprise charges.</div>
+      </div>
+      <div class="value-item">
+        <div class="vi-icon">✨</div>
+        <div class="vi-title">Quality Work</div>
+        <div class="vi-desc">Every clean done to a checklist, every time. We don't cut corners — we clean them.</div>
+      </div>
+      <div class="value-item">
+        <div class="vi-icon">📍</div>
+        <div class="vi-title">Local First</div>
+        <div class="vi-desc">We're Citrus County people serving Citrus County homeowners. Community matters.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <div class="footer-brand-text">🫧 Evergreen <span>Cleaning Services</span></div>
+      <div class="footer-tagline">We clean. You relax.</div>
+    </div>
+    <ul class="footer-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/?quote=1">Get a Quote</a></li>
+      <li><a href="/faq.html">FAQ</a></li>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="refund-policy.html">Refund Policy</a></li>
+      <li><a href="privacy-policy.html">Privacy Policy</a></li>
+      <li><a href="terms-of-service.html">Terms of Service</a></li>
+    </ul>
+    <div class="footer-contact-info">
+      <a href="tel:+13524620627">(352) 462-0627</a>
+      <a href="mailto:hunternodine.official@gmail.com">hunternodine.official@gmail.com</a>
+    </div>
+    <div class="footer-copy">© <span id="copy-year"></span> Evergreen Cleaning Services — Citrus County, FL</div>
+  </footer>
+
+</div>
+
+<script>
+  window.addEventListener('scroll', function() {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 10);
+  });
+  function toggleMobileMenu() {
+    var btn = document.getElementById('navHamburger');
+    var nav = document.getElementById('mobileNav');
+    var isOpen = nav.classList.toggle('open');
+    btn.classList.toggle('open', isOpen);
+    btn.setAttribute('aria-expanded', String(isOpen));
+  }
+  function closeMobileMenu() {
+    var m = document.getElementById('mobileNav');
+    var b = document.getElementById('navHamburger');
+    if (m) m.classList.remove('open');
+    if (b) { b.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); }
+  }
+  document.getElementById('copy-year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Evergreen Cleaning Services | House Cleaning in Central Florida</title>
+<meta name="description" content="Evergreen Cleaning Services — professional house cleaning in Central Florida. Standard, deep, and move-in/out cleans starting at $90. Fully insured, eco-friendly supplies, 5-star service."/>
+<meta name="keywords" content="house cleaning Citrus County FL, maid service Inverness FL, deep cleaning Crystal River, move out cleaning Lecanto FL, home cleaning Central Florida"/>
+<meta name="robots" content="index, follow"/>
+
+<!-- Open Graph -->
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Evergreen Cleaning Services | Central Florida"/>
+<meta property="og:description" content="Professional house cleaning in Central Florida. Standard, deep, and move-in/out cleans starting at $90. Fully insured · Eco-friendly supplies · 5-star service."/>
+<meta property="og:image" content="CleaningServicesTransparent.png"/>
+<meta property="og:site_name" content="Evergreen Cleaning Services"/>
+<meta property="og:locale" content="en_US"/>
+
+<!-- Schema.org Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HouseCleaningService",
+  "name": "Evergreen Cleaning Services",
+  "telephone": "+13524620627",
+  "priceRange": "$90–$420",
+  "image": "CleaningServicesTransparent.png",
+  "description": "Evergreen Cleaning Services — professional house cleaning serving Central Florida. Standard, deep, and move-in/out cleaning with flat-rate pricing starting at $90.",
+  "areaServed": {
+    "@type": "AdministrativeArea",
+    "name": "Central Florida"
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Inverness",
+    "addressRegion": "FL",
+    "postalCode": "34450",
+    "addressCountry": "US"
+  },
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+      "opens": "07:00",
+      "closes": "19:00"
+    }
+  ],
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "House Cleaning Services",
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "itemOffered": { "@type": "Service", "name": "Standard Clean — Studio / 1 Bedroom", "description": "Full standard house cleaning for a studio or 1-bedroom home." },
+        "price": "90", "priceCurrency": "USD"
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": { "@type": "Service", "name": "Deep Clean — Studio / 1 Bedroom", "description": "Top-to-bottom deep cleaning for a studio or 1-bedroom home." },
+        "price": "160", "priceCurrency": "USD"
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": { "@type": "Service", "name": "Move In/Out Clean — Studio / 1 Bedroom", "description": "Complete move-in or move-out cleaning for a studio or 1-bedroom home." },
+        "price": "220", "priceCurrency": "USD"
+      }
+    ]
+  }
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
+<noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/></noscript>
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80&fm=jpg"/>
+<link rel="icon" type="image/png" href="CleaningServicesTransparent.png"/>
+<link rel="apple-touch-icon" href="CleaningServicesTransparent.png"/>
+
+<style>
+  :root {
+    --blue-deep: #0d2a42;
+    --blue-mid: #1565a8;
+    --blue-bright: #3da9e0;
+    --blue-light: #8fd0f0;
+    --blue-pale: #e8f4fb;
+    --cream: #f8fbfd;
+    --gold: #c9a84c;
+    --white: #ffffff;
+    --text: #1a1a1a;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ── SITE HEADER ── */
+  #siteHeader { position: fixed; top: 0; left: 0; right: 0; z-index: 400; }
+
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 60px;
+    background: rgba(248,251,253,0.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(13,42,66,0.07);
+    transition: box-shadow .3s, padding .3s;
+  }
+  nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.08); padding: 10px 60px; }
+  .nav-logo a { display:flex; align-items:center; gap:10px; text-decoration:none; }
+  .nav-logo .logo-text {
+    font-family:'Playfair Display',serif; font-size:19px; font-weight:700; color:var(--blue-deep);
+  }
+  .nav-logo .logo-text span { color: var(--blue-bright); }
+  .nav-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 28px; }
+  .nav-links { display: flex; align-items: center; gap: 30px; list-style: none; }
+  .nav-links a {
+    text-decoration: none;
+    font-size: 14px; font-weight: 500; letter-spacing: .03em;
+    color: var(--blue-deep);
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--blue-bright); }
+  .nav-cta {
+    background: var(--blue-mid);
+    color: #fff !important;
+    padding: 10px 24px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px; font-weight: 600;
+    transition: background .2s;
+  }
+  .nav-cta:hover { background: var(--blue-deep); }
+
+  .nav-hamburger {
+    display:none; flex-direction:column; gap:5px;
+    background:none; border:none; cursor:pointer; padding:8px;
+  }
+  .nav-hamburger span { display:block; width:24px; height:2.5px; background:var(--blue-deep); border-radius:2px; transition:all .25s; }
+  .mobile-nav {
+    display:none; flex-direction:column;
+    background:#fff; border-bottom:1px solid var(--border);
+    padding:10px 24px 18px;
+  }
+  .mobile-nav.open { display:flex; }
+  .mobile-nav a {
+    padding:12px 4px; text-decoration:none; color:var(--blue-deep);
+    font-size:15px; font-weight:500; border-bottom:1px solid #f0f5f9;
+  }
+  .mobile-nav-cta {
+    margin-top:12px; background:var(--blue-mid); color:#fff !important;
+    text-align:center; border-radius:8px; padding:13px !important; font-weight:700 !important; border:none !important;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    display: flex; align-items: stretch;
+    min-height: 100vh;
+    position: relative; overflow: hidden;
+  }
+  .hero-left {
+    position: relative; z-index: 2;
+    flex: 0 0 44%;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 110px 56px 60px 60px;
+    background: linear-gradient(155deg, #06141f 0%, #0a2235 30%, #0d2a42 60%, #11375a 85%, #0c2740 100%);
+    overflow: hidden;
+  }
+  .hero-left::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(61,169,224,.07) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+    animation: gridDrift 20s linear infinite;
+  }
+  @keyframes gridDrift { 0% { background-position: 0 0; } 100% { background-position: 28px 28px; } }
+  .hero-left::after {
+    content: '';
+    position: absolute; bottom: -15%; left: -15%;
+    width: 500px; height: 500px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(61,169,224,0.14) 0%, transparent 65%);
+    pointer-events: none;
+    animation: orbDrift 12s ease-in-out infinite;
+  }
+  @keyframes orbDrift {
+    0%,100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(30px,-25px) scale(1.08); }
+    66% { transform: translate(-15px,-40px) scale(0.95); }
+  }
+  .hero-right {
+    flex: 1; position: relative; z-index: 1;
+    background: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80&fm=jpg') center/cover no-repeat;
+  }
+  .hero-right::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to right, rgba(13,42,66,0.25) 0%, transparent 40%);
+  }
+  .hero-content { position: relative; z-index: 2; }
+  .hero-logo { width: 170px; margin: -20px 0 6px -14px; filter: drop-shadow(0 4px 14px rgba(0,0,0,.35)); }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(61,169,224,0.14);
+    border: 1px solid rgba(61,169,224,0.3);
+    padding: 6px 16px; border-radius: 100px;
+    font-size: 13px; font-weight: 500;
+    color: var(--blue-light);
+    margin-bottom: 26px;
+    animation: fadeUp .6s ease both;
+  }
+  .hero-badge::before {
+    content: '';
+    width: 7px; height: 7px; background: var(--blue-bright); border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(42px, 4.3vw, 66px);
+    font-weight: 900; line-height: 1.07;
+    color: #fff; margin-bottom: 20px;
+    letter-spacing: -.02em;
+    animation: fadeUp .7s .1s ease both;
+  }
+  .hero h1 em { font-style: normal; color: var(--blue-bright); }
+  .hero p {
+    font-size: 16px; line-height: 1.8;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 34px; max-width: 430px;
+    animation: fadeUp .7s .2s ease both;
+  }
+  .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; animation: fadeUp .7s .3s ease both; }
+  .btn-primary {
+    background: var(--blue-bright);
+    color: #fff;
+    padding: 15px 32px; border-radius: 8px;
+    font-size: 15px; font-weight: 600; font-family: inherit;
+    text-decoration: none; border: none; cursor: pointer;
+    display: inline-block;
+    box-shadow: 0 4px 18px rgba(61,169,224,0.35);
+    transition: background .2s, transform .15s, box-shadow .2s;
+  }
+  .btn-primary:hover { background: #2b96cf; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(61,169,224,0.45); }
+  .btn-secondary {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.85);
+    padding: 15px 32px; border-radius: 8px;
+    font-size: 15px; font-weight: 600; font-family: inherit;
+    text-decoration: none;
+    border: 1.5px solid rgba(255,255,255,0.18);
+    cursor: pointer; display: inline-block;
+    transition: all .2s;
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.35); transform: translateY(-2px); }
+
+  .hero-pills { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .hero-pill {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(255,255,255,0.09); border:1px solid rgba(255,255,255,0.14);
+    border-radius:50px; padding:7px 14px;
+    font-size:13px; font-weight:600; color:rgba(255,255,255,0.9);
+  }
+  .hero-trust { display:flex; gap:18px; flex-wrap:wrap; }
+  .hero-trust span {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:12px; font-weight:500; color:rgba(255,255,255,0.5); letter-spacing:.01em;
+  }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+  /* ── SECTIONS ── */
+  .section-label {
+    text-align:center; font-size:11px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase;
+    color:var(--blue-mid); margin-bottom:12px;
+  }
+  .section-title {
+    font-family:'Playfair Display',serif;
+    font-size:clamp(28px,3.5vw,44px); font-weight:700;
+    text-align:center; color:var(--blue-deep);
+    margin-bottom:14px; line-height:1.15;
+  }
+  .section-sub {
+    text-align:center; font-size:16px; color:var(--text-muted);
+    max-width:560px; margin:0 auto 52px; line-height:1.7;
+  }
+
+  /* Service cards */
+  .services-grid {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
+    gap:24px; max-width:1100px; margin:0 auto;
+  }
+  .service-card {
+    border:1px solid rgba(13,42,66,0.1); border-radius:16px;
+    padding:38px 32px; background:#fff;
+    display:flex; flex-direction:column;
+    position:relative; overflow:hidden;
+    transition:transform .2s, box-shadow .2s, border-color .2s;
+  }
+  .service-card:hover { transform:translateY(-4px); box-shadow:0 16px 48px rgba(21,101,168,0.12); border-color:var(--blue-bright); }
+  .service-card.featured { background:var(--blue-deep); border-color:var(--blue-deep); }
+  .service-card.featured .service-name { color:#fff; }
+  .service-card.featured .service-desc { color:rgba(255,255,255,0.7); }
+  .service-card.featured .service-includes li { color:rgba(255,255,255,0.85); }
+  .service-card.featured .service-price { color:#fff; }
+  .featured-badge {
+    position:absolute; top:18px; right:18px;
+    background:var(--gold); color:#fff;
+    font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+    padding:4px 12px; border-radius:100px;
+  }
+  .service-icon {
+    width:54px; height:54px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:25px; margin-bottom:22px;
+    background:var(--blue-pale);
+  }
+  .service-card.featured .service-icon { background:rgba(255,255,255,0.14); }
+  .service-name { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--blue-deep); margin-bottom:8px; }
+  .service-price { font-size:14px; font-weight:700; color:var(--blue-mid); margin-bottom:12px; }
+  .service-desc { font-size:14px; line-height:1.7; color:var(--text-muted); margin-bottom:20px; }
+  .service-includes { list-style:none; margin-bottom:26px; }
+  .service-includes li {
+    font-size:13.5px; padding:5px 0;
+    display:flex; align-items:flex-start; gap:9px;
+    color:#374151; line-height:1.5;
+  }
+  .service-includes li::before { content:'✓'; color:var(--blue-bright); font-weight:700; flex-shrink:0; }
+  .btn-book {
+    margin-top:auto;
+    background:var(--blue-mid); color:#fff;
+    text-align:center; padding:13px; border-radius:8px;
+    font-size:14px; font-weight:600; text-decoration:none;
+    border:none; cursor:pointer; font-family:inherit;
+    transition:background .2s;
+  }
+  .btn-book:hover { background:var(--blue-deep); }
+  .service-card.featured .btn-book { background:var(--blue-bright); }
+  .service-card.featured .btn-book:hover { background:#2b96cf; }
+
+  /* Pricing table */
+  .pricing-wrap { max-width:880px; margin:0 auto; background:#fff; border:1px solid #e2ecf4; border-radius:18px; overflow:hidden; box-shadow:0 6px 30px rgba(13,42,66,0.06); }
+  .pricing-head {
+    display:flex; justify-content:space-between;
+    background:var(--blue-deep); color:#fff;
+    padding:14px 28px;
+    font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  }
+  .pricing-group {
+    padding:10px 28px 4px;
+    font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--blue-deep); border-top:1px solid #eef4f9;
+  }
+  .pricing-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:11px 28px;
+  }
+  .pricing-row:nth-child(odd of .pricing-row) { background:#f4f9fc; }
+  .pricing-row .p-left { display:flex; align-items:center; gap:12px; }
+  .p-tag {
+    font-size:11px; font-weight:700; padding:4px 11px; border-radius:50px; white-space:nowrap;
+  }
+  .p-tag.std  { background:#e3edfb; color:#2456a8; }
+  .p-tag.deep { background:#f3e8fa; color:#7b2fa8; }
+  .p-tag.move { background:#e2f7e9; color:#1e7a43; }
+  .p-desc { font-size:14px; color:#374151; }
+  .p-price { font-size:19px; font-weight:700; color:var(--blue-deep); }
+  .pricing-badges {
+    display:flex; gap:14px; justify-content:center; flex-wrap:wrap;
+    max-width:880px; margin:22px auto 0;
+  }
+  .pricing-badges div {
+    flex:1; min-width:200px;
+    background:#fff; border:1px solid #dbe9f3; border-radius:12px;
+    text-align:center; padding:15px 12px;
+    font-size:12.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--blue-deep);
+  }
+
+  /* Photo grid */
+  .photo-grid {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+    max-width:1100px; margin:0 auto;
+  }
+  .photo-grid > div { overflow:hidden; border-radius:14px; aspect-ratio:4/3; }
+  .photo-grid img {
+    width:100%; height:100%; object-fit:cover;
+    transition:transform .4s ease;
+  }
+  .photo-grid img:hover { transform:scale(1.05); }
+
+  /* Coming soon cards */
+  .soon-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:22px; max-width:880px; margin:0 auto; }
+  .soon-card {
+    display:block; text-decoration:none;
+    background:#fff; border:1px solid #dbe9f3; border-radius:16px;
+    padding:34px 30px; position:relative;
+    transition:transform .2s, box-shadow .2s, border-color .2s;
+  }
+  .soon-card:hover { transform:translateY(-4px); box-shadow:0 14px 40px rgba(21,101,168,0.1); border-color:var(--blue-bright); }
+  .soon-tag {
+    position:absolute; top:18px; right:18px;
+    background:var(--blue-pale); color:var(--blue-mid);
+    font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+    padding:4px 12px; border-radius:100px;
+  }
+  .soon-card .s-icon { font-size:32px; margin-bottom:14px; }
+  .soon-card .s-name { font-family:'Playfair Display',serif; font-size:21px; font-weight:700; color:var(--blue-deep); margin-bottom:8px; }
+  .soon-card .s-desc { font-size:14px; color:var(--text-muted); line-height:1.7; }
+
+  /* FOOTER */
+  footer {
+    background:var(--blue-deep);
+    padding:54px 60px 40px;
+    text-align:center; color:rgba(255,255,255,0.7);
+  }
+  footer img.f-logo { width:150px; margin:0 auto 4px; }
+  .footer-tagline { font-size:13.5px; color:rgba(255,255,255,0.5); margin-bottom:26px; }
+  .footer-links {
+    list-style:none; display:flex; gap:26px; justify-content:center; flex-wrap:wrap;
+    margin-bottom:26px;
+  }
+  .footer-links a { color:rgba(255,255,255,0.75); text-decoration:none; font-size:13.5px; transition:color .2s; }
+  .footer-links a:hover { color:var(--blue-bright); }
+  .footer-contact-info { display:flex; flex-direction:column; gap:6px; margin-bottom:26px; }
+  .footer-contact-info a { color:var(--blue-light); text-decoration:none; font-size:14px; }
+  .footer-copy { font-size:12.5px; color:rgba(255,255,255,0.4); }
+
+  /* MODAL */
+  .modal-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(6,20,31,0.65); z-index:900;
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:#fff; border-radius:18px;
+    width:100%; max-width:480px; max-height:92vh; overflow-y:auto;
+    padding:34px 32px; position:relative;
+    animation:fadeUp .3s ease both;
+  }
+  .modal-close {
+    position:absolute; top:14px; right:16px;
+    background:none; border:none; font-size:20px; cursor:pointer; color:#9ca3af;
+  }
+  .form-row { margin-bottom:14px; }
+  .form-row label { display:block; font-size:12.5px; font-weight:700; color:var(--blue-deep); margin-bottom:6px; letter-spacing:.03em; }
+  .form-row input, .form-row select, .form-row textarea {
+    width:100%; padding:12px 14px;
+    border:1.5px solid var(--border); border-radius:9px;
+    font-family:inherit; font-size:14px; background:#fff; outline:none;
+    transition:border-color .2s;
+  }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color:var(--blue-bright); }
+
+  .reveal, .animate-up { opacity:0; transform:translateY(22px); transition:opacity .6s ease, transform .6s ease; }
+  .reveal.visible, .animate-up.visible { opacity:1; transform:translateY(0); }
+
+  /* BACK TO TOP */
+  #backToTop {
+    display:none; position:fixed; bottom:24px; right:20px; z-index:999;
+    width:44px; height:44px; border-radius:50%;
+    background:var(--blue-mid); color:#fff; border:none;
+    font-size:20px; line-height:1; cursor:pointer;
+    box-shadow:0 4px 16px rgba(13,42,66,0.25);
+    align-items:center; justify-content:center;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding:12px 20px; }
+    nav.scrolled { padding:10px 20px; }
+    .nav-right { display:none; }
+    .nav-hamburger { display:flex; }
+    .hero { flex-direction:column; min-height:auto; }
+    .hero-left { flex:none; padding:120px 28px 56px; }
+    .hero-right { min-height:300px; }
+    .photo-grid { grid-template-columns:repeat(2,1fr); }
+    section { padding-left:24px !important; padding-right:24px !important; }
+    footer { padding:48px 24px 36px; }
+    .pricing-head, .pricing-row, .pricing-group { padding-left:18px; padding-right:18px; }
+  }
+  @media (max-width: 540px) {
+    .photo-grid { grid-template-columns:1fr; }
+    .p-desc { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SITE HEADER -->
+<div id="siteHeader">
+  <nav id="navbar">
+    <div class="nav-logo">
+      <a href="/">
+        <span class="logo-text">🫧 Evergreen <span>Cleaning Services</span></span>
+      </a>
+    </div>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleMobileMenu()" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-right">
+      <ul class="nav-links">
+        <li><a href="#services">Services</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="pool-cleaning.html">Pool Cleaning</a></li>
+        <li><a href="pressure-washing.html">Pressure Washing</a></li>
+        <li><a href="/faq.html">FAQ</a></li>
+        <li><a href="/about.html">About</a></li>
+        <li><a href="tel:+13524620627">📞 (352) 462-0627</a></li>
+      </ul>
+      <a href="javascript:void(0)" onclick="openQuoteModal()" class="nav-cta">Get a Quote</a>
+    </div>
+  </nav>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="#services" onclick="closeMobileMenu()">Services</a>
+    <a href="#pricing" onclick="closeMobileMenu()">Pricing</a>
+    <a href="pool-cleaning.html">Pool Cleaning</a>
+    <a href="pressure-washing.html">Pressure Washing</a>
+    <a href="/faq.html">FAQ</a>
+    <a href="/about.html">About</a>
+    <a href="javascript:void(0)" class="mobile-nav-cta" onclick="closeMobileMenu();openQuoteModal()">Get a Free Quote</a>
+    <a href="tel:+13524620627">📞 (352) 462-0627</a>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-content">
+      <img src="CleaningServicesTransparent.png" alt="Evergreen Cleaning Services" class="hero-logo"/>
+      <div class="hero-badge">A Solutions Based Company 🫧</div>
+      <h1>A Spotless Home,<br/><em>Every Single Time</em></h1>
+      <p>Central Florida's professional house cleaning company. Flat-rate pricing starting at $90, eco-friendly supplies, and a 5-star service guarantee — no contracts, cancel anytime.</p>
+      <div class="hero-btns">
+        <button onclick="openQuoteModal()" class="btn-primary">Get a Free Quote</button>
+        <a href="tel:+13524620627" class="btn-secondary">📞 (352) 462-0627</a>
+      </div>
+      <div style="border-top:1px solid rgba(255,255,255,0.12);padding-top:22px;margin-top:34px;">
+        <div class="hero-pills">
+          <span class="hero-pill">🧹 Standard Clean</span>
+          <span class="hero-pill">✨ Deep Clean</span>
+          <span class="hero-pill">📦 Move In/Out</span>
+        </div>
+        <div class="hero-trust">
+          <span>✓ Fully Insured</span>
+          <span>🌱 Eco-Friendly Supplies</span>
+          <span>⭐ 5-Star Service</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-right" role="img" aria-label="A bright, freshly cleaned modern home"></div>
+</section>
+
+<!-- SERVICES -->
+<section id="services" style="background:#fff;padding:96px 48px;">
+  <p class="section-label animate-up">What We Do</p>
+  <h2 class="section-title animate-up">Three Cleans. One Standard: Spotless.</h2>
+  <p class="section-sub animate-up">Every visit is done by a trained, insured cleaner using eco-friendly supplies. Pick the clean that fits — we handle the rest.</p>
+
+  <div class="services-grid">
+    <!-- Standard -->
+    <div class="service-card reveal">
+      <div class="service-icon">🧹</div>
+      <div class="service-name">Standard Clean</div>
+      <div class="service-price">From $90</div>
+      <div class="service-desc">The perfect recurring clean to keep your home fresh week after week.</div>
+      <ul class="service-includes">
+        <li>Dust all surfaces &amp; furniture</li>
+        <li>Vacuum &amp; mop all floors</li>
+        <li>Kitchen counters, sink &amp; exterior appliances</li>
+        <li>Full bathroom clean — toilets, tubs, mirrors</li>
+        <li>Trash emptied &amp; beds made</li>
+      </ul>
+      <button class="btn-book" onclick="openQuoteModal('Standard Clean')">Get a Quote →</button>
+    </div>
+
+    <!-- Deep -->
+    <div class="service-card featured reveal">
+      <div class="featured-badge">Most Popular</div>
+      <div class="service-icon">✨</div>
+      <div class="service-name">Deep Clean</div>
+      <div class="service-price">From $160</div>
+      <div class="service-desc">A top-to-bottom reset. Ideal for first visits, spring cleaning, or anytime your home needs extra attention.</div>
+      <ul class="service-includes">
+        <li>Everything in the Standard Clean</li>
+        <li>Baseboards, door frames &amp; switch plates</li>
+        <li>Inside microwave &amp; appliance detailing</li>
+        <li>Scrub tile grout, faucets &amp; fixtures</li>
+        <li>Ceiling fans, vents &amp; window sills</li>
+      </ul>
+      <button class="btn-book" onclick="openQuoteModal('Deep Clean')">Get a Quote →</button>
+    </div>
+
+    <!-- Move In/Out -->
+    <div class="service-card reveal">
+      <div class="service-icon">📦</div>
+      <div class="service-name">Move In/Out Clean</div>
+      <div class="service-price">From $220</div>
+      <div class="service-desc">Empty-home cleaning built for moving day, landlords, and deposit returns.</div>
+      <ul class="service-includes">
+        <li>Everything in the Deep Clean</li>
+        <li>Inside all cabinets, drawers &amp; closets</li>
+        <li>Inside oven &amp; refrigerator</li>
+        <li>Spot-clean walls &amp; doors</li>
+        <li>Garage &amp; entryway sweep-out</li>
+      </ul>
+      <button class="btn-book" onclick="openQuoteModal('Move In/Out Clean')">Get a Quote →</button>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" style="background:var(--cream);padding:96px 48px;">
+  <p class="section-label animate-up">Service Pricing</p>
+  <h2 class="section-title animate-up">Flat-Rate Pricing. No Surprises.</h2>
+  <p class="section-sub animate-up">Priced by home size — what you see is what you pay.</p>
+
+  <div class="pricing-wrap animate-up">
+    <div class="pricing-head"><span>Service</span><span>Price</span></div>
+
+    <div class="pricing-group">Studio / 1 Bedroom</div>
+    <div class="pricing-row"><div class="p-left"><span class="p-tag std">Standard</span><span class="p-desc">Studio / 1 bed</span></div><span class="p-price">$90</span></div>
+    <div class="pricing-row"><div class="p-left"><span class="p-tag deep">Deep Clean</span><span class="p-desc">Studio / 1 bed</span></div><span class="p-price">$160</span></div>
+    <div class="pricing-row"><div class="p-left"><span class="p-tag move">Move In/Out</span><span class="p-desc">Studio / 1 bed</span></div><span class="p-price">$220</span></div>
+
+    <div class="pricing-group">2 Bedroom · 1 Bathroom</div>
+    <div class="pricing-row"><div class="p-left"><span class="p-tag std">Standard</span><span class="p-desc">2 bed · 1 bath</span></div><span class="p-price">$120</span></div>
+    <div class="pricing-row"><div class="p-left"><span class="p-tag deep">Deep Clean</span><span class="p-desc">2 bed · 1 bath</span></div><span class="p-price">$200</span></div>
+    <div class="pricing-row"><div class="p-left"><span class="p-tag move">Move In/Out</span><span class="p-desc">2 bed · 1 bath</span></div><span class="p-price">$270</span></div>
+
+    <div class="pricing-group">3 Bedroom · 2 Bathroom</div>
+    <div class="pricing-row"><div class="p-left"><span class="p-tag std">Standard</span><span class="p-desc">3 bed · 2 bath</span></div><span class="p-price">$160</span></div>
+    <div class="pricing-row"><div class="p-left"><span class="p-tag deep">Deep Clean</span><span class="p-desc">3 bed · 2 bath</span></div><span class="p-price">$260</span></div>
+    <div class="pricing-row"><div class="p-left"><span class="p-tag move">Move In/Out</span><span class="p-desc">3 bed · 2 bath</span></div><span class="p-price">$340</span></div>
+
+    <div class="pricing-group">4 Bedroom · 2–3 Bathroom</div>
+    <div class="pricing-row"><div class="p-left"><span class="p-tag std">Standard</span><span class="p-desc">4 bed · 2-3 bath</span></div><span class="p-price">$200</span></div>
+    <div class="pricing-row"><div class="p-left"><span class="p-tag deep">Deep Clean</span><span class="p-desc">4 bed · 2-3 bath</span></div><span class="p-price">$320</span></div>
+    <div class="pricing-row"><div class="p-left"><span class="p-tag move">Move In/Out</span><span class="p-desc">4 bed · 2-3 bath</span></div><span class="p-price">$420</span></div>
+  </div>
+
+  <div class="pricing-badges animate-up">
+    <div>Fully Insured</div>
+    <div>Eco-Friendly Supplies</div>
+    <div>5-Star Service</div>
+  </div>
+
+  <p style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:18px;">Larger home or something unique? <a href="javascript:void(0)" onclick="openQuoteModal()" style="color:var(--blue-mid);font-weight:600;">Request a custom quote →</a></p>
+</section>
+
+<!-- PHOTO GRID -->
+<section style="background:#fff;padding:90px 48px;">
+  <p class="section-label animate-up">Our Work</p>
+  <h2 class="section-title animate-up">Clean You Can See</h2>
+  <p class="section-sub animate-up">Sparkling kitchens, fresh bathrooms, dust-free everything.</p>
+  <div class="photo-grid animate-up">
+    <div><img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=900&q=80&fm=jpg" alt="Professional cleaner wiping down a kitchen surface" loading="lazy"/></div>
+    <div><img src="https://images.unsplash.com/photo-1563453392212-326f5e854473?w=900&q=80&fm=jpg" alt="Eco-friendly cleaning supplies" loading="lazy"/></div>
+    <div><img src="https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=900&q=80&fm=jpg" alt="Disinfecting surfaces with gloves and spray" loading="lazy"/></div>
+    <div><img src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=900&q=80&fm=jpg" alt="Freshly cleaned home interior" loading="lazy"/></div>
+  </div>
+</section>
+
+<!-- MORE SERVICES (COMING SOON) -->
+<section style="background:var(--cream);padding:90px 48px;">
+  <p class="section-label animate-up">More From Evergreen</p>
+  <h2 class="section-title animate-up">Beyond the House</h2>
+  <p class="section-sub animate-up">Two more ways we keep your whole property spotless — launching soon.</p>
+  <div class="soon-grid animate-up">
+    <a class="soon-card" href="pool-cleaning.html">
+      <span class="soon-tag">Coming Soon</span>
+      <div class="s-icon">🏊</div>
+      <div class="s-name">Pool Cleaning</div>
+      <div class="s-desc">Weekly pool maintenance, chemical balancing, and crystal-clear water — year-round Florida pool care.</div>
+    </a>
+    <a class="soon-card" href="pressure-washing.html">
+      <span class="soon-tag">Coming Soon</span>
+      <div class="s-icon">💦</div>
+      <div class="s-name">Pressure Washing</div>
+      <div class="s-desc">Driveways, siding, pool decks, and roofs — blast away years of Florida grime and mildew.</div>
+    </a>
+  </div>
+</section>
+
+<!-- SERVICE AREAS -->
+<div id="service-areas" style="padding:18px 48px;text-align:center;border-top:1px solid #e4edf4;background:#fff;">
+  <p style="font-size:12.5px;color:var(--text-muted);margin:0;">
+    <span style="font-weight:600;color:var(--blue-mid);">📍 We serve:</span>&ensp;Citrus Springs · Inverness · Crystal River · Beverly Hills · Lecanto · Floral City · Hernando · Homosassa
+  </p>
+</div>
+
+<!-- CLOSING CTA -->
+<section style="background:#fff;padding:64px 48px;text-align:center;border-top:1px solid #e4edf4;">
+  <div class="animate-up" style="display:inline-flex;flex-direction:column;align-items:center;gap:14px;">
+    <button onclick="openQuoteModal()" class="btn-primary" style="padding:17px 48px;font-size:16px;border-radius:10px;">Get My Free Cleaning Quote →</button>
+    <span style="font-size:13px;color:var(--text-muted);">No contracts · Cancel anytime · Or call <a href="tel:+13524620627" style="color:var(--blue-mid);font-weight:600;">(352) 462-0627</a></span>
+  </div>
+</section>
+
+<!-- BACK TO TOP -->
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">↑</button>
+
+<!-- FOOTER -->
+<footer>
+  <img src="CleaningServicesTransparent.png" alt="Evergreen Cleaning Services" class="f-logo"/>
+  <div class="footer-tagline">We clean. You relax.</div>
+  <ul class="footer-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="pool-cleaning.html">Pool Cleaning</a></li>
+    <li><a href="pressure-washing.html">Pressure Washing</a></li>
+    <li><a href="/faq.html">FAQ</a></li>
+    <li><a href="/about.html">About</a></li>
+    <li><a href="refund-policy.html">Refund Policy</a></li>
+    <li><a href="privacy-policy.html">Privacy Policy</a></li>
+    <li><a href="terms-of-service.html">Terms of Service</a></li>
+  </ul>
+  <div class="footer-contact-info">
+    <a href="tel:+13524620627">(352) 462-0627</a>
+    <a href="mailto:hunternodine.official@gmail.com">hunternodine.official@gmail.com</a>
+  </div>
+  <div class="footer-copy">© <span id="copy-year"></span> Evergreen Cleaning Services — A Solutions Based Company</div>
+</footer>
+
+<!-- QUOTE MODAL -->
+<div class="modal-overlay" id="quoteModalOverlay" onclick="if(event.target===this)closeQuoteModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeQuoteModal()" aria-label="Close">✕</button>
+    <div id="quoteFormView">
+      <h2 style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--blue-deep);margin-bottom:6px;">Get your free quote</h2>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Tell us about your home and we'll confirm your flat rate and earliest available day.</p>
+      <div class="form-row">
+        <label>Full Name</label>
+        <input type="text" id="q-name" placeholder="Jane Smith" autocomplete="name"/>
+      </div>
+      <div class="form-row">
+        <label>Phone or Email</label>
+        <input type="text" id="q-contact" placeholder="(352) 555-0123 or you@email.com"/>
+      </div>
+      <div class="form-row">
+        <label>Type of Clean</label>
+        <select id="q-type">
+          <option value="Standard Clean">Standard Clean</option>
+          <option value="Deep Clean">Deep Clean</option>
+          <option value="Move In/Out Clean">Move In/Out Clean</option>
+          <option value="Not sure yet">Not sure yet</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Home Size</label>
+        <select id="q-size">
+          <option value="Studio / 1 bed">Studio / 1 bedroom</option>
+          <option value="2 bed · 1 bath">2 bedroom · 1 bathroom</option>
+          <option value="3 bed · 2 bath">3 bedroom · 2 bathroom</option>
+          <option value="4 bed · 2-3 bath">4 bedroom · 2–3 bathroom</option>
+          <option value="Larger / other">Larger / other</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Address or Area</label>
+        <input type="text" id="q-address" placeholder="123 Oak St, Inverness, FL" autocomplete="street-address"/>
+      </div>
+      <div class="form-row">
+        <label>Anything else? <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+        <textarea id="q-notes" rows="2" placeholder="Pets, preferred days, special requests..."></textarea>
+      </div>
+      <div id="q-error" style="color:#e53e3e;font-size:13px;margin-bottom:12px;display:none;">Please add your name and a phone number or email so we can reach you.</div>
+      <button class="btn-primary" style="width:100%;font-size:16px;padding:15px;" onclick="submitQuote()">Send My Quote Request →</button>
+      <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;">Prefer to talk? Call <a href="tel:+13524620627" style="color:var(--blue-mid);font-weight:600;">(352) 462-0627</a></div>
+    </div>
+    <div id="quoteSuccessView" style="display:none;text-align:center;padding:14px 0;">
+      <div style="font-size:44px;margin-bottom:12px;">✅</div>
+      <h3 style="font-family:'Playfair Display',serif;font-size:23px;font-weight:700;color:var(--blue-deep);margin-bottom:10px;">Almost done!</h3>
+      <p style="font-size:14.5px;color:var(--text-muted);line-height:1.7;">Your email app should open with your quote request ready to send — just hit <strong>Send</strong>. If it didn't open, call or text us at <a href="tel:+13524620627" style="color:var(--blue-mid);font-weight:600;">(352) 462-0627</a>.</p>
+      <button class="btn-primary" style="width:100%;margin-top:18px;" onclick="closeQuoteModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONTACT CONFIG ──
+const QUOTE_EMAIL = 'hunternodine.official@gmail.com'; // ← change to your business email when ready
+
+// ── NAV ──
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+});
+function toggleMobileMenu() {
+  const nav = document.getElementById('mobileNav');
+  const btn = document.getElementById('navHamburger');
+  const open = nav.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open);
+}
+function closeMobileMenu() {
+  document.getElementById('mobileNav').classList.remove('open');
+  document.getElementById('navHamburger').setAttribute('aria-expanded', 'false');
+}
+
+// ── QUOTE MODAL ──
+function openQuoteModal(presetType) {
+  document.getElementById('quoteFormView').style.display = '';
+  document.getElementById('quoteSuccessView').style.display = 'none';
+  if (presetType) {
+    const sel = document.getElementById('q-type');
+    [...sel.options].forEach(o => { if (o.value === presetType) sel.value = presetType; });
+  }
+  document.getElementById('quoteModalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeQuoteModal() {
+  document.getElementById('quoteModalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function submitQuote() {
+  const name    = document.getElementById('q-name').value.trim();
+  const contact = document.getElementById('q-contact').value.trim();
+  const type    = document.getElementById('q-type').value;
+  const size    = document.getElementById('q-size').value;
+  const address = document.getElementById('q-address').value.trim();
+  const notes   = document.getElementById('q-notes').value.trim();
+  const err     = document.getElementById('q-error');
+
+  if (!name || !contact) { err.style.display = 'block'; return; }
+  err.style.display = 'none';
+
+  const subject = encodeURIComponent('Cleaning Quote Request — ' + name);
+  const body = encodeURIComponent(
+    'Name: ' + name +
+    '\nContact: ' + contact +
+    '\nType of clean: ' + type +
+    '\nHome size: ' + size +
+    '\nAddress/Area: ' + (address || '(not provided)') +
+    '\nNotes: ' + (notes || '(none)')
+  );
+  window.location.href = 'mailto:' + QUOTE_EMAIL + '?subject=' + subject + '&body=' + body;
+
+  document.getElementById('quoteFormView').style.display = 'none';
+  document.getElementById('quoteSuccessView').style.display = '';
+}
+
+// ── FOOTER YEAR ──
+document.getElementById('copy-year').textContent = new Date().getFullYear();
+
+// ── SCROLL REVEALS ──
+document.addEventListener('DOMContentLoaded', () => {
+  const els = document.querySelectorAll('.reveal, .animate-up');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) { entry.target.classList.add('visible'); io.unobserve(entry.target); }
+    });
+  }, { threshold: 0.05, rootMargin: '0px 0px 80px 0px' });
+  els.forEach(el => io.observe(el));
+
+  // Back-to-top (mobile)
+  const btt = document.getElementById('backToTop');
+  if (btt && window.innerWidth <= 900) {
+    window.addEventListener('scroll', () => {
+      btt.style.display = window.scrollY > 400 ? 'flex' : 'none';
+    }, { passive: true });
+  }
+
+  // Auto-open quote modal via /?quote=1 or #quote
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('quote') === '1' || location.hash === '#quote') openQuoteModal();
+});
+</script>
+
+</body>
+</html>
