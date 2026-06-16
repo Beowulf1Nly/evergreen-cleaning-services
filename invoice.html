@@ -1570,10 +1570,9 @@
           <div style="margin-bottom:20px;">
             <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:block;margin-bottom:6px;">Job Type</label>
             <div id="finishRouteJobBtns" style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="finish-job-btn active" onclick="selectFinishJobType(this,'Mowing')"     style="flex:1;min-width:80px;">🫧 Mowing</button>
-              <button class="finish-job-btn"        onclick="selectFinishJobType(this,'Weeding')"    style="flex:1;min-width:80px;">🌱 Weeding</button>
-              <button class="finish-job-btn"        onclick="selectFinishJobType(this,'Cleaning')"   style="flex:1;min-width:80px;">🧹 Cleaning</button>
-              <button class="finish-job-btn"        onclick="selectFinishJobType(this,'Landscaping')" style="flex:1;min-width:80px;">🌳 Landscaping</button>
+              <button class="finish-job-btn active" onclick="selectFinishJobType(this,'Maid Cleaning')"    style="flex:1;min-width:80px;">🧹 Maid Cleaning</button>
+              <button class="finish-job-btn"        onclick="selectFinishJobType(this,'Pressure Washing')" style="flex:1;min-width:80px;">💦 Pressure Washing</button>
+              <button class="finish-job-btn"        onclick="selectFinishJobType(this,'Pool Route')"      style="flex:1;min-width:80px;">🏊 Pool Route</button>
             </div>
           </div>
 
@@ -1847,9 +1846,9 @@
       <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:14px;">
         <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Job Type</div>
         <select id="job-type" class="login-input" style="margin-bottom:0;font-weight:600;" onchange="jobTypeChange()">
-          <option value="mowing">🫧 Mowing</option>
-          <option value="landscaping">🏡 Landscaping</option>
+          <option value="maid">🧹 Maid Cleaning</option>
           <option value="pressure-washing">💦 Pressure Washing</option>
+          <option value="pool">🏊 Pool Route</option>
           <option value="other">🔧 Other</option>
         </select>
       </div>
@@ -2846,8 +2845,8 @@ function jobInit() {
 
 // ── Called whenever Job Type dropdown changes ──
 function jobTypeChange() {
-  const type = document.getElementById('job-type')?.value || 'mowing';
-  const isMowing = type === 'mowing';
+  const type = document.getElementById('job-type')?.value || 'maid';
+  const isMowing = false; // cleaning: manual price, no yard-size autofill
 
   // Show/hide mowing-specific fields inside the shared card
   const mowingFields = document.getElementById('job-mowing-fields');
@@ -2886,12 +2885,12 @@ function jobRecurringToggle() {
 // ── Returns a human-readable label for the current job type ──
 function jobTypeLabel() {
   const map = {
-    'mowing':           'home service',
+    'maid':             'cleaning',
     'landscaping':      'landscaping job',
     'pressure-washing': 'pressure washing job',
     'other':            'job',
   };
-  return map[document.getElementById('job-type')?.value || 'mowing'] || 'job';
+  return map[document.getElementById('job-type')?.value || 'maid'] || 'job';
 }
 
 function jobAutoFillPrice() {
@@ -2955,8 +2954,8 @@ function jobOtherCalcTotal() {
 }
 
 function jobAutoFillEmail() {
-  const jobType   = document.getElementById('job-type')?.value || 'mowing';
-  const isMowing  = jobType === 'mowing';
+  const jobType   = document.getElementById('job-type')?.value || 'maid';
+  const isMowing  = false;
   const name      = (document.getElementById('job-name')?.value    || '').trim();
   const firstName = name.split(' ')[0] || '';
   const date      = (document.getElementById('job-date')?.value    || '').trim();
@@ -3024,7 +3023,7 @@ function openJobTab(rowIdx) {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
   // Default to Mowing for quote visits
   const typeEl = document.getElementById('job-type');
-  if (typeEl) typeEl.value = 'mowing';
+  if (typeEl) typeEl.value = 'maid';
   set('job-name',    b.name    || '');
   set('job-phone',   b.phone   || '');
   set('job-email',   b.email   || '');
@@ -3041,8 +3040,8 @@ function openJobTab(rowIdx) {
 }
 
 async function submitJob() {
-  const jobType   = document.getElementById('job-type')?.value || 'mowing';
-  const isMowing  = jobType === 'mowing';
+  const jobType   = document.getElementById('job-type')?.value || 'maid';
+  const isMowing  = false;
   const name      = (document.getElementById('job-name')?.value    || '').trim();
   const phone     = (document.getElementById('job-phone')?.value   || '').trim();
   const email     = (document.getElementById('job-email')?.value   || '').trim();
@@ -3117,7 +3116,7 @@ async function submitJob() {
     if (!description) { showToast('Enter a job description'); return; }
     if (!total)       { showToast('Enter the total price for this job'); return; }
 
-    const typeLabel = { 'landscaping': 'Landscaping', 'pressure-washing': 'Pressure Washing', 'other': 'Other' }[jobType] || 'Other';
+    const typeLabel = { 'maid': 'Maid Cleaning', 'pressure-washing': 'Pressure Washing', 'pool': 'Pool Route', 'other': 'Other' }[jobType] || 'Other';
 
     // Frequency: one-time by default; recurring only if the checkbox is checked
     const isRecurring   = document.getElementById('job-recurring')?.checked;
@@ -3213,7 +3212,7 @@ function jobReset() {
   const dateEl = document.getElementById('job-date');
   if (dateEl) dateEl.value = iso;
   const typeEl = document.getElementById('job-type');
-  if (typeEl) typeEl.value = 'mowing';
+  if (typeEl) typeEl.value = 'maid';
   const promoEl = document.getElementById('job-promo');
   if (promoEl) promoEl.checked = false;
   const sendEmail = document.getElementById('job-send-email');
@@ -4005,7 +4004,7 @@ function openJobTabFromEstimate(est) {
   showTab('job');
   // Default to Mowing (most common follow-up to a quote visit)
   const typeEl = document.getElementById('job-type');
-  if (typeEl) typeEl.value = 'mowing';
+  if (typeEl) typeEl.value = 'maid';
   // Fill customer fields
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
   set('job-name',    est.name    || '');
@@ -4703,7 +4702,7 @@ function triggerMarkDone(rowIdx) {
   openConfirm(
     isQuote ? `Mark visit for "${b.name||'customer'}" as done?`
             : `Mark "${b.name||'job'}" as done?`,
-    isQuote ? 'Mark this quote visit as completed. A "Schedule Plan" button will appear so you can set them up with a mowing plan.'
+    isQuote ? 'Mark this quote visit as completed. A "Schedule Plan" button will appear so you can set them up with a cleaning plan.'
             : 'Are you sure you want to mark this job as completed? This cannot be undone.',
     () => executeMarkDone(rowIdx)
   );
@@ -6423,7 +6422,7 @@ let _lastCalendarUpdates = [];    // calendarUpdates from the most recent buildR
 // ── Employee clock-in state ───────────────────────────────────────────────
 let _clockInTime     = null;   // Date when employee started route
 let _clockInInterval = null;   // setInterval for the elapsed timer
-let _finishJobType   = 'Mowing';
+let _finishJobType   = 'Maid Cleaning';
 
 // ── Zip → Zone mapping for Citrus County service area ───────────────────
 const ZIP_ZONE = {
@@ -6910,11 +6909,9 @@ function showFinishRouteModal() {
   if (dayOrder) {
     const stops = Array.isArray(dayOrder) ? dayOrder : Object.values(dayOrder).flat();
     const freq = stops.map(s => String(s.bk?.frequency || s.bk?.service || '').toLowerCase());
-    const isMowing = freq.some(f => /clean|home/.test(f));
-    const isWeed   = freq.some(f => /weed|trim/.test(f));
-    const isClean  = freq.some(f => /clean/.test(f));
-    const isLand   = freq.some(f => /landscape|mulch|plant/.test(f));
-    _finishJobType = isMowing ? 'Mowing' : isWeed ? 'Weeding' : isClean ? 'Cleaning' : isLand ? 'Landscaping' : 'Mowing';
+    const isPressure = freq.some(f => /pressure|wash/.test(f));
+    const isPool     = freq.some(f => /pool/.test(f));
+    _finishJobType = isPressure ? 'Pressure Washing' : isPool ? 'Pool Route' : 'Maid Cleaning';
   }
   // Highlight the matching button
   document.querySelectorAll('.finish-job-btn').forEach(b => {

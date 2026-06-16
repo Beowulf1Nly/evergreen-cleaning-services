@@ -956,8 +956,8 @@
     </div>
     <div id="quoteSuccessView" style="display:none;text-align:center;padding:14px 0;">
       <div style="font-size:44px;margin-bottom:12px;">✅</div>
-      <h3 style="font-family:'Playfair Display',serif;font-size:23px;font-weight:700;color:var(--blue-deep);margin-bottom:10px;">Almost done!</h3>
-      <p style="font-size:14.5px;color:var(--text-muted);line-height:1.7;">Your email app should open with your quote request ready to send — just hit <strong>Send</strong>. If it didn't open, call or text us at <a href="tel:+13524620627" style="color:var(--blue-mid);font-weight:600;">(352) 462-0627</a>.</p>
+      <h3 style="font-family:'Playfair Display',serif;font-size:23px;font-weight:700;color:var(--blue-deep);margin-bottom:10px;">Booking received! 🎉</h3>
+      <p style="font-size:14.5px;color:var(--text-muted);line-height:1.7;">Thanks! Your request is in — we'll confirm your day and exact price by text or email shortly. Need us sooner? Call or text <a href="tel:+13524620627" style="color:var(--blue-mid);font-weight:600;">(352) 462-0627</a>.</p>
       <button class="btn-primary" style="width:100%;margin-top:18px;" onclick="closeQuoteModal()">Close</button>
     </div>
   </div>
@@ -965,7 +965,10 @@
 
 <script>
 // ── CONTACT CONFIG ──
-const QUOTE_EMAIL = 'evergreencleaningservicesfl@gmail.com'; // ← change to your business email when ready
+const QUOTE_EMAIL = 'evergreencleaningservicesfl@gmail.com';
+// Booking backend — same Apps Script web app the staff portal uses.
+const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbxkrw4S5fjdvID0RRownPZqh-kQdUQzaNY7Z4CVbGefkyT2ai0IdmQBYR45ooL5fCMl/exec';
+let _bookCtx = {}; // filled by the home builder so the booking carries the price
 
 // ── NAV ──
 window.addEventListener('scroll', () => {
@@ -1009,16 +1012,41 @@ function submitQuote() {
   if (!name || !contact) { err.style.display = 'block'; return; }
   err.style.display = 'none';
 
-  const subject = encodeURIComponent('Cleaning Quote Request — ' + name);
+  // Split the single contact field into email vs phone.
+  const isEmail = contact.includes('@');
+  const price   = (_bookCtx && _bookCtx.price != null) ? _bookCtx.price : '';
+
+  // Send the booking to the Apps Script backend (lands in the Bookings sheet).
+  // no-cors = fire-and-forget; we confirm the customer by email/text.
+  const params = new URLSearchParams({
+    name:           name,
+    email:          isEmail ? contact : '',
+    phone:          isEmail ? '' : contact,
+    address:        address || '',
+    zip:            '',
+    service:        type,
+    price:          String(price),
+    frequency:      'One-time visit',
+    serviceDateRaw: '',
+    serviceDate:    '',
+    notes:          (size ? ('Home size: ' + size + '. ') : '') + (notes || ''),
+    payMethod:      'Pay After Service'
+  });
+  try {
+    fetch(SCRIPT_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' });
+  } catch (e) { /* fire-and-forget */ }
+
+  // Email fallback so the request is never lost if the backend is unreachable.
+  const subject = encodeURIComponent('Booking Request — ' + name);
   const body = encodeURIComponent(
-    'Name: ' + name +
-    '\nContact: ' + contact +
-    '\nType of clean: ' + type +
-    '\nHome size: ' + size +
-    '\nAddress/Area: ' + (address || '(not provided)') +
-    '\nNotes: ' + (notes || '(none)')
+    'Name: ' + name + '\nContact: ' + contact + '\nService: ' + type +
+    '\nHome size: ' + size + '\nAddress: ' + (address || '(not provided)') +
+    (price ? ('\nBuilder price: $' + price) : '') + '\nNotes: ' + (notes || '(none)')
   );
-  window.location.href = 'mailto:' + QUOTE_EMAIL + '?subject=' + subject + '&body=' + body;
+  // Only open the email client as a backstop if there's no backend configured.
+  if (!SCRIPT_URL || SCRIPT_URL.indexOf('script.google.com') === -1) {
+    window.location.href = 'mailto:' + QUOTE_EMAIL + '?subject=' + subject + '&body=' + body;
+  }
 
   document.getElementById('quoteFormView').style.display = 'none';
   document.getElementById('quoteSuccessView').style.display = '';
@@ -1163,6 +1191,7 @@ function selectBuilderService(which){
 // hand off the built home to the quote modal
 function bookFromBuilder(){
   const svc = SVC_NAME[BLD.service];
+  _bookCtx = { service: svc, price: totalFor(BLD.service), home: homeSummary() };
   const chosen = ADDONS.filter(a=>BLD.addons[a.id]).map(a=>a.name.replace(/^[^ ]+ /,''));
   if (BLD.extra>0) chosen.push(BLD.extra+' add-on room'+(BLD.extra>1?'s':''));
   if (BLD.pets) chosen.push('Pets in home');
