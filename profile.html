@@ -11,9 +11,9 @@
 </script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>My Account — Evergreen Lawn Care</title>
+<title>My Account — Evergreen Cleaning Services</title>
 <meta name="robots" content="noindex, nofollow"/>
-<meta name="description" content="Manage your Evergreen Lawn Care account — view upcoming visits, billing details, and service history."/>
+<meta name="description" content="Manage your Evergreen Cleaning Services account — view upcoming visits, billing details, and service history."/>
 <link rel="icon" type="image/x-icon" href="favicon.ico"/>
 <link rel="icon" type="image/png" href="favicon.png"/>
 <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
@@ -27,10 +27,10 @@
 <link rel="preconnect" href="https://script.google.com"/>
 <style>
   :root {
-    --green-deep:   #1a3a1a;
-    --green-mid:    #2d6a2d;
-    --green-bright: #4caf50;
-    --green-pale:   #e8f5e9;
+    --green-deep:   #0d2a42;
+    --green-mid:    #1565a8;
+    --green-bright: #3da9e0;
+    --green-pale:   #e8f4fb;
     --green-xpale:  #f4f9f4;
     --cream:        #faf9f6;
     --white:        #ffffff;
@@ -202,7 +202,7 @@
   }
   .portal-brand:hover { opacity:.8; }
   .portal-brand { white-space:nowrap; }
-  .portal-brand span { color:#7ec87e; }
+  .portal-brand span { color:#8fd0f0; }
   .portal-header-right { display:flex; align-items:center; gap:8px; }
   .btn-logout {
     padding:8px 14px; background:rgba(255,255,255,.12); color:rgba(255,255,255,.8);
@@ -245,7 +245,7 @@
     position:relative; overflow:hidden;
   }
   .greeting-card::after {
-    content:'🌿'; position:absolute; right:20px; top:20px;
+    content:'🫧'; position:absolute; right:20px; top:20px;
     font-size:52px; opacity:.2;
   }
   .greeting-name { font-family:'Playfair Display',serif; font-size:22px; margin-bottom:4px; }
@@ -290,7 +290,7 @@
     white-space:nowrap; flex-shrink:0;
     text-transform:uppercase; letter-spacing:.04em;
   }
-  .chip-paid     { background:#e0f2e9; color:#166534; }
+  .chip-paid     { background:#e0f2e9; color:#0d2a42; }
   .chip-unpaid   { background:#fff7ed; color:#92400e; }
   .chip-done     { background:#eff6ff; color:#1d4ed8; }
   .chip-invoiced { background:#e0f2fe; color:#075985; }
@@ -406,23 +406,23 @@
   .billing-info-row:last-child { margin-bottom:0; }
   .billing-info-label { font-size:13px; color:var(--text-muted); }
   .billing-info-value { font-size:13px; font-weight:600; color:var(--text); text-align:right; }
-  .billing-info-value.green { color:#166534; }
+  .billing-info-value.green { color:#0d2a42; }
   .billing-info-value.gold  { color:#92400e; }
-  /* Mow progress dots */
-  .mow-dots { display:flex; gap:6px; margin:14px 0 6px; }
-  .mow-dot  {
+  /* Clean progress dots */
+  .clean-dots { display:flex; gap:6px; margin:14px 0 6px; }
+  .clean-dot  {
     width:28px; height:8px; border-radius:4px;
     background:var(--border); transition:background .2s;
   }
-  .mow-dot.filled  { background:var(--green-bright); }
-  .mow-dot.pending { background:#fbbf24; }   /* last dot — next charge */
-  .mow-dot-label   { font-size:12px; color:var(--text); font-weight:500; }
+  .clean-dot.filled  { background:var(--green-bright); }
+  .clean-dot.pending { background:#fbbf24; }   /* last dot — next charge */
+  .clean-dot-label   { font-size:12px; color:var(--text); font-weight:500; }
 
   /* ── Staff Portal banner ── */
   .staff-portal-section {
     display:none;
     margin-bottom:20px;
-    background:linear-gradient(135deg, var(--green-deep) 0%, #2d6a2d 100%);
+    background:linear-gradient(135deg, var(--green-deep) 0%, #1565a8 100%);
     border-radius:16px;
     padding:20px 24px;
     color:#fff;
@@ -571,7 +571,7 @@
 ═══════════════════════════════════════════ -->
 <div id="screen-login" class="screen">
   <div class="login-card">
-    <div class="login-leaf">🌿</div>
+    <div class="login-leaf">🫧</div>
     <h1>My Account</h1>
     <p>Enter your email and we'll send you a magic link to sign in — no password needed.</p>
     <label class="login-label" for="loginEmail">Email address</label>
@@ -613,7 +613,7 @@
 <div id="screen-profile" class="screen">
   <!-- Header -->
   <header class="portal-header">
-    <a href="/" class="portal-brand">🌿 Evergreen <span>&nbsp;Lawn Care</span></a>
+    <a href="/" class="portal-brand">🫧 Evergreen <span>&nbsp;Cleaning Services</span></a>
     <div class="portal-header-right">
       <a href="/invoice.html" id="adminHeaderBtn" style="display:none;padding:7px 14px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:700;background:rgba(255,255,255,.15);color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.25);cursor:pointer;">🛠 Admin</a>
       <button class="btn-logout" onclick="logout()">Sign Out</button>
@@ -707,7 +707,7 @@
     <div class="tab-panel" id="panelSettings">
 
       <!-- Email change success banner (shown after clicking confirm link) -->
-      <div id="emailChangeSuccess" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#166534;font-weight:500;">
+      <div id="emailChangeSuccess" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#0d2a42;font-weight:500;">
         ✅ Email updated successfully. Use your new address to log in next time.
       </div>
 
@@ -807,7 +807,7 @@
         </div>
         <div class="settings-row" id="extraMowRow" style="display:none;">
           <div>
-            <div class="settings-label">Extra Mow</div>
+            <div class="settings-label">Extra Clean</div>
             <div class="settings-sub">Add a one-time visit between your regular schedule</div>
           </div>
           <button class="btn-add-card" id="extraMowBtn" onclick="openExtraMowModal()">Schedule →</button>
@@ -837,7 +837,7 @@
       <div class="settings-row" id="cancelSubscriptionRow" style="display:none;margin-top:24px;background:#fff;border-radius:16px;border:1.5px solid #fca5a5;">
         <div>
           <div class="settings-label" style="color:var(--red);">Cancel Subscription</div>
-          <div class="settings-sub">End your lawn care plan</div>
+          <div class="settings-sub">End your home care plan</div>
         </div>
         <button class="btn-cancel-sub" onclick="openCancelModal()">Cancel Plan</button>
       </div>
@@ -871,7 +871,7 @@
 <div id="cancelModal" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-title">🚫 Cancel Subscription</div>
-    <div class="modal-sub" id="cancelModalSub">Are you sure you want to cancel your lawn care plan?</div>
+    <div class="modal-sub" id="cancelModalSub">Are you sure you want to cancel your home care plan?</div>
     <button class="cancel-option" id="cancelOptImmediate" onclick="selectCancelType('immediate')">
       <div class="cancel-option-title">Cancel Immediately</div>
       <div class="cancel-option-desc">All upcoming scheduled appointments will be removed right away.</div>
@@ -909,7 +909,7 @@
         <div class="cancel-option-desc">Every future visit would shift by the same number of days.</div>
       </button>
     </div>
-    <div id="rescheduleRequestSuccess" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:14px 16px;font-size:14px;color:#15803d;font-weight:600;margin-bottom:12px;">
+    <div id="rescheduleRequestSuccess" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:14px 16px;font-size:14px;color:#1565a8;font-weight:600;margin-bottom:12px;">
       ✅ Request sent! We'll confirm your new date via text or email soon.
     </div>
     <div class="modal-btns" id="rescheduleBtns">
@@ -958,16 +958,16 @@
 ═══════════════════════════════════════════ -->
 <div id="extraMowModal" class="modal-overlay">
   <div class="modal-box">
-    <div class="modal-title">➕ Request an Extra Mow</div>
+    <div class="modal-title">➕ Request an Extra Clean</div>
     <div class="modal-sub">We'll review your request and confirm the date with you.</div>
     <div style="margin:18px 0 8px;">
       <label style="display:block;font-size:13px;font-weight:600;color:var(--green-deep);margin-bottom:8px;">Preferred date</label>
       <input type="date" id="extraMowDate" style="width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:15px;outline:none;" oninput="this.style.borderColor='var(--green-mid)';updateExtraMowBtn()"/>
     </div>
     <div style="margin-bottom:18px;padding:12px 14px;background:var(--green-pale);border-radius:10px;font-size:13px;color:var(--green-deep);line-height:1.6;">
-      This requests a one-time extra mow on top of your regular schedule. We'll confirm the date and pricing before scheduling.
+      This requests a one-time extra clean on top of your regular schedule. We'll confirm the date and pricing before scheduling.
     </div>
-    <div id="extraMowRequestSuccess" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:14px 16px;font-size:14px;color:#15803d;font-weight:600;margin-bottom:12px;">
+    <div id="extraMowRequestSuccess" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:14px 16px;font-size:14px;color:#1565a8;font-weight:600;margin-bottom:12px;">
       ✅ Request sent! We'll confirm the date via text or email soon.
     </div>
     <div class="modal-btns" id="extraMowBtns">
@@ -980,7 +980,7 @@
 
 <!-- ═══════════════════════════════════════════
      SCHEDULE CONFLICT MODAL
-     (shared by reschedule + extra mow flows)
+     (shared by reschedule + extra clean flows)
 ═══════════════════════════════════════════ -->
 <div id="conflictModal" class="modal-overlay">
   <div class="modal-box">
@@ -1001,7 +1001,7 @@
       </button>
       <button class="cancel-option" id="conflictOptKeep" onclick="selectConflictResolution('keep')">
         <div class="cancel-option-title">Keep everything as-is</div>
-        <div class="cancel-option-desc">Two mows close together is fine with me</div>
+        <div class="cancel-option-desc">Two cleans close together is fine with me</div>
       </button>
     </div>
     <div class="modal-btns">
@@ -1016,7 +1016,7 @@
 // ═══════════════════════════════════════════════════════════════════════
 // CONFIG — update this to match your deployed Apps Script URL
 // ═══════════════════════════════════════════════════════════════════════
-const SCRIPT_URL      = 'https://script.google.com/macros/s/AKfycbwAbZCSvrFrB9AT7P0elSBueERyllZuYOOgV6wGVld54al3aBQNCxYonGuiDDdrvJ7suw/exec';
+const SCRIPT_URL      = 'https://script.google.com/macros/s/AKfycbxkrw4S5fjdvID0RRownPZqh-kQdUQzaNY7Z4CVbGefkyT2ai0IdmQBYR45ooL5fCMl/exec';
 const SESSION_KEY     = 'eg_portal_session';
 // ↓ Get this from Stripe Dashboard → Developers → API Keys → Publishable key
 const STRIPE_PUB_KEY  = 'pk_live_51TLrat4J18msjfgfYqm9zvDa2pkr5ZPv6s10bl5UwMIYnAqpJbXEU14YXFlS6sEA3H0VgsLPTxHuPWD6YutUy1J000mzhTGL1N';
@@ -1226,7 +1226,7 @@ function renderProfile(data) {
   const name     = data.name     || '';
   const email    = data.email    || '';
   const bookings = data.bookings || [];
-  // Cache bookings globally so the Extra Mow pre-fill can use upcoming dates
+  // Cache bookings globally so the Extra Clean pre-fill can use upcoming dates
   window._cachedBookings = bookings;
 
   // Greeting
@@ -1350,9 +1350,9 @@ function renderBillingCard(bookings, hasCard) {
   const card    = document.getElementById('billingCard');
   if (!section || !card) return;
 
-  // Find the customer's active subscription plan — only true recurring mowing plans count
-  const MOWING_PLANS = ['Weekly Plan', 'Bi-Weekly Plan', 'Custom Plan'];
-  const subBookings = bookings.filter(b => b.frequency && MOWING_PLANS.includes(b.frequency));
+  // Find the customer's active subscription plan — only true recurring cleaning plans count
+  const RECURRING_PLANS = ['Weekly Plan', 'Bi-Weekly Plan', 'Custom Plan'];
+  const subBookings = bookings.filter(b => b.frequency && RECURRING_PLANS.includes(b.frequency));
   if (!subBookings.length) { section.style.display = 'none'; return; }
 
   // Detect cash customer — check both calendarEvent (paidStatus) and payMethod (calStatus) for 'cash'
@@ -1399,7 +1399,7 @@ function renderBillingCard(bookings, hasCard) {
   const mowRate    = _ongoingRaw;
   const mowRateStr = mowRate > 0 ? '$' + mowRate.toFixed(0) : '';
 
-  // Multi-property: find each unique address and look up its actual per-mow rate.
+  // Multi-property: find each unique address and look up its actual per-clean rate.
   // Don't assume all properties have the same price — sum the real rates.
   const _uniqueAddrs = [...new Set(subBookings.map(b => String(b.address||'').toLowerCase().trim()).filter(Boolean))];
   const propCount    = _uniqueAddrs.length || 1;
@@ -1425,32 +1425,32 @@ function renderBillingCard(bookings, hasCard) {
   const _nextPrice    = nextAppt ? parseFloat(String(nextAppt.price||'').replace(/[^0-9.]/g,'')) : 0;
   const _nextIsPromo  = nextAppt ? _isPromoPrice(nextAppt) : false;
   const promoNote     = (_nextIsPromo && mowRate > 0 && _nextPrice > 0 && _nextPrice < mowRate)
-    ? `<div style="margin-top:8px;font-size:12px;color:#92400e;">🎉 Your first visit is just $${_nextPrice.toFixed(0)} — then ${mowRateStr} per mow ongoing.</div>`
+    ? `<div style="margin-top:8px;font-size:12px;color:#92400e;">🎉 Your first visit is just $${_nextPrice.toFixed(0)} — then ${mowRateStr} per clean ongoing.</div>`
     : '';
 
   let html = '';
 
   if (isWeekly) {
-    // Count done weekly mows to determine position in 4-mow billing cycle
+    // Count done weekly cleans to determine position in 4-clean billing cycle
     const doneMows   = subBookings.filter(b =>
       b.frequency === 'Weekly Plan' && String(b.done || '').includes('Done')
     ).length;
-    // Position in current cycle (1 = payment mow just done, 2-4 = covered, 0 = starting fresh)
+    // Position in current cycle (1 = payment clean just done, 2-4 = covered, 0 = starting fresh)
     const cyclePos   = doneMows % 4;
-    // Mow 1 of cycle = payment mow. Next cycle starts when cyclePos hits 0 again.
+    // Clean 1 of cycle = payment clean. Next cycle starts when cyclePos hits 0 again.
     const isPaymentMow  = cyclePos === 1;
-    const coveredSoFar  = cyclePos === 0 ? 0 : cyclePos - 1; // done covered mows this cycle
-    const coveredTotal  = 3;                                  // 3 covered mows per cycle
+    const coveredSoFar  = cyclePos === 0 ? 0 : cyclePos - 1; // done covered cleans this cycle
+    const coveredTotal  = 3;                                  // 3 covered cleans per cycle
 
     // Dots: first dot = payment (gold/green), remaining = covered (green=done, grey=upcoming)
-    let dotsHtml = '<div class="mow-dot ' + (cyclePos >= 1 ? 'filled' : 'pending') + '" title="Payment mow"></div>';
+    let dotsHtml = '<div class="clean-dot ' + (cyclePos >= 1 ? 'filled' : 'pending') + '" title="Payment clean"></div>';
     for (let i = 1; i < 4; i++) {
-      if (i < cyclePos)      dotsHtml += '<div class="mow-dot filled" title="Covered"></div>';
-      else if (i === cyclePos && cyclePos > 0) dotsHtml += '<div class="mow-dot" style="background:#d1fae5;" title="Next covered mow"></div>';
-      else                   dotsHtml += '<div class="mow-dot"></div>';
+      if (i < cyclePos)      dotsHtml += '<div class="clean-dot filled" title="Covered"></div>';
+      else if (i === cyclePos && cyclePos > 0) dotsHtml += '<div class="clean-dot" style="background:#d1fae5;" title="Next covered clean"></div>';
+      else                   dotsHtml += '<div class="clean-dot"></div>';
     }
 
-    // Check if the payment mow was actually paid vs just invoiced
+    // Check if the payment clean was actually paid vs just invoiced
     const payMow = subBookings.find(b =>
       b.frequency === freq && String(b.done || '').includes('Done') &&
       !String(b.calendarEvent || b.payMethod || '').includes('Covered')
@@ -1468,15 +1468,15 @@ function renderBillingCard(bookings, hasCard) {
 
     let chargeInfo, cycleLabel, alertBox = '';
     if (cyclePos === 0) {
-      // Check if the upcoming first mow is already paid (e.g. $19 promo booked via quote flow)
+      // Check if the upcoming first clean is already paid (e.g. $19 promo booked via quote flow)
       const nextCalEvent = String(nextAppt ? (nextAppt.calendarEvent || nextAppt.payMethod || '') : '');
       const firstMowPrepaid = nextCalEvent.includes('✅');
       if (firstMowPrepaid) {
-        chargeInfo = '<span class="billing-info-value green">✅ First mow paid ($19) — card saved for future billing</span>';
-        cycleLabel = '● = first mow (paid)  ○ = included mows';
+        chargeInfo = '<span class="billing-info-value green">✅ First clean paid ($19) — card saved for future billing</span>';
+        cycleLabel = '● = first clean (paid)  ○ = included cleans';
       } else {
         chargeInfo = '';
-        cycleLabel = '● = payment mow  ○ = included mows';
+        cycleLabel = '● = payment clean  ○ = included cleans';
       }
     } else if (isPaymentMow) {
       if (invoiceSent) {
@@ -1487,28 +1487,28 @@ function renderBillingCard(bookings, hasCard) {
             ? `<button onclick="openInvoiceByFetch('${invoiceId}', this)" style="display:inline-block;margin-top:10px;padding:10px 22px;background:#92400e;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Pay Invoice →</button>`
             : '<span style="font-size:12px;display:block;margin-top:8px;">Check your email for the payment link.</span>';
         alertBox   = `<div style="margin-top:12px;padding:12px 16px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;font-size:13px;color:#92400e;line-height:1.6;">
-          ⚠️ <strong>You have an unpaid invoice.</strong> Your next 3 mows are scheduled but your spot isn't secured until payment is received.
+          ⚠️ <strong>You have an unpaid invoice.</strong> Your next 3 cleans are scheduled but your spot isn't secured until payment is received.
           <br>${payBtn}
         </div>`;
-        cycleLabel = '● = payment mow (pending)  ○ = scheduled mows';
+        cycleLabel = '● = payment clean (pending)  ○ = scheduled cleans';
       } else if (actuallyPaid) {
         chargeInfo = '<span class="billing-info-value green">✅ Paid — your next 3 visits are already covered</span>';
-        cycleLabel = '● = paid  ○ = already covered mows';
+        cycleLabel = '● = paid  ○ = already covered cleans';
       } else {
         chargeInfo = '';
-        cycleLabel = '● = payment mow  ○ = included mows';
+        cycleLabel = '● = payment clean  ○ = included cleans';
       }
     } else {
       const remaining = 4 - cyclePos;
       chargeInfo  = `<span class="billing-info-value green">✅ ${remaining} visit${remaining !== 1 ? 's' : ''} already paid for and included this month</span>`;
-      cycleLabel  = `Mow ${cyclePos} of 4 — ${remaining} paid-for visit${remaining !== 1 ? 's' : ''} remaining`;
+      cycleLabel  = `Clean ${cyclePos} of 4 — ${remaining} paid-for visit${remaining !== 1 ? 's' : ''} remaining`;
     }
 
     html = `
       <div class="billing-plan-row">
         <div>
           <div class="billing-plan-name">📅 Weekly Plan</div>
-          <div class="billing-plan-sub">${perPropLabel}/mow — ${isCashCustomer ? '💵 cash, collected after each visit' : hasCard ? 'charged after each visit' : 'invoiced after each visit'}</div>
+          <div class="billing-plan-sub">${perPropLabel}/clean — ${isCashCustomer ? '💵 cash, collected after each visit' : hasCard ? 'charged after each visit' : 'invoiced after each visit'}</div>
         </div>
       </div>
       <hr class="billing-divider">
@@ -1517,31 +1517,31 @@ function renderBillingCard(bookings, hasCard) {
         <span class="billing-info-value">${nextDateLabel}</span>
       </div>
       <div class="billing-info-row">
-        <span class="billing-info-label">Per-mow rate</span>
-        <span class="billing-info-value">${totalLabel} — ${isCashCustomer ? '💵 paid in cash' : hasCard ? 'charged after each mow' : 'invoiced after each mow'}</span>
+        <span class="billing-info-label">Per-clean rate</span>
+        <span class="billing-info-value">${totalLabel} — ${isCashCustomer ? '💵 paid in cash' : hasCard ? 'charged after each clean' : 'invoiced after each clean'}</span>
       </div>
       ${chargeInfo ? `<div class="billing-info-row"><span class="billing-info-label">This month</span>${chargeInfo}</div>` : ''}
-      <div class="mow-dots">${dotsHtml}</div>
+      <div class="clean-dots">${dotsHtml}</div>
       ${alertBox}
-      <div style="margin-top:12px;padding:10px 14px;background:${isCashCustomer ? '#fef9c3' : '#f0fdf4'};border-radius:10px;font-size:12px;color:${isCashCustomer ? '#854d0e' : '#166534'};line-height:1.6;">
+      <div style="margin-top:12px;padding:10px 14px;background:${isCashCustomer ? '#fef9c3' : '#f0fdf4'};border-radius:10px;font-size:12px;color:${isCashCustomer ? '#854d0e' : '#0d2a42'};line-height:1.6;">
         ${isCashCustomer
           ? `💵 Cash customer — we'll collect ${isMultiProp ? totalStr + ' (' + _rateBreakdown + ')' : mowRateStr} after each weekly visit. <a href="#" onclick="openCardModal();return false;" style="color:#854d0e;font-weight:700;">Add a card →</a> to switch to autopay.`
           : hasCard
-            ? `💡 Your card is automatically charged ${isMultiProp ? totalStr + ' (' + _rateBreakdown + ')' : mowRateStr} after each weekly mow. No invoices, no reminders.`
-            : `📬 We'll email you an invoice after each weekly mow. <a href="#" onclick="openCardModal();return false;" style="color:#166534;font-weight:700;">Add a card →</a> to enable autopay.`}
+            ? `💡 Your card is automatically charged ${isMultiProp ? totalStr + ' (' + _rateBreakdown + ')' : mowRateStr} after each weekly clean. No invoices, no reminders.`
+            : `📬 We'll email you an invoice after each weekly clean. <a href="#" onclick="openCardModal();return false;" style="color:#0d2a42;font-weight:700;">Add a card →</a> to enable autopay.`}
       </div>${promoNote}`;
 
   } else if (isBiWeekly) {
-    // Bi-weekly: mow 1 = $80 payment, mow 2 = covered free
+    // Bi-weekly: clean 1 = $80 payment, clean 2 = covered free
     const doneMows = subBookings.filter(b =>
       b.frequency === 'Bi-Weekly Plan' && String(b.done || '').includes('Done')
     ).length;
     const cyclePos = doneMows % 2;  // 1 = just paid, 0 = starting new cycle
 
-    let dotsHtml = '<div class="mow-dot ' + (cyclePos >= 1 ? 'filled' : 'pending') + '" title="Payment mow"></div>';
+    let dotsHtml = '<div class="clean-dot ' + (cyclePos >= 1 ? 'filled' : 'pending') + '" title="Payment clean"></div>';
     dotsHtml += cyclePos >= 1
-      ? '<div class="mow-dot" style="background:#d1fae5;" title="Next mow covered"></div>'
-      : '<div class="mow-dot"></div>';
+      ? '<div class="clean-dot" style="background:#d1fae5;" title="Next clean covered"></div>'
+      : '<div class="clean-dot"></div>';
 
     const bwPayMow      = subBookings.find(b =>
       b.frequency === freq && String(b.done || '').includes('Done') &&
@@ -1558,15 +1558,15 @@ function renderBillingCard(bookings, hasCard) {
 
     let chargeInfo, cycleLabel, alertBox = '';
     if (cyclePos === 0) {
-      // Check if the upcoming first mow is already paid (e.g. $19 promo booked via quote flow)
+      // Check if the upcoming first clean is already paid (e.g. $19 promo booked via quote flow)
       const bwNextCalEvent = String(nextAppt ? (nextAppt.calendarEvent || nextAppt.payMethod || '') : '');
       const bwFirstMowPrepaid = bwNextCalEvent.includes('✅');
       if (bwFirstMowPrepaid) {
-        chargeInfo = '<span class="billing-info-value green">✅ First mow paid ($19) — card saved for future billing</span>';
-        cycleLabel = '● = first mow (paid)  ○ = included mow';
+        chargeInfo = '<span class="billing-info-value green">✅ First clean paid ($19) — card saved for future billing</span>';
+        cycleLabel = '● = first clean (paid)  ○ = included clean';
       } else {
         chargeInfo = '';
-        cycleLabel = '● = payment mow  ○ = included mow';
+        cycleLabel = '● = payment clean  ○ = included clean';
       }
     } else if (bwInvoiceSent) {
       chargeInfo = '<span class="billing-info-value gold">⚠️ Invoice sent — payment still pending</span>';
@@ -1579,20 +1579,20 @@ function renderBillingCard(bookings, hasCard) {
         ⚠️ <strong>You have an unpaid invoice.</strong> Your next visit is scheduled but your spot isn't secured until payment is received.
         <br>${bwPayBtn}
       </div>`;
-      cycleLabel = '● = payment mow (pending)  ○ = scheduled mow';
+      cycleLabel = '● = payment clean (pending)  ○ = scheduled clean';
     } else if (bwActuallyPaid) {
       chargeInfo = '<span class="billing-info-value green">✅ Paid — your next visit is already covered</span>';
       cycleLabel = '● = paid  ○ = already covered';
     } else {
       chargeInfo = '';
-      cycleLabel = '● = payment mow  ○ = included mow';
+      cycleLabel = '● = payment clean  ○ = included clean';
     }
 
     html = `
       <div class="billing-plan-row">
         <div>
           <div class="billing-plan-name">📅 Bi-Weekly Plan</div>
-          <div class="billing-plan-sub">${perPropLabel}/mow — ${isCashCustomer ? '💵 cash, collected after each visit' : hasCard ? 'charged after each visit' : 'invoiced after each visit'}</div>
+          <div class="billing-plan-sub">${perPropLabel}/clean — ${isCashCustomer ? '💵 cash, collected after each visit' : hasCard ? 'charged after each visit' : 'invoiced after each visit'}</div>
         </div>
       </div>
       <hr class="billing-divider">
@@ -1601,18 +1601,18 @@ function renderBillingCard(bookings, hasCard) {
         <span class="billing-info-value">${nextDateLabel}</span>
       </div>
       <div class="billing-info-row">
-        <span class="billing-info-label">Per-mow rate</span>
-        <span class="billing-info-value">${totalLabel} — ${isCashCustomer ? '💵 paid in cash' : hasCard ? 'charged after each mow' : 'invoiced after each mow'}</span>
+        <span class="billing-info-label">Per-clean rate</span>
+        <span class="billing-info-value">${totalLabel} — ${isCashCustomer ? '💵 paid in cash' : hasCard ? 'charged after each clean' : 'invoiced after each clean'}</span>
       </div>
       ${chargeInfo ? `<div class="billing-info-row"><span class="billing-info-label">This month</span>${chargeInfo}</div>` : ''}
-      <div class="mow-dots">${dotsHtml}</div>
+      <div class="clean-dots">${dotsHtml}</div>
       ${alertBox}
-      <div style="margin-top:12px;padding:10px 14px;background:${isCashCustomer ? '#fef9c3' : '#f0fdf4'};border-radius:10px;font-size:12px;color:${isCashCustomer ? '#854d0e' : '#166534'};line-height:1.6;">
+      <div style="margin-top:12px;padding:10px 14px;background:${isCashCustomer ? '#fef9c3' : '#f0fdf4'};border-radius:10px;font-size:12px;color:${isCashCustomer ? '#854d0e' : '#0d2a42'};line-height:1.6;">
         ${isCashCustomer
           ? `💵 Cash customer — we'll collect ${isMultiProp ? totalStr + ' (' + _rateBreakdown + ')' : mowRateStr} after each bi-weekly visit. <a href="#" onclick="openCardModal();return false;" style="color:#854d0e;font-weight:700;">Add a card →</a> to switch to autopay.`
           : hasCard
-            ? `💡 Your card is automatically charged ${isMultiProp ? totalStr + ' (' + _rateBreakdown + ')' : mowRateStr} after each bi-weekly mow. No invoices, no reminders.`
-            : `📬 We'll email you an invoice after each bi-weekly mow. <a href="#" onclick="openCardModal();return false;" style="color:#166534;font-weight:700;">Add a card →</a> to enable autopay.`}
+            ? `💡 Your card is automatically charged ${isMultiProp ? totalStr + ' (' + _rateBreakdown + ')' : mowRateStr} after each bi-weekly clean. No invoices, no reminders.`
+            : `📬 We'll email you an invoice after each bi-weekly clean. <a href="#" onclick="openCardModal();return false;" style="color:#0d2a42;font-weight:700;">Add a card →</a> to enable autopay.`}
       </div>`;
 
   } else {
@@ -1622,7 +1622,7 @@ function renderBillingCard(bookings, hasCard) {
         <div>
           <div class="billing-plan-name">📅 ${esc(freq)}</div>
           ${customDays > 0 ? `<div class="billing-plan-sub" style="margin-bottom:2px;">Visit every ${customDays} days</div>` : ''}
-          <div class="billing-plan-sub">${perPropLabel}/mow — ${isCashCustomer ? '💵 cash, collected after each visit' : hasCard ? 'charged after each mow' : 'invoiced after each mow'}</div>
+          <div class="billing-plan-sub">${perPropLabel}/clean — ${isCashCustomer ? '💵 cash, collected after each visit' : hasCard ? 'charged after each clean' : 'invoiced after each clean'}</div>
         </div>
       </div>
       <hr class="billing-divider">
@@ -1631,15 +1631,15 @@ function renderBillingCard(bookings, hasCard) {
         <span class="billing-info-value">${nextDateLabel}</span>
       </div>
       <div class="billing-info-row">
-        <span class="billing-info-label">Per-mow rate</span>
-        <span class="billing-info-value">${totalLabel} — ${isCashCustomer ? '💵 paid in cash' : hasCard ? 'charged after each mow' : 'invoiced after each mow'}</span>
+        <span class="billing-info-label">Per-clean rate</span>
+        <span class="billing-info-value">${totalLabel} — ${isCashCustomer ? '💵 paid in cash' : hasCard ? 'charged after each clean' : 'invoiced after each clean'}</span>
       </div>
-      <div style="margin-top:12px;padding:10px 14px;background:${isCashCustomer ? '#fef9c3' : '#f0fdf4'};border-radius:10px;font-size:12px;color:${isCashCustomer ? '#854d0e' : '#166534'};line-height:1.6;">
+      <div style="margin-top:12px;padding:10px 14px;background:${isCashCustomer ? '#fef9c3' : '#f0fdf4'};border-radius:10px;font-size:12px;color:${isCashCustomer ? '#854d0e' : '#0d2a42'};line-height:1.6;">
         ${isCashCustomer
           ? `💵 Cash customer — we'll collect ${isMultiProp ? totalStr + ' (' + _rateBreakdown + ')' : mowRateStr} after each visit. <a href="#" onclick="openCardModal();return false;" style="color:#854d0e;font-weight:700;">Add a card →</a> to switch to autopay.`
           : hasCard
-            ? `💡 Your card is automatically charged ${isMultiProp ? totalStr + ' (' + _rateBreakdown + ')' : mowRateStr} after each mow. No invoices, no reminders.`
-            : `📬 We'll email you an invoice after each mow. <a href="#" onclick="openCardModal();return false;" style="color:#166534;font-weight:700;">Add a card →</a> to enable autopay.`}
+            ? `💡 Your card is automatically charged ${isMultiProp ? totalStr + ' (' + _rateBreakdown + ')' : mowRateStr} after each clean. No invoices, no reminders.`
+            : `📬 We'll email you an invoice after each clean. <a href="#" onclick="openCardModal();return false;" style="color:#0d2a42;font-weight:700;">Add a card →</a> to enable autopay.`}
       </div>${promoNote}`;
   }
 
@@ -1651,7 +1651,7 @@ function renderBillingCard(bookings, hasCard) {
   const switchRow = document.getElementById('switchPlanRow');
   if (switchRow) switchRow.style.display = '';
 
-  // Show Extra Mow button for all subscription customers
+  // Show Extra Clean button for all subscription customers
   const extraMowRow = document.getElementById('extraMowRow');
   if (extraMowRow) extraMowRow.style.display = '';
 
@@ -1660,7 +1660,7 @@ function renderBillingCard(bookings, hasCard) {
 }
 
 function bookingCardHTML(b, isUpcoming) {
-  const service  = esc(b.service || 'Lawn Service');
+  const service  = esc(b.service || 'Cleaning Service');
   const date     = esc(b.serviceDate || '—');
   const address  = esc(b.address || '');
   const price    = esc(String(b.price || '').replace(/[^0-9.]/g, ''));
@@ -1676,11 +1676,11 @@ function bookingCardHTML(b, isUpcoming) {
   const chipClass = isPaid ? 'chip-paid' : (isInvoiced ? 'chip-invoiced' : (isDone ? 'chip-done' : 'chip-unpaid'));
   const chipText  = isPaid ? '✅ Paid' : (isInvoiced ? '📄 Invoiced' : (isDone ? '✓ Done' : 'Pending'));
 
-  const isFreeMow      = b.frequency === 'Free Mow';
-  const isExtraMow     = b.frequency === 'Extra Mow';
+  const isFreeMow      = b.frequency === 'Free Clean';
+  const isExtraMow     = b.frequency === 'Extra Clean';
   const isSubscription = ['Weekly Plan', 'Bi-Weekly Plan', 'Custom Plan'].includes(b.frequency);
   const priceTag = isFreeMow
-    ? `<span style="color:var(--green-mid);font-weight:600;">🌿 Free Visit</span>`
+    ? `<span style="color:var(--green-mid);font-weight:600;">🫧 Free Visit</span>`
     : isExtraMow
       ? `<span style="color:#6d28d9;font-weight:600;">➕ Extra Visit</span>`
       : isSubscription
@@ -1706,14 +1706,14 @@ function bookingCardHTML(b, isUpcoming) {
     if (invUrl) {
       payNowBtn = `<div style="margin-top:10px;">
         <a href="${invUrl}" target="_blank"
-           style="display:inline-block;padding:10px 22px;background:#1a3a1a;color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">
+           style="display:inline-block;padding:10px 22px;background:#0d2a42;color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">
           💳 Pay Now →
         </a>
       </div>`;
     } else if (invId) {
       payNowBtn = `<div style="margin-top:10px;">
         <button onclick="openInvoiceByFetch('${invId}', this)"
-           style="padding:10px 22px;background:#1a3a1a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">
+           style="padding:10px 22px;background:#0d2a42;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">
           💳 Pay Now →
         </button>
       </div>`;
@@ -1752,7 +1752,7 @@ function bookingCardHTML(b, isUpcoming) {
       <div class="booking-meta">
         ${addrTag}
         ${priceTag}
-        ${(()=>{ const _d = parseInt(b.days||''); const _f = esc(b.frequency||''); if(!_f||_f==='Extra Mow'||_f==='Free Mow') return ''; const _fDays = /weekly/i.test(_f)&&!/bi/i.test(_f)?7:/bi.?weekly/i.test(_f)?14:/monthly/i.test(_f)?30:0; const _label = (_d>0&&_d!==_fDays)?`Every ${_d} days`:_f; return `<span>🔁 ${_label}</span>`; })()}
+        ${(()=>{ const _d = parseInt(b.days||''); const _f = esc(b.frequency||''); if(!_f||_f==='Extra Clean'||_f==='Free Clean') return ''; const _fDays = /weekly/i.test(_f)&&!/bi/i.test(_f)?7:/bi.?weekly/i.test(_f)?14:/monthly/i.test(_f)?30:0; const _label = (_d>0&&_d!==_fDays)?`Every ${_d} days`:_f; return `<span>🔁 ${_label}</span>`; })()}
       </div>
       ${apptActions}
       ${payNowBtn}
@@ -1801,7 +1801,7 @@ async function requestEmailChange() {
   try {
     const data = await apiGet({ action: 'portal_request_email_change', sessionToken: session.token, newEmail });
     if (data.success) {
-      msgEl.style.color = '#166534';
+      msgEl.style.color = '#0d2a42';
       msgEl.textContent = '✅ Confirmation sent to ' + newEmail + ' — click the link in that email to confirm.';
       btn.textContent = 'Sent!';
     } else {
@@ -1876,7 +1876,7 @@ async function savePhone() {
     if (data.success) {
       const phoneEl = document.getElementById('settingsPhone');
       if (phoneEl) phoneEl.textContent = phone || 'Not set';
-      msgEl.style.color   = '#166534';
+      msgEl.style.color   = '#0d2a42';
       msgEl.textContent   = '✅ Phone saved.';
       setTimeout(() => closePhoneEdit(), 1200);
     } else {
@@ -1925,7 +1925,7 @@ async function saveName() {
       if (greetEl) greetEl.textContent = 'Hey, ' + firstName + ' 👋';
       const nameSettingsEl = document.getElementById('settingsName');
       if (nameSettingsEl) nameSettingsEl.textContent = name;
-      msgEl.style.color = '#166534'; msgEl.textContent = '✅ Name saved.';
+      msgEl.style.color = '#0d2a42'; msgEl.textContent = '✅ Name saved.';
       setTimeout(() => closeNameEdit(), 1200);
     } else {
       msgEl.style.color = 'var(--red)';
@@ -2530,12 +2530,12 @@ function openExtraMowModal() {
   document.getElementById('extraMowError').style.display = 'none';
   document.getElementById('confirmExtraMowBtn').disabled = true;
 
-  // Pre-fill with a smart suggested date: midpoint between today and next scheduled mow
+  // Pre-fill with a smart suggested date: midpoint between today and next scheduled clean
   const tmrw = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const tmrwISO = tmrw.getFullYear() + '-' + String(tmrw.getMonth()+1).padStart(2,'0') + '-' + String(tmrw.getDate()).padStart(2,'0');
   document.getElementById('extraMowDate').min = tmrwISO;
 
-  // Find the soonest upcoming undone mow to compute midpoint
+  // Find the soonest upcoming undone clean to compute midpoint
   try {
     const todayMid = new Date(); todayMid.setHours(0,0,0,0);
     const upcomingDates = [];
@@ -2604,7 +2604,7 @@ async function submitExtraMow() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// SCHEDULE CONFLICT MODAL (shared by reschedule + extra mow)
+// SCHEDULE CONFLICT MODAL (shared by reschedule + extra clean)
 // ═══════════════════════════════════════════════════════════════════════
 let _conflictMode           = ''; // 'reschedule' | 'extra_mow'
 let _conflictRowIndex       = 0;
@@ -2725,7 +2725,7 @@ function openCancelModal() {
   document.getElementById('cancelOptCycle').classList.remove('selected');
   document.getElementById('cancelModalSub').innerHTML = activePlanFreq
     ? `Cancel your <strong>${activePlanFreq}</strong>? Choose how you'd like to end it.`
-    : 'Are you sure you want to cancel your lawn care plan?';
+    : 'Are you sure you want to cancel your home care plan?';
   document.getElementById('cancelModal').classList.add('open');
 }
 
