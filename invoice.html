@@ -1253,12 +1253,30 @@
           <div class="form-field full" id="ac-first-price-toggle-row">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:normal;">
               <input type="checkbox" id="ac-first-price-check" onchange="onAcFirstPriceToggle()" style="width:16px;height:16px;accent-color:#1565a8;">
-              <span style="font-weight:600;">💰 Set a different first-job price (overgrown, etc.)</span>
+              <span style="font-weight:600;">✨ First service is a Deep Clean</span>
             </label>
             <div id="ac-first-price-fields" style="display:none;margin-top:8px;padding-left:26px;">
-              <label for="ac-first-price" style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px;">First Job Price ($)</label>
-              <input type="number" id="ac-first-price" placeholder="e.g. 120" step="0.01" min="0" oninput="onAcPromoChange()" style="padding:9px 12px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none;width:160px;"/>
-              <div style="font-size:12px;color:#6b7280;margin-top:4px;">Recurring rate is set above. First job shows as <strong>First: $X · Following: $X</strong>.</div>
+              <label for="ac-first-price" style="font-size:12px;font-weight:600;color:var(--text);display:block;margin-bottom:4px;">First Deep Clean Price ($)</label>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input type="number" id="ac-first-price" placeholder="e.g. 220" step="0.01" min="0" oninput="onAcPromoChange()" style="padding:9px 12px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none;width:160px;"/>
+                <button type="button" onclick="acAutoFillFirstDeep()" style="padding:9px 14px;background:var(--green-pale);color:var(--green-mid);border:1.5px solid var(--green-mid);border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;">✨ Auto-fill deep price</button>
+              </div>
+              <div style="font-size:12px;color:#6b7280;margin-top:4px;">First visit bills at the Deep Clean rate; recurring visits use the rate above. Shows as <strong>First: $X · Following: $Y</strong>.</div>
+            </div>
+
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:normal;margin-top:14px;">
+              <input type="checkbox" id="ac-deep-every-check" onchange="onAcDeepEveryToggle()" style="width:16px;height:16px;accent-color:#1565a8;">
+              <span style="font-weight:600;">🔁 Make every Nth visit a Deep Clean</span>
+            </label>
+            <div id="ac-deep-every-fields" style="display:none;margin-top:8px;padding-left:26px;">
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <span style="font-size:13px;color:var(--text);">Deep clean every</span>
+                <input type="number" id="ac-deep-every" min="2" max="52" value="4" oninput="onAcPromoChange()" style="width:64px;padding:9px 10px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none;text-align:center;"/>
+                <span style="font-size:13px;color:var(--text);">visits, at $</span>
+                <input type="number" id="ac-deep-price" placeholder="e.g. 260" step="0.01" min="0" oninput="onAcPromoChange()" style="width:120px;padding:9px 10px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none;"/>
+                <button type="button" onclick="acAutoFillEveryDeep()" style="padding:9px 14px;background:var(--green-pale);color:var(--green-mid);border:1.5px solid var(--green-mid);border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;">✨ Auto-fill</button>
+              </div>
+              <div style="font-size:12px;color:#6b7280;margin-top:4px;">e.g. every 4th visit automatically upgrades to a Deep Clean at the price above.</div>
             </div>
           </div>
           <div class="form-field full">
@@ -5268,6 +5286,23 @@ function acBuildDesc(){
   const addons=AC_ADDONS.filter(a=>document.getElementById('ac-addon-'+a.id)?.checked).map(a=>a.name.replace(/^[^ ]+ /,''));
   return service+' · '+bed+'bd/'+bath+'ba'+(extra?(' · +'+extra+' room'+(extra>1?'s':'')):'')+' · '+sqft+(addons.length?(' · '+addons.join(', ')):'');
 }
+function acDeepPrice(){
+  const r=AC_RATES['Deep Clean'];
+  const bed=parseInt(document.getElementById('ac-bed')?.value||'0')||0;
+  const bath=parseInt(document.getElementById('ac-bath')?.value||'0')||0;
+  const extra=parseInt(document.getElementById('ac-extra')?.value||'0')||0;
+  const sqft=document.getElementById('ac-sqft')?.value||'';
+  let base=r.base+bed*r.bed+bath*r.bath+extra*r.room+(AC_SQFT[sqft]||0);
+  return Math.max(AC_FLOOR, base)+acAddonsTotal();
+}
+function acAutoFillFirstDeep(){ const el=document.getElementById('ac-first-price'); if(el){ el.value=acDeepPrice(); onAcPromoChange(); } }
+function acAutoFillEveryDeep(){ const el=document.getElementById('ac-deep-price'); if(el){ el.value=acDeepPrice(); onAcPromoChange(); } }
+function onAcDeepEveryToggle(){
+  const c=document.getElementById('ac-deep-every-check')?.checked;
+  const f=document.getElementById('ac-deep-every-fields'); if(f) f.style.display=c?'':'none';
+  if(c){ const el=document.getElementById('ac-deep-price'); if(el && !el.value) el.value=acDeepPrice(); }
+  onAcPromoChange();
+}
 function updateAcPricePreview() {
   acRenderAddons();
   const plan = document.getElementById('ac-plan')?.value || '';
@@ -5310,10 +5345,19 @@ async function addClient() {
   const paymethod  = document.getElementById('ac-paymethod').value; // 'card' or 'cash'
   const service    = document.getElementById('ac-service')?.value || 'House Cleaning';
   const buildDesc  = acBuildDesc();
-  const notesFull  = buildDesc + (notes && notes !== '(none)' ? (' — ' + notes) : '');
+  const firstDeep  = !!(document.getElementById('ac-first-price-check')?.checked);
+  const deepEvery  = !!(document.getElementById('ac-deep-every-check')?.checked);
+  const deepEveryN = deepEvery ? (parseInt(document.getElementById('ac-deep-every')?.value||'0')||0) : 0;
+  const deepPrice  = deepEvery ? (document.getElementById('ac-deep-price')?.value||'') : '';
+  const firstDeepPrice = firstDeep ? (document.getElementById('ac-first-price')?.value || String(acDeepPrice())) : '';
+  let deepNote = '';
+  if (firstDeep)  deepNote += ' · First visit: Deep Clean $' + firstDeepPrice;
+  if (deepEveryN) deepNote += ' · Deep clean every ' + deepEveryN + ' visits ($' + deepPrice + ')';
+  if (deepEveryN) deepNote += ' [deep-every:' + deepEveryN + ' deep-price:' + deepPrice + ' base-service:' + service + ' base-price:' + (price||'0') + ' visit:1]';
+  const notesFull  = buildDesc + deepNote + (notes && notes !== '(none)' ? (' — ' + notes) : '');
   const firstMowPromo = !!(document.getElementById('ac-promo')?.checked);
   const useFirstPrice = !!(document.getElementById('ac-first-price-check')?.checked);
-  const firstMowPrice = useFirstPrice ? (document.getElementById('ac-first-price')?.value || '') : '';
+  const firstMowPrice = useFirstPrice ? (document.getElementById('ac-first-price')?.value || String(acDeepPrice())) : '';
   const customDays = plan === 'Custom Plan' ? (parseInt(document.getElementById('ac-custom-days')?.value || '') || 0) : 0;
   const errEl   = document.getElementById('ac-error');
   const okEl    = document.getElementById('ac-success');
@@ -5353,6 +5397,9 @@ async function addClient() {
     payMethod:     paymethod,
     firstMowPromo: firstMowPromo ? 'true' : '',
     firstMowPrice: firstMowPrice || '',
+    firstDeepClean: (document.getElementById('ac-first-price-check')?.checked) ? 'true' : '',
+    deepEveryN:    (parseInt(document.getElementById('ac-deep-every')?.value||'0')||0) && document.getElementById('ac-deep-every-check')?.checked ? String(parseInt(document.getElementById('ac-deep-every').value)) : '',
+    deepPrice:     document.getElementById('ac-deep-every-check')?.checked ? (document.getElementById('ac-deep-price')?.value||'') : '',
     days:          customDays || '',
     adminToken,
   });
