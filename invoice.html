@@ -1199,16 +1199,42 @@
             <label for="ac-custom-days">Visit every (days)</label>
             <input type="number" id="ac-custom-days" min="1" placeholder="e.g. 21" style="width:100%;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;box-sizing:border-box;"/>
           </div>
-          <div class="form-field">
-            <label for="ac-yard">Home Size *</label>
-            <select id="ac-yard">
-              <option value="small">Studio / 1 Bedroom</option>
-              <option value="medium" selected>2 Bedroom</option>
-              <option value="threequarter">3 Bedroom</option>
-              <option value="one">4 Bedroom</option>
-              <option value="custom">5+ Bedroom · Custom</option>
+          <div class="form-field full">
+            <label for="ac-service">Service *</label>
+            <select id="ac-service" onchange="updateAcPricePreview()">
+              <option value="Standard Clean" selected>🧹 Standard Clean</option>
+              <option value="Deep Clean">✨ Deep Clean</option>
+              <option value="Move In/Out Clean">📦 Move In/Out Clean</option>
+              <option value="Pressure Washing">💦 Pressure Washing</option>
+              <option value="Pool Route">🏊 Pool Route</option>
             </select>
           </div>
+          <div class="form-field ac-rooms">
+            <label for="ac-bed">Bedrooms</label>
+            <input type="number" id="ac-bed" min="0" max="10" value="2" oninput="updateAcPricePreview()"/>
+          </div>
+          <div class="form-field ac-rooms">
+            <label for="ac-bath">Bathrooms</label>
+            <input type="number" id="ac-bath" min="0" max="10" value="1" oninput="updateAcPricePreview()"/>
+          </div>
+          <div class="form-field ac-rooms">
+            <label for="ac-extra">Extra rooms <span style="font-weight:400;color:var(--text-muted)">(office, bonus…)</span></label>
+            <input type="number" id="ac-extra" min="0" max="10" value="0" oninput="updateAcPricePreview()"/>
+          </div>
+          <div class="form-field ac-rooms">
+            <label for="ac-sqft">Home size</label>
+            <select id="ac-sqft" onchange="updateAcPricePreview()">
+              <option value="Under 1,000 sq ft">Under 1,000 sqft</option>
+              <option value="1,000–2,000 sq ft" selected>1,000–2,000 sqft</option>
+              <option value="2,000–3,000 sq ft">2,000–3,000 sqft</option>
+              <option value="3,000+ sq ft">3,000+ sqft</option>
+            </select>
+          </div>
+          <div class="form-field full ac-rooms">
+            <label>Add-ons <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
+            <div id="ac-addons" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+          </div>
+          <input type="hidden" id="ac-yard" value="medium"/>
           <div class="form-field">
             <label for="ac-date">First Service Date *</label>
             <input type="date" id="ac-date"/>
@@ -1221,7 +1247,7 @@
             </select>
           </div>
           <div class="form-field">
-            <label for="ac-price">Recurring Price per Clean ($)</label>
+            <label for="ac-price">Price ($) <span style="font-weight:400;color:var(--text-muted)">· auto-filled</span></label>
             <input type="number" id="ac-price" placeholder="Auto-filled" step="0.01" min="0" oninput="onAcPromoChange()"/>
           </div>
           <div class="form-field full" id="ac-first-price-toggle-row">
@@ -1234,13 +1260,6 @@
               <input type="number" id="ac-first-price" placeholder="e.g. 120" step="0.01" min="0" oninput="onAcPromoChange()" style="padding:9px 12px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none;width:160px;"/>
               <div style="font-size:12px;color:#6b7280;margin-top:4px;">Recurring rate is set above. First job shows as <strong>First: $X · Following: $X</strong>.</div>
             </div>
-          </div>
-          <div class="form-field full" id="ac-promo-row" style="display:none;">
-            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:normal;">
-              <input type="checkbox" id="ac-promo" onchange="onAcPromoChange()" style="width:16px;height:16px;accent-color:#1565a8;">
-              <span style="font-weight:600;">🫧 First clean $19 deal</span>
-            </label>
-            <div id="ac-promo-note" style="font-size:12px;color:#1565a8;margin-top:4px;display:none;padding-left:26px;"></div>
           </div>
           <div class="form-field full">
             <label for="ac-notes">Notes</label>
@@ -2377,7 +2396,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   // Auto-fill price preview on yard/plan change
-  ['ac-yard','ac-plan'].forEach(id => {
+  ['ac-service','ac-bed','ac-bath','ac-extra','ac-sqft','ac-plan'].forEach(id => {
     document.getElementById(id)?.addEventListener('change', updateAcPricePreview);
   });
   updateAcPricePreview();
@@ -5212,33 +5231,69 @@ function onSchedPromoChange() {
   }
 }
 
+// ── Add-Client builder pricing (mirrors the public home builder) ──
+const AC_RATES = {
+  'Standard Clean':    { base:40,  bed:28, bath:18, room:15 },
+  'Deep Clean':        { base:105, bed:38, bath:26, room:20 },
+  'Move In/Out Clean': { base:155, bed:48, bath:32, room:24 }
+};
+const AC_SQFT  = { 'Under 1,000 sq ft':0, '1,000–2,000 sq ft':12, '2,000–3,000 sq ft':34, '3,000+ sq ft':60 };
+const AC_FLOOR = 80;
+const AC_ADDONS = [
+  {id:'windows', name:'🪟 Windows', price:40}, {id:'fridge',  name:'🧊 Fridge',  price:35},
+  {id:'oven',    name:'🔥 Oven',    price:35}, {id:'cabinets',name:'🚪 Cabinets',price:40},
+  {id:'sofa',    name:'🛋️ Sofa steam',price:50},{id:'carpet', name:'🧶 Carpet steam',price:45},
+  {id:'laundry', name:'🧺 Laundry', price:20}, {id:'fans',    name:'🌀 Fans & vents',price:25},
+  {id:'pets',    name:'🐾 Pets',    price:15}
+];
+function acRenderAddons(){
+  const box = document.getElementById('ac-addons'); if(!box || box.dataset.done) return;
+  box.dataset.done = '1';
+  AC_ADDONS.forEach(a=>{
+    const lab = document.createElement('label');
+    lab.style.cssText = 'display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;background:#f4f9fc;border:1.5px solid #dbe9f3;border-radius:8px;padding:6px 10px;cursor:pointer;';
+    lab.innerHTML = '<input type="checkbox" id="ac-addon-'+a.id+'" onchange="updateAcPricePreview()" style="accent-color:#1565a8;"> '+a.name+' +$'+a.price;
+    box.appendChild(lab);
+  });
+}
+function acAddonsTotal(){
+  let t=0; AC_ADDONS.forEach(a=>{ const el=document.getElementById('ac-addon-'+a.id); if(el&&el.checked) t+=a.price; }); return t;
+}
+function acBuildDesc(){
+  const service = document.getElementById('ac-service')?.value || 'Standard Clean';
+  if (!AC_RATES[service]) return service;
+  const bed=document.getElementById('ac-bed')?.value||'0', bath=document.getElementById('ac-bath')?.value||'0';
+  const extra=parseInt(document.getElementById('ac-extra')?.value||'0')||0;
+  const sqft=document.getElementById('ac-sqft')?.value||'';
+  const addons=AC_ADDONS.filter(a=>document.getElementById('ac-addon-'+a.id)?.checked).map(a=>a.name.replace(/^[^ ]+ /,''));
+  return service+' · '+bed+'bd/'+bath+'ba'+(extra?(' · +'+extra+' room'+(extra>1?'s':'')):'')+' · '+sqft+(addons.length?(' · '+addons.join(', ')):'');
+}
 function updateAcPricePreview() {
-  const yard = document.getElementById('ac-yard')?.value || 'medium';
-  const plan = document.getElementById('ac-plan')?.value || 'Bi-Weekly Plan';
-  const p    = YARD_PRICING[yard];
+  acRenderAddons();
+  const plan = document.getElementById('ac-plan')?.value || '';
   const prev = document.getElementById('ac-price-preview');
   const priceInput = document.getElementById('ac-price');
-  if (!p) {
-    // Custom yard size — clear auto-fill, let owner enter manually
-    if (priceInput) priceInput.value = '';
-    if (prev) prev.textContent = 'Custom quote — enter price manually.';
+  const service = document.getElementById('ac-service')?.value || 'Standard Clean';
+  if (plan === 'Quote Visit') return; // handled in onAcPlanChange
+  const isMaid = !!AC_RATES[service];
+  document.querySelectorAll('.ac-rooms').forEach(el=>{ el.style.display = isMaid ? '' : 'none'; });
+  if (!isMaid) {
+    if (prev) prev.textContent = service + ' — set the price manually.';
+    onAcPromoChange();
     return;
   }
-  let rate, label;
-  if (plan.includes('Weekly') && !plan.includes('Bi')) {
-    rate  = p.w;
-    label = `Suggested rate: $${rate}/clean (weekly)`;
-  } else if (plan === 'One-time visit') {
-    // No preset one-time rate — leave for manual entry
-    if (priceInput) priceInput.value = '';
-    if (prev) prev.textContent = 'No preset one-time rate — enter price manually.';
-    return;
-  } else {
-    rate  = p.bw;
-    label = `Suggested rate: $${rate}/clean (bi-weekly)`;
-  }
-  if (priceInput) priceInput.value = rate;
-  if (prev) prev.textContent = label;
+  const r    = AC_RATES[service];
+  const bed  = parseInt(document.getElementById('ac-bed')?.value||'0')||0;
+  const bath = parseInt(document.getElementById('ac-bath')?.value||'0')||0;
+  const extra= parseInt(document.getElementById('ac-extra')?.value||'0')||0;
+  const sqft = document.getElementById('ac-sqft')?.value || '';
+  let base = r.base + bed*r.bed + bath*r.bath + extra*r.room + (AC_SQFT[sqft]||0);
+  base = Math.max(AC_FLOOR, base);
+  const total = base + acAddonsTotal();
+  if (priceInput) priceInput.value = total;
+  const yard = document.getElementById('ac-yard'); if (yard) yard.value = bed+'bd/'+bath+'ba';
+  if (prev) prev.textContent = '💧 Auto price: $'+total+'   ('+acBuildDesc()+')';
+  onAcPromoChange();
 }
 
 async function addClient() {
@@ -5253,6 +5308,9 @@ async function addClient() {
   const price      = document.getElementById('ac-price').value;
   const notes      = document.getElementById('ac-notes').value.trim() || '(none)';
   const paymethod  = document.getElementById('ac-paymethod').value; // 'card' or 'cash'
+  const service    = document.getElementById('ac-service')?.value || 'House Cleaning';
+  const buildDesc  = acBuildDesc();
+  const notesFull  = buildDesc + (notes && notes !== '(none)' ? (' — ' + notes) : '');
   const firstMowPromo = !!(document.getElementById('ac-promo')?.checked);
   const useFirstPrice = !!(document.getElementById('ac-first-price-check')?.checked);
   const firstMowPrice = useFirstPrice ? (document.getElementById('ac-first-price')?.value || '') : '';
@@ -5290,7 +5348,8 @@ async function addClient() {
     yardSize:      yard,
     serviceDate:   date,
     price:         isQuoteVisit ? '0' : (price || '0'),
-    notes,
+    notes:         notesFull,
+    serviceType:   service,
     payMethod:     paymethod,
     firstMowPromo: firstMowPromo ? 'true' : '',
     firstMowPrice: firstMowPrice || '',
