@@ -74,8 +74,9 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
 <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/></noscript>
 <link rel="preload" as="image" href="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80&fm=jpg"/>
-<link rel="icon" type="image/png" href="CleaningServicesTransparent.png"/>
-<link rel="apple-touch-icon" href="CleaningServicesTransparent.png"/>
+<link rel="icon" type="image/x-icon" href="favicon.ico"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
 
 <style>
   :root {
@@ -297,6 +298,8 @@
     display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
     gap:24px; max-width:1100px; margin:0 auto;
   }
+  .services-grid.two-up { grid-template-columns:repeat(2,1fr); max-width:780px; }
+  @media (max-width:680px){ .services-grid.two-up { grid-template-columns:1fr; } }
   .service-card {
     border:1px solid rgba(13,42,66,0.1); border-radius:16px;
     padding:38px 32px; background:#fff;
@@ -384,6 +387,129 @@
     color:var(--blue-deep);
   }
 
+  /* ── HOME BUILDER ── */
+  .builder-wrap {
+    max-width:980px; margin:0 auto;
+    display:grid; grid-template-columns:1.25fr 1fr; gap:24px;
+    align-items:start;
+  }
+  .builder-panel {
+    background:#fff; border:1px solid #e2ecf4; border-radius:18px;
+    box-shadow:0 6px 30px rgba(13,42,66,0.06);
+    padding:26px 26px 30px;
+  }
+  .builder-step-label {
+    font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--blue-mid); margin:0 0 14px;
+  }
+  .builder-step-label:not(:first-child){ margin-top:26px; padding-top:22px; border-top:1px solid #eef4f9; }
+
+  /* service toggle */
+  .seg { display:flex; gap:8px; flex-wrap:wrap; }
+  .seg button {
+    flex:1; min-width:120px;
+    background:#f4f9fc; border:1.5px solid #dbe9f3; border-radius:11px;
+    padding:12px 10px; cursor:pointer; font-family:inherit;
+    font-size:14px; font-weight:700; color:var(--blue-deep);
+    transition:all .18s; text-align:center; line-height:1.3;
+  }
+  .seg button small { display:block; font-size:11px; font-weight:500; color:var(--text-muted); margin-top:2px; }
+  .seg button.active { background:var(--blue-mid); border-color:var(--blue-mid); color:#fff; }
+  .seg button.active small { color:rgba(255,255,255,0.8); }
+  .seg button:hover:not(.active){ border-color:var(--blue-bright); }
+
+  /* steppers */
+  .stepper-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:11px 0; border-bottom:1px solid #f0f5f9;
+  }
+  .stepper-row:last-child{ border-bottom:none; }
+  .stepper-row .sr-label { font-size:14.5px; font-weight:600; color:var(--blue-deep); }
+  .stepper-row .sr-label small { display:block; font-size:12px; font-weight:400; color:var(--text-muted); }
+  .stepper { display:flex; align-items:center; gap:14px; }
+  .stepper button {
+    width:34px; height:34px; border-radius:9px;
+    border:1.5px solid #dbe9f3; background:#f4f9fc;
+    font-size:20px; line-height:1; color:var(--blue-mid); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .15s;
+  }
+  .stepper button:hover { background:var(--blue-mid); border-color:var(--blue-mid); color:#fff; }
+  .stepper button:disabled { opacity:.35; cursor:not-allowed; }
+  .stepper button:disabled:hover { background:#f4f9fc; border-color:#dbe9f3; color:var(--blue-mid); }
+  .stepper .sval { min-width:22px; text-align:center; font-size:16px; font-weight:700; color:var(--blue-deep); }
+
+  /* sqft select */
+  .sqft-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+  .sqft-grid button {
+    background:#f4f9fc; border:1.5px solid #dbe9f3; border-radius:10px;
+    padding:11px 8px; cursor:pointer; font-family:inherit;
+    font-size:13.5px; font-weight:600; color:var(--blue-deep); transition:all .15s;
+  }
+  .sqft-grid button.active { background:var(--blue-mid); border-color:var(--blue-mid); color:#fff; }
+  .sqft-grid button:hover:not(.active){ border-color:var(--blue-bright); }
+
+  /* addons */
+  .addon-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+  @media (max-width:520px){ .addon-grid { grid-template-columns:1fr; } }
+  .addon {
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:#f8fbfd; border:1.5px solid #e6eef5; border-radius:10px;
+    padding:10px 12px; cursor:pointer; transition:all .15s; user-select:none;
+  }
+  .addon:hover { border-color:var(--blue-bright); }
+  .addon.on { background:var(--blue-pale); border-color:var(--blue-mid); }
+  .addon .ad-name { font-size:13px; font-weight:600; color:var(--blue-deep); line-height:1.25; }
+  .addon .ad-price { font-size:12.5px; font-weight:700; color:var(--blue-mid); white-space:nowrap; }
+  .addon .ad-check {
+    width:18px; height:18px; border-radius:5px; border:1.5px solid #c3d4e2;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    font-size:12px; color:#fff; background:#fff; transition:all .15s;
+  }
+  .addon.on .ad-check { background:var(--blue-mid); border-color:var(--blue-mid); }
+  .addon-left { display:flex; align-items:center; gap:9px; }
+
+  /* result panel */
+  .result-panel {
+    position:sticky; top:90px;
+    background:var(--blue-deep); border-radius:18px; overflow:hidden;
+    box-shadow:0 12px 40px rgba(13,42,66,0.22); color:#fff;
+  }
+  .result-inner { padding:26px 24px 24px; position:relative; }
+  .result-locked-msg {
+    text-align:center; padding:46px 22px;
+  }
+  .result-locked-msg .lock-ic { font-size:34px; margin-bottom:12px; }
+  .result-locked-msg h4 { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:8px; }
+  .result-locked-msg p { font-size:13.5px; color:rgba(255,255,255,0.6); line-height:1.6; }
+  .result-revealed { display:none; }
+  .result-revealed.show { display:block; animation:fadeUp .35s ease both; }
+  .result-eyebrow { font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--blue-light); margin-bottom:6px; }
+  .result-home { font-size:13.5px; color:rgba(255,255,255,0.65); margin-bottom:18px; line-height:1.5; }
+  .price-big {
+    display:flex; align-items:baseline; gap:6px; margin-bottom:4px;
+  }
+  .price-big .pb-num { font-family:'Playfair Display',serif; font-size:52px; font-weight:900; line-height:1; }
+  .price-big .pb-cur { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; }
+  .price-sub { font-size:12.5px; color:rgba(255,255,255,0.55); margin-bottom:20px; }
+  .alt-prices { display:flex; flex-direction:column; gap:9px; margin-bottom:20px; }
+  .alt-row {
+    display:flex; align-items:center; justify-content:space-between;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+    border-radius:10px; padding:11px 14px;
+  }
+  .alt-row .alt-name { font-size:13.5px; font-weight:600; }
+  .alt-row .alt-name small { display:block; font-size:11px; font-weight:400; color:rgba(255,255,255,0.5); }
+  .alt-row .alt-amt { font-size:16px; font-weight:700; color:var(--blue-light); }
+  .result-cta { width:100%; background:var(--blue-bright); color:#fff; border:none; cursor:pointer;
+    font-family:inherit; font-size:15px; font-weight:700; padding:14px; border-radius:10px; transition:background .2s; }
+  .result-cta:hover { background:#2b96cf; }
+  .result-note { text-align:center; font-size:11.5px; color:rgba(255,255,255,0.45); margin-top:11px; line-height:1.5; }
+  @media (max-width:820px){
+    .builder-wrap { grid-template-columns:1fr; }
+    .result-panel { position:static; }
+  }
+
   /* Photo grid */
   .photo-grid {
     display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
@@ -421,7 +547,8 @@
     padding:54px 60px 40px;
     text-align:center; color:rgba(255,255,255,0.7);
   }
-  footer img.f-logo { width:150px; margin:0 auto 4px; }
+  .footer-brand { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:#fff; margin-bottom:6px; }
+  .footer-brand span { color:var(--blue-bright); }
   .footer-tagline { font-size:13.5px; color:rgba(255,255,255,0.5); margin-bottom:26px; }
   .footer-links {
     list-style:none; display:flex; gap:26px; justify-content:center; flex-wrap:wrap;
@@ -535,7 +662,6 @@
 <section class="hero">
   <div class="hero-left">
     <div class="hero-content">
-      <img src="CleaningServicesTransparent.png" alt="Evergreen Cleaning Services" class="hero-logo"/>
       <div class="hero-badge">A Solutions Based Company 🫧</div>
       <h1>A Spotless Home,<br/><em>Every Single Time</em></h1>
       <p>Central Florida's professional house cleaning company. Flat-rate pricing starting at $90, eco-friendly supplies, and a 5-star service guarantee — no contracts, cancel anytime.</p>
@@ -545,9 +671,8 @@
       </div>
       <div style="border-top:1px solid rgba(255,255,255,0.12);padding-top:22px;margin-top:34px;">
         <div class="hero-pills">
-          <span class="hero-pill">🧹 Standard Clean</span>
-          <span class="hero-pill">✨ Deep Clean</span>
-          <span class="hero-pill">📦 Move In/Out</span>
+          <span class="hero-pill">🧹 Interior House Cleaning</span>
+          <span class="hero-pill">📦 Move In/Out Clean</span>
         </div>
         <div class="hero-trust">
           <span>✓ Fully Insured</span>
@@ -563,48 +688,30 @@
 <!-- SERVICES -->
 <section id="services" style="background:#fff;padding:96px 48px;">
   <p class="section-label animate-up">What We Do</p>
-  <h2 class="section-title animate-up">Three Cleans. One Standard: Spotless.</h2>
-  <p class="section-sub animate-up">Every visit is done by a trained, insured cleaner using eco-friendly supplies. Pick the clean that fits — we handle the rest.</p>
+  <h2 class="section-title animate-up">Two Ways to a Spotless Home.</h2>
+  <p class="section-sub animate-up">Every visit is done by a trained, insured cleaner using eco-friendly supplies. Pick your service, build your home, and see your price.</p>
 
-  <div class="services-grid">
-    <!-- Standard -->
+  <div class="services-grid two-up">
+    <!-- Interior House Cleaning -->
     <div class="service-card reveal">
       <div class="service-icon">🧹</div>
-      <div class="service-name">Standard Clean</div>
-      <div class="service-price">From $90</div>
-      <div class="service-desc">The perfect recurring clean to keep your home fresh week after week.</div>
+      <div class="service-name">Interior House Cleaning</div>
+      <div class="service-desc">Recurring upkeep or a top-to-bottom reset. Choose <strong>Standard</strong> or <strong>Deep</strong> when you build your home below.</div>
       <ul class="service-includes">
-        <li>Dust all surfaces &amp; furniture</li>
-        <li>Vacuum &amp; mop all floors</li>
-        <li>Kitchen counters, sink &amp; exterior appliances</li>
+        <li>Dust all surfaces, furniture &amp; fixtures</li>
+        <li>Vacuum &amp; mop every floor</li>
+        <li>Kitchen counters, sink &amp; appliances</li>
         <li>Full bathroom clean — toilets, tubs, mirrors</li>
-        <li>Trash emptied &amp; beds made</li>
+        <li>Deep option adds baseboards, grout, vents &amp; detailing</li>
       </ul>
-      <button class="btn-book" onclick="openQuoteModal('Standard Clean')">Get a Quote →</button>
-    </div>
-
-    <!-- Deep -->
-    <div class="service-card featured reveal">
-      <div class="featured-badge">Most Popular</div>
-      <div class="service-icon">✨</div>
-      <div class="service-name">Deep Clean</div>
-      <div class="service-price">From $160</div>
-      <div class="service-desc">A top-to-bottom reset. Ideal for first visits, spring cleaning, or anytime your home needs extra attention.</div>
-      <ul class="service-includes">
-        <li>Everything in the Standard Clean</li>
-        <li>Baseboards, door frames &amp; switch plates</li>
-        <li>Inside microwave &amp; appliance detailing</li>
-        <li>Scrub tile grout, faucets &amp; fixtures</li>
-        <li>Ceiling fans, vents &amp; window sills</li>
-      </ul>
-      <button class="btn-book" onclick="openQuoteModal('Deep Clean')">Get a Quote →</button>
+      <button class="btn-book" onclick="selectBuilderService('interior')">Build &amp; See Price →</button>
     </div>
 
     <!-- Move In/Out -->
-    <div class="service-card reveal">
+    <div class="service-card featured reveal">
+      <div class="featured-badge">Empty Home</div>
       <div class="service-icon">📦</div>
       <div class="service-name">Move In/Out Clean</div>
-      <div class="service-price">From $220</div>
       <div class="service-desc">Empty-home cleaning built for moving day, landlords, and deposit returns.</div>
       <ul class="service-includes">
         <li>Everything in the Deep Clean</li>
@@ -613,48 +720,105 @@
         <li>Spot-clean walls &amp; doors</li>
         <li>Garage &amp; entryway sweep-out</li>
       </ul>
-      <button class="btn-book" onclick="openQuoteModal('Move In/Out Clean')">Get a Quote →</button>
+      <button class="btn-book" onclick="selectBuilderService('move')">Build &amp; See Price →</button>
     </div>
   </div>
 </section>
 
-<!-- PRICING -->
+<!-- PRICING / BUILD YOUR HOME -->
 <section id="pricing" style="background:var(--cream);padding:96px 48px;">
-  <p class="section-label animate-up">Service Pricing</p>
-  <h2 class="section-title animate-up">Flat-Rate Pricing. No Surprises.</h2>
-  <p class="section-sub animate-up">Priced by home size — what you see is what you pay.</p>
+  <p class="section-label animate-up">Build Your Home</p>
+  <h2 class="section-title animate-up">Build Your Home. See Your Price.</h2>
+  <p class="section-sub animate-up">Tell us about your home and your flat rate appears instantly — no waiting, no surprises.</p>
 
-  <div class="pricing-wrap animate-up">
-    <div class="pricing-head"><span>Service</span><span>Price</span></div>
+  <div class="builder-wrap animate-up">
 
-    <div class="pricing-group">Studio / 1 Bedroom</div>
-    <div class="pricing-row"><div class="p-left"><span class="p-tag std">Standard</span><span class="p-desc">Studio / 1 bed</span></div><span class="p-price">$90</span></div>
-    <div class="pricing-row"><div class="p-left"><span class="p-tag deep">Deep Clean</span><span class="p-desc">Studio / 1 bed</span></div><span class="p-price">$160</span></div>
-    <div class="pricing-row"><div class="p-left"><span class="p-tag move">Move In/Out</span><span class="p-desc">Studio / 1 bed</span></div><span class="p-price">$220</span></div>
+    <!-- LEFT: configurator -->
+    <div class="builder-panel">
 
-    <div class="pricing-group">2 Bedroom · 1 Bathroom</div>
-    <div class="pricing-row"><div class="p-left"><span class="p-tag std">Standard</span><span class="p-desc">2 bed · 1 bath</span></div><span class="p-price">$120</span></div>
-    <div class="pricing-row"><div class="p-left"><span class="p-tag deep">Deep Clean</span><span class="p-desc">2 bed · 1 bath</span></div><span class="p-price">$200</span></div>
-    <div class="pricing-row"><div class="p-left"><span class="p-tag move">Move In/Out</span><span class="p-desc">2 bed · 1 bath</span></div><span class="p-price">$270</span></div>
+      <p class="builder-step-label">1 · Choose your service</p>
+      <div class="seg" id="svcSeg">
+        <button data-svc="standard" class="active" onclick="setService('standard')">Standard Clean<small>Recurring upkeep</small></button>
+        <button data-svc="deep" onclick="setService('deep')">Deep Clean<small>Top-to-bottom reset</small></button>
+        <button data-svc="move" onclick="setService('move')">Move In/Out<small>Empty home</small></button>
+      </div>
 
-    <div class="pricing-group">3 Bedroom · 2 Bathroom</div>
-    <div class="pricing-row"><div class="p-left"><span class="p-tag std">Standard</span><span class="p-desc">3 bed · 2 bath</span></div><span class="p-price">$160</span></div>
-    <div class="pricing-row"><div class="p-left"><span class="p-tag deep">Deep Clean</span><span class="p-desc">3 bed · 2 bath</span></div><span class="p-price">$260</span></div>
-    <div class="pricing-row"><div class="p-left"><span class="p-tag move">Move In/Out</span><span class="p-desc">3 bed · 2 bath</span></div><span class="p-price">$340</span></div>
+      <p class="builder-step-label">2 · Build your layout</p>
+      <div class="stepper-row">
+        <span class="sr-label">Bedrooms <small>Studio = 0</small></span>
+        <div class="stepper">
+          <button onclick="step('bed',-1)" id="bedMinus">−</button>
+          <span class="sval" id="bedVal">2</span>
+          <button onclick="step('bed',1)" id="bedPlus">+</button>
+        </div>
+      </div>
+      <div class="stepper-row">
+        <span class="sr-label">Bathrooms</span>
+        <div class="stepper">
+          <button onclick="step('bath',-1)" id="bathMinus">−</button>
+          <span class="sval" id="bathVal">1</span>
+          <button onclick="step('bath',1)" id="bathPlus">+</button>
+        </div>
+      </div>
+      <div class="stepper-row">
+        <span class="sr-label">Add-on rooms <small>Office, bonus room, sunroom…</small></span>
+        <div class="stepper">
+          <button onclick="step('extra',-1)" id="extraMinus">−</button>
+          <span class="sval" id="extraVal">0</span>
+          <button onclick="step('extra',1)" id="extraPlus">+</button>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:10px;line-height:1.5;">✓ Kitchen &amp; living areas are always included — no need to count them.</p>
 
-    <div class="pricing-group">4 Bedroom · 2–3 Bathroom</div>
-    <div class="pricing-row"><div class="p-left"><span class="p-tag std">Standard</span><span class="p-desc">4 bed · 2-3 bath</span></div><span class="p-price">$200</span></div>
-    <div class="pricing-row"><div class="p-left"><span class="p-tag deep">Deep Clean</span><span class="p-desc">4 bed · 2-3 bath</span></div><span class="p-price">$320</span></div>
-    <div class="pricing-row"><div class="p-left"><span class="p-tag move">Move In/Out</span><span class="p-desc">4 bed · 2-3 bath</span></div><span class="p-price">$420</span></div>
+      <p class="builder-step-label">3 · Home size</p>
+      <div class="sqft-grid" id="sqftGrid">
+        <button data-sqft="Under 1,000 sq ft" onclick="setSqft(this)">Under 1,000 sqft</button>
+        <button data-sqft="1,000–2,000 sq ft" class="active" onclick="setSqft(this)">1,000–2,000 sqft</button>
+        <button data-sqft="2,000–3,000 sq ft" onclick="setSqft(this)">2,000–3,000 sqft</button>
+        <button data-sqft="3,000+ sq ft" onclick="setSqft(this)">3,000+ sqft</button>
+      </div>
+
+      <p class="builder-step-label">4 · Add-ons <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--text-muted);">(optional)</span></p>
+      <div class="addon-grid" id="addonGrid"><!-- filled by JS --></div>
+
+      <div class="addon" style="margin-top:9px;" id="petsToggle" onclick="togglePets()">
+        <div class="addon-left">
+          <span class="ad-check" id="petsCheck">✓</span>
+          <span class="ad-name">🐾 Pets in the home</span>
+        </div>
+        <span class="ad-price">+$15</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: live price -->
+    <div class="result-panel">
+      <div class="result-inner">
+        <div class="result-locked-msg" id="resultLocked">
+          <div class="lock-ic">🔒</div>
+          <h4>Your price is hidden</h4>
+          <p>Start building your home and your flat rate appears here instantly.</p>
+        </div>
+
+        <div class="result-revealed" id="resultRevealed">
+          <div class="result-eyebrow" id="rService">Standard Clean</div>
+          <div class="result-home" id="rHome">2 bed · 1 bath</div>
+          <div class="price-big"><span class="pb-cur">$</span><span class="pb-num" id="rPrice">120</span></div>
+          <div class="price-sub">Flat rate · what you see is what you pay</div>
+
+          <div class="alt-prices" id="altPrices"><!-- filled by JS --></div>
+
+          <button class="result-cta" onclick="bookFromBuilder()">Book This Clean →</button>
+          <p class="result-note">No contracts · Cancel anytime · Homes over 3,000 sqft or 5+ beds may need a custom quote.</p>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="pricing-badges animate-up">
+  <div class="pricing-badges animate-up" style="margin-top:34px;">
     <div>Fully Insured</div>
     <div>Eco-Friendly Supplies</div>
     <div>5-Star Service</div>
   </div>
-
-  <p style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:18px;">Larger home or something unique? <a href="javascript:void(0)" onclick="openQuoteModal()" style="color:var(--blue-mid);font-weight:600;">Request a custom quote →</a></p>
 </section>
 
 <!-- PHOTO GRID -->
@@ -711,7 +875,7 @@
 
 <!-- FOOTER -->
 <footer>
-  <img src="CleaningServicesTransparent.png" alt="Evergreen Cleaning Services" class="f-logo"/>
+  <div class="footer-brand">Evergreen <span>Cleaning Services</span></div>
   <div class="footer-tagline">We clean. You relax.</div>
   <ul class="footer-links">
     <li><a href="#services">Services</a></li>
@@ -846,6 +1010,170 @@ function submitQuote() {
   document.getElementById('quoteFormView').style.display = 'none';
   document.getElementById('quoteSuccessView').style.display = '';
 }
+
+// ── HOME BUILDER ──────────────────────────────────────────
+// Base prices come straight from the published flat-rate tiers.
+// Bedrooms drive the tier; bathrooms & sq ft are collected for the quote
+// but don't change the flat rate (keeps pricing consistent with the table).
+const TIERS = {
+  standard: {0:90,  1:90,  2:120, 3:160, 4:200},
+  deep:     {0:160, 1:160, 2:200, 3:260, 4:320},
+  move:     {0:220, 1:220, 2:270, 3:340, 4:420}
+};
+const EXT_PER_BED = { standard:40, deep:60, move:80 }; // 5+ bedrooms
+const SVC_NAME = { standard:'Standard Clean', deep:'Deep Clean', move:'Move In/Out Clean' };
+const SVC_SUB  = { standard:'Recurring upkeep', deep:'Top-to-bottom reset', move:'Empty home' };
+const EXTRA_ROOM_FEE = 20; // per add-on room
+const PETS_FEE = 15;
+
+const ADDONS = [
+  {id:'windows',  name:'🪟 Interior windows',     price:40},
+  {id:'fridge',   name:'🧊 Inside fridge',        price:35},
+  {id:'oven',     name:'🔥 Inside oven',          price:35},
+  {id:'cabinets', name:'🚪 Inside cabinets',      price:40},
+  {id:'sofa',     name:'🛋️ Steam clean sofa',     price:50},
+  {id:'carpet',   name:'🧶 Carpet steam clean',   price:45},
+  {id:'laundry',  name:'🧺 Laundry (wash & fold)',price:20},
+  {id:'fans',     name:'🌀 Ceiling fans & vents', price:25}
+];
+
+const BLD = {
+  service:'standard',
+  bed:2, bath:1, extra:0,
+  sqft:'1,000–2,000 sq ft',
+  addons:{}, pets:false,
+  touched:false
+};
+const LIMITS = { bed:[0,8], bath:[1,6], extra:[0,6] };
+
+function basePrice(service, bed){
+  const t = TIERS[service];
+  if (bed <= 4) return t[bed];
+  return t[4] + (bed - 4) * EXT_PER_BED[service];
+}
+function addonsTotal(){
+  let sum = 0;
+  ADDONS.forEach(a => { if (BLD.addons[a.id]) sum += a.price; });
+  sum += BLD.extra * EXTRA_ROOM_FEE;
+  if (BLD.pets) sum += PETS_FEE;
+  return sum;
+}
+function totalFor(service){ return basePrice(service, BLD.bed) + addonsTotal(); }
+
+function homeSummary(){
+  const bedTxt = BLD.bed === 0 ? 'Studio' : BLD.bed + ' bed';
+  let s = bedTxt + ' · ' + BLD.bath + ' bath · ' + BLD.sqft;
+  if (BLD.extra > 0) s += ' · +' + BLD.extra + ' room' + (BLD.extra>1?'s':'');
+  return s;
+}
+
+function reveal(){
+  BLD.touched = true;
+  document.getElementById('resultLocked').style.display = 'none';
+  document.getElementById('resultRevealed').classList.add('show');
+}
+
+function renderBuilder(){
+  // steppers
+  document.getElementById('bedVal').textContent   = BLD.bed === 0 ? 'Studio' : BLD.bed;
+  document.getElementById('bathVal').textContent  = BLD.bath;
+  document.getElementById('extraVal').textContent = BLD.extra;
+  ['bed','bath','extra'].forEach(k=>{
+    document.getElementById(k+'Minus').disabled = BLD[k] <= LIMITS[k][0];
+    document.getElementById(k+'Plus').disabled  = BLD[k] >= LIMITS[k][1];
+  });
+
+  if (!BLD.touched) return;
+
+  // main price = selected service
+  document.getElementById('rService').textContent = SVC_NAME[BLD.service];
+  document.getElementById('rHome').textContent    = homeSummary();
+  document.getElementById('rPrice').textContent   = totalFor(BLD.service);
+
+  // alt rows = the other two services
+  const alt = document.getElementById('altPrices');
+  alt.innerHTML = '';
+  Object.keys(SVC_NAME).filter(s => s !== BLD.service).forEach(s=>{
+    const row = document.createElement('div');
+    row.className = 'alt-row';
+    row.innerHTML = '<span class="alt-name">'+SVC_NAME[s]+'<small>'+SVC_SUB[s]+'</small></span>'+
+                    '<span class="alt-amt">$'+totalFor(s)+'</span>';
+    row.style.cursor = 'pointer';
+    row.onclick = ()=> setService(s);
+    alt.appendChild(row);
+  });
+}
+
+function setService(s){
+  BLD.service = s;
+  document.querySelectorAll('#svcSeg button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.svc === s);
+  });
+  reveal(); renderBuilder();
+}
+function step(key, dir){
+  const [min,max] = LIMITS[key];
+  BLD[key] = Math.min(max, Math.max(min, BLD[key] + dir));
+  reveal(); renderBuilder();
+}
+function setSqft(btn){
+  BLD.sqft = btn.dataset.sqft;
+  document.querySelectorAll('#sqftGrid button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  reveal(); renderBuilder();
+}
+function toggleAddon(id, el){
+  BLD.addons[id] = !BLD.addons[id];
+  el.classList.toggle('on', BLD.addons[id]);
+  reveal(); renderBuilder();
+}
+function togglePets(){
+  BLD.pets = !BLD.pets;
+  document.getElementById('petsToggle').classList.toggle('on', BLD.pets);
+  reveal(); renderBuilder();
+}
+
+// from the two service cards up top
+function selectBuilderService(which){
+  setService(which === 'move' ? 'move' : 'standard');
+  document.getElementById('pricing').scrollIntoView({behavior:'smooth'});
+}
+
+// hand off the built home to the quote modal
+function bookFromBuilder(){
+  const svc = SVC_NAME[BLD.service];
+  const chosen = ADDONS.filter(a=>BLD.addons[a.id]).map(a=>a.name.replace(/^[^ ]+ /,''));
+  if (BLD.extra>0) chosen.push(BLD.extra+' add-on room'+(BLD.extra>1?'s':''));
+  if (BLD.pets) chosen.push('Pets in home');
+  const summary =
+    'My quote from the home builder:\n' +
+    '• Service: ' + svc + ' — $' + totalFor(BLD.service) + '\n' +
+    '• Home: ' + homeSummary() + '\n' +
+    '• Add-ons: ' + (chosen.length ? chosen.join(', ') : 'none') + '\n\n';
+  openQuoteModal(svc);
+  const notes = document.getElementById('q-notes');
+  notes.value = summary + (notes.value || '');
+  // best-effort match on home-size dropdown
+  const sizeSel = document.getElementById('q-size');
+  const label = (BLD.bed===0?'Studio / 1 bed':BLD.bed+' bed');
+  [...sizeSel.options].forEach(o=>{ if(o.value.startsWith(label.split(' ')[0])) sizeSel.value=o.value; });
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  const grid = document.getElementById('addonGrid');
+  if (grid){
+    ADDONS.forEach(a=>{
+      const el = document.createElement('div');
+      el.className = 'addon';
+      el.onclick = ()=> toggleAddon(a.id, el);
+      el.innerHTML = '<div class="addon-left"><span class="ad-check">✓</span>'+
+                     '<span class="ad-name">'+a.name+'</span></div>'+
+                     '<span class="ad-price">+$'+a.price+'</span>';
+      grid.appendChild(el);
+    });
+  }
+  renderBuilder();
+});
 
 // ── FOOTER YEAR ──
 document.getElementById('copy-year').textContent = new Date().getFullYear();
