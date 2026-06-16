@@ -74,9 +74,9 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
 <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/></noscript>
 <link rel="preload" as="image" href="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80&fm=jpg"/>
-<link rel="icon" type="image/x-icon" href="favicon.ico"/>
-<link rel="icon" type="image/png" href="favicon.png"/>
-<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="icon" type="image/x-icon" href="favicon.ico?v=3"/>
+<link rel="icon" type="image/png" href="favicon.png?v=3"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=3"/>
 
 <style>
   :root {
@@ -299,6 +299,8 @@
     gap:24px; max-width:1100px; margin:0 auto;
   }
   .services-grid.two-up { grid-template-columns:repeat(2,1fr); max-width:780px; }
+  .services-grid.three-up { grid-template-columns:repeat(3,1fr); max-width:1080px; }
+  @media (max-width:960px){ .services-grid.three-up { grid-template-columns:1fr; max-width:460px; } }
   @media (max-width:680px){ .services-grid.two-up { grid-template-columns:1fr; } }
   .service-card {
     border:1px solid rgba(13,42,66,0.1); border-radius:16px;
@@ -643,7 +645,7 @@
         <li><a href="/about.html">About</a></li>
         <li><a href="tel:+13524620627">📞 (352) 462-0627</a></li>
       </ul>
-      <a href="javascript:void(0)" onclick="openQuoteModal()" class="nav-cta">Get a Quote</a>
+      <a href="#pricing" class="nav-cta">Build Your Price</a>
     </div>
   </nav>
   <div class="mobile-nav" id="mobileNav">
@@ -653,7 +655,7 @@
     <a href="pressure-washing.html">Pressure Washing</a>
     <a href="/faq.html">FAQ</a>
     <a href="/about.html">About</a>
-    <a href="javascript:void(0)" class="mobile-nav-cta" onclick="closeMobileMenu();openQuoteModal()">Get a Free Quote</a>
+    <a href="#pricing" class="mobile-nav-cta" onclick="closeMobileMenu()">Build Your Price</a>
     <a href="tel:+13524620627">📞 (352) 462-0627</a>
   </div>
 </div>
@@ -666,8 +668,8 @@
       <h1>A Spotless Home,<br/><em>Every Single Time</em></h1>
       <p>Central Florida's professional house cleaning company. Flat-rate pricing starting at $90, eco-friendly supplies, and a 5-star service guarantee — no contracts, cancel anytime.</p>
       <div class="hero-btns">
-        <button onclick="openQuoteModal()" class="btn-primary">Get a Free Quote</button>
-        <a href="tel:+13524620627" class="btn-secondary">📞 (352) 462-0627</a>
+        <a href="#pricing" class="btn-primary">Build Your Price →</a>
+        <a href="#contact" class="btn-secondary">Contact Us</a>
       </div>
       <div style="border-top:1px solid rgba(255,255,255,0.12);padding-top:22px;margin-top:34px;">
         <div class="hero-pills">
@@ -688,10 +690,10 @@
 <!-- SERVICES -->
 <section id="services" style="background:#fff;padding:96px 48px;">
   <p class="section-label animate-up">What We Do</p>
-  <h2 class="section-title animate-up">Two Ways to a Spotless Home.</h2>
-  <p class="section-sub animate-up">Every visit is done by a trained, insured cleaner using eco-friendly supplies. Pick your service, build your home, and see your price.</p>
+  <h2 class="section-title animate-up">Ways to a Spotless Property.</h2>
+  <p class="section-sub animate-up">Trained, insured pros and eco-friendly supplies. Pick your service, build your home, and see your price — instantly.</p>
 
-  <div class="services-grid two-up">
+  <div class="services-grid three-up">
     <!-- Interior House Cleaning -->
     <div class="service-card reveal">
       <div class="service-icon">🧹</div>
@@ -722,6 +724,22 @@
       </ul>
       <button class="btn-book" onclick="selectBuilderService('move')">Build &amp; See Price →</button>
     </div>
+
+    <!-- Pressure Washing -->
+    <div class="service-card reveal">
+      <div class="featured-badge" style="background:var(--blue-bright);">Now Booking</div>
+      <div class="service-icon">💦</div>
+      <div class="service-name">Pressure Washing</div>
+      <div class="service-desc">Exterior cleaning that brings curb appeal back fast — blast away years of Florida grime and mildew.</div>
+      <ul class="service-includes">
+        <li>Driveways, walkways &amp; patios</li>
+        <li>House siding &amp; soffits</li>
+        <li>Pool decks &amp; lanais</li>
+        <li>Fences &amp; wood decks</li>
+        <li>Soft-wash roof &amp; gutter cleaning</li>
+      </ul>
+      <a class="btn-book" href="pressure-washing.html" style="text-decoration:none;display:block;">View Pressure Washing →</a>
+    </div>
   </div>
 </section>
 
@@ -729,7 +747,7 @@
 <section id="pricing" style="background:var(--cream);padding:96px 48px;">
   <p class="section-label animate-up">Build Your Home</p>
   <h2 class="section-title animate-up">Build Your Home. See Your Price.</h2>
-  <p class="section-sub animate-up">Tell us about your home and your flat rate appears instantly — no waiting, no surprises.</p>
+  <p class="section-sub animate-up">Tell us about your home and your price appears instantly — every room and option updates it live.</p>
 
   <div class="builder-wrap animate-up">
 
@@ -753,7 +771,7 @@
         </div>
       </div>
       <div class="stepper-row">
-        <span class="sr-label">Bathrooms</span>
+        <span class="sr-label">Bathrooms <small>0 = none</small></span>
         <div class="stepper">
           <button onclick="step('bath',-1)" id="bathMinus">−</button>
           <span class="sval" id="bathVal">1</span>
@@ -808,7 +826,7 @@
           <div class="alt-prices" id="altPrices"><!-- filled by JS --></div>
 
           <button class="result-cta" onclick="bookFromBuilder()">Book This Clean →</button>
-          <p class="result-note">No contracts · Cancel anytime · Homes over 3,000 sqft or 5+ beds may need a custom quote.</p>
+          <p class="result-note">Prices may vary based on home condition &amp; access · No contracts · Cancel anytime</p>
         </div>
       </div>
     </div>
@@ -838,19 +856,13 @@
 <section style="background:var(--cream);padding:90px 48px;">
   <p class="section-label animate-up">More From Evergreen</p>
   <h2 class="section-title animate-up">Beyond the House</h2>
-  <p class="section-sub animate-up">Two more ways we keep your whole property spotless — launching soon.</p>
-  <div class="soon-grid animate-up">
+  <p class="section-sub animate-up">One more way we'll keep your whole property spotless — launching soon.</p>
+  <div class="soon-grid animate-up" style="max-width:440px;">
     <a class="soon-card" href="pool-cleaning.html">
       <span class="soon-tag">Coming Soon</span>
       <div class="s-icon">🏊</div>
       <div class="s-name">Pool Cleaning</div>
       <div class="s-desc">Weekly pool maintenance, chemical balancing, and crystal-clear water — year-round Florida pool care.</div>
-    </a>
-    <a class="soon-card" href="pressure-washing.html">
-      <span class="soon-tag">Coming Soon</span>
-      <div class="s-icon">💦</div>
-      <div class="s-name">Pressure Washing</div>
-      <div class="s-desc">Driveways, siding, pool decks, and roofs — blast away years of Florida grime and mildew.</div>
     </a>
   </div>
 </section>
@@ -865,7 +877,7 @@
 <!-- CLOSING CTA -->
 <section style="background:#fff;padding:64px 48px;text-align:center;border-top:1px solid #e4edf4;">
   <div class="animate-up" style="display:inline-flex;flex-direction:column;align-items:center;gap:14px;">
-    <button onclick="openQuoteModal()" class="btn-primary" style="padding:17px 48px;font-size:16px;border-radius:10px;">Get My Free Cleaning Quote →</button>
+    <a href="#pricing" class="btn-primary" style="padding:17px 48px;font-size:16px;border-radius:10px;text-decoration:none;">Build My Price →</a>
     <span style="font-size:13px;color:var(--text-muted);">No contracts · Cancel anytime · Or call <a href="tel:+13524620627" style="color:var(--blue-mid);font-weight:600;">(352) 462-0627</a></span>
   </div>
 </section>
@@ -888,7 +900,7 @@
     <li><a href="privacy-policy.html">Privacy Policy</a></li>
     <li><a href="terms-of-service.html">Terms of Service</a></li>
   </ul>
-  <div class="footer-contact-info">
+  <div class="footer-contact-info" id="contact">
     <a href="tel:+13524620627">(352) 462-0627</a>
     <a href="mailto:hunternodine.official@gmail.com">hunternodine.official@gmail.com</a>
   </div>
@@ -900,8 +912,8 @@
   <div class="modal">
     <button class="modal-close" onclick="closeQuoteModal()" aria-label="Close">✕</button>
     <div id="quoteFormView">
-      <h2 style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--blue-deep);margin-bottom:6px;">Get your free quote</h2>
-      <p style="font-size:14px;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Tell us about your home and we'll confirm your flat rate and earliest available day.</p>
+      <h2 style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--blue-deep);margin-bottom:6px;">Book your clean</h2>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Send us your details and we'll lock in your day. Your builder price is your rate — final price may vary slightly based on home condition &amp; access.</p>
       <div class="form-row">
         <label>Full Name</label>
         <input type="text" id="q-name" placeholder="Jane Smith" autocomplete="name"/>
@@ -1015,15 +1027,22 @@ function submitQuote() {
 // Base prices come straight from the published flat-rate tiers.
 // Bedrooms drive the tier; bathrooms & sq ft are collected for the quote
 // but don't change the flat rate (keeps pricing consistent with the table).
-const TIERS = {
-  standard: {0:90,  1:90,  2:120, 3:160, 4:200},
-  deep:     {0:160, 1:160, 2:200, 3:260, 4:320},
-  move:     {0:220, 1:220, 2:270, 3:340, 4:420}
+// Per-item pricing — every choice moves the price. PRICE_FLOOR keeps the
+// minimum "step in the door" rate at $80. Tweak these numbers to retune.
+const RATES = {
+  standard: { base:40,  bed:28, bath:18, room:15 },
+  deep:     { base:105, bed:38, bath:26, room:20 },
+  move:     { base:155, bed:48, bath:32, room:24 }
 };
-const EXT_PER_BED = { standard:40, deep:60, move:80 }; // 5+ bedrooms
+const SQFT_FEE = {
+  'Under 1,000 sq ft': 0,
+  '1,000–2,000 sq ft': 12,
+  '2,000–3,000 sq ft': 34,
+  '3,000+ sq ft':      60
+};
+const PRICE_FLOOR = 80;
 const SVC_NAME = { standard:'Standard Clean', deep:'Deep Clean', move:'Move In/Out Clean' };
 const SVC_SUB  = { standard:'Recurring upkeep', deep:'Top-to-bottom reset', move:'Empty home' };
-const EXTRA_ROOM_FEE = 20; // per add-on room
 const PETS_FEE = 15;
 
 const ADDONS = [
@@ -1044,21 +1063,22 @@ const BLD = {
   addons:{}, pets:false,
   touched:false
 };
-const LIMITS = { bed:[0,8], bath:[1,6], extra:[0,6] };
+const LIMITS = { bed:[0,8], bath:[0,6], extra:[0,6] };
 
-function basePrice(service, bed){
-  const t = TIERS[service];
-  if (bed <= 4) return t[bed];
-  return t[4] + (bed - 4) * EXT_PER_BED[service];
+// Base service price (bedrooms, bathrooms, add-on rooms, sq ft) with a floor.
+function basePrice(service){
+  const r = RATES[service];
+  const sqft = SQFT_FEE[BLD.sqft] || 0;
+  const raw = r.base + BLD.bed*r.bed + BLD.bath*r.bath + BLD.extra*r.room + sqft;
+  return Math.max(PRICE_FLOOR, raw);
 }
 function addonsTotal(){
   let sum = 0;
   ADDONS.forEach(a => { if (BLD.addons[a.id]) sum += a.price; });
-  sum += BLD.extra * EXTRA_ROOM_FEE;
   if (BLD.pets) sum += PETS_FEE;
   return sum;
 }
-function totalFor(service){ return basePrice(service, BLD.bed) + addonsTotal(); }
+function totalFor(service){ return basePrice(service) + addonsTotal(); }
 
 function homeSummary(){
   const bedTxt = BLD.bed === 0 ? 'Studio' : BLD.bed + ' bed';
