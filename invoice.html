@@ -4,7 +4,7 @@
 <!-- Google Ads tracking removed from admin page (causes infinite tab spinner) -->
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Evergreen — Staff Portal</title>
+<title>Evergreen Cleaning — Staff Portal</title>
 <meta name="robots" content="noindex, nofollow"/>
 <!-- Fonts load asynchronously — no render block, no persistent connection -->
 <link rel="dns-prefetch" href="https://fonts.googleapis.com"/>
@@ -13,8 +13,8 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/></noscript>
 <style>
   :root {
-    --green-deep: #1a3a1a; --green-mid: #2d6a2d; --green-bright:#4caf50;
-    --green-pale: #e8f5e9; --cream: #faf9f6; --white: #ffffff;
+    --green-deep: #0d2a42; --green-mid: #1565a8; --green-bright:#3da9e0;
+    --green-pale: #e8f4fb; --cream: #faf9f6; --white: #ffffff;
     --text: #1a1a1a; --text-muted: #6b7280; --border: #e2e8f0;
     --red: #e53e3e; --gold: #c9a84c; --orange: #f59e0b;
   }
@@ -36,7 +36,7 @@
   #appScreen { display:none; }
   header { background:var(--green-deep); color:#fff; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; position:sticky; top:0; z-index:100; flex-wrap:wrap; }
   .header-brand { font-family:'Playfair Display',serif; font-size:18px; white-space:nowrap; }
-  .header-brand span { color:#7ec87e; }
+  .header-brand span { color:#8fd0f0; }
   .header-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .header-role { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2); border-radius:6px; padding:4px 10px; font-size:12px; font-weight:600; }
   .header-role.owner { background:rgba(201,168,76,.25); border-color:var(--gold); color:#fde68a; }
@@ -126,8 +126,8 @@
   .cust-dd-sep { height:1px; background:#f1f5f9; margin:3px 0; }
 
   .badge-service { background:var(--green-pale); color:var(--green-deep); border-radius:6px; padding:3px 10px; font-size:12px; font-weight:600; }
-  .badge-autopay { background:#1a3a1a; color:#fff; border-radius:6px; padding:3px 10px; font-size:12px; font-weight:700; }
-  .badge-invoiced { background:#f0fdf4; color:#16a34a; border:1px solid #86efac; border-radius:6px; padding:3px 10px; font-size:12px; font-weight:600; }
+  .badge-autopay { background:#0d2a42; color:#fff; border-radius:6px; padding:3px 10px; font-size:12px; font-weight:700; }
+  .badge-invoiced { background:#f0fdf4; color:#1565a8; border:1px solid #86efac; border-radius:6px; padding:3px 10px; font-size:12px; font-weight:600; }
   /* Amber badge for "Invoiced (awaiting payment)" — distinct from green "Paid" */
   .badge-invoiced-pending { background:#fffbeb; color:#b45309; border:1px solid #fcd34d; border-radius:6px; padding:3px 10px; font-size:12px; font-weight:600; }
   .badge-paylater { background:#fffbeb; color:#92400e; border:1px solid #fcd34d; border-radius:6px; padding:3px 10px; font-size:12px; font-weight:600; }
@@ -143,12 +143,12 @@
   .btn-done:hover { background:#d97706; }
   .btn-invoice { background:var(--green-mid); color:#fff; }
   .btn-invoice:hover { background:var(--green-deep); }
-  .btn-charge  { background:#166534; color:#fff; }
+  .btn-charge  { background:#0d2a42; color:#fff; }
   .btn-charge:hover  { background:#14532d; }
   .btn-disabled { background:#e2e8f0; color:#9ca3af; cursor:not-allowed; }
   .btn-cancel-job { background:#fff; color:var(--red); border:1.5px solid #fca5a5; }
   .btn-cancel-job:hover { background:#fff5f5; border-color:var(--red); }
-  .btn-schedule-plan { background:#1a3a1a; color:#fff; }
+  .btn-schedule-plan { background:#0d2a42; color:#fff; }
   .btn-schedule-plan:hover { background:#2d5a2d; }
   .btn-cancel-quote { background:#fff; color:#6b7280; border:1.5px solid #d1d5db; }
   .btn-cancel-quote:hover { background:#f9fafb; border-color:#9ca3af; }
@@ -222,7 +222,7 @@
     font-weight:700; cursor:pointer; transition:opacity .15s;
   }
   .route-day-note-save:hover { opacity:.88; }
-  .route-day-note-saved { font-size:12px; color:#16a34a; margin-left:8px; opacity:0; transition:opacity .3s; }
+  .route-day-note-saved { font-size:12px; color:#1565a8; margin-left:8px; opacity:0; transition:opacity .3s; }
 
   /* Control panel */
   .route-cp {
@@ -294,7 +294,7 @@
   .crew-a  { background:#dbeafe; color:#1d4ed8; }
   .crew-b  { background:#fce7f3; color:#be185d; }
   .crew-none { background:#f1f5f9; color:#6b7280; }
-  .zone-badge { display:inline-flex; align-items:center; padding:2px 7px; border-radius:5px; font-size:11px; font-weight:700; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; vertical-align:middle; }
+  .zone-badge { display:inline-flex; align-items:center; padding:2px 7px; border-radius:5px; font-size:11px; font-weight:700; background:#f0fdf4; color:#0d2a42; border:1px solid #bbf7d0; vertical-align:middle; }
 
   /* Route stop reorder buttons */
   .route-stop-controls { display:flex; flex-direction:column; align-items:center; gap:2px; padding-top:16px; flex-shrink:0; }
@@ -446,7 +446,7 @@
   .route-contact-btn:hover { background:#1d4ed8; }
   .route-all-btn {
     display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 20px; border-radius:12px;
-    background:linear-gradient(135deg,#16a34a,#166534); color:#fff; border:none; cursor:pointer;
+    background:linear-gradient(135deg,#1565a8,#0d2a42); color:#fff; border:none; cursor:pointer;
     font-family:inherit; font-size:14px; font-weight:700; letter-spacing:.01em;
     margin-bottom:14px; width:100%; box-shadow:0 2px 8px rgba(22,101,52,.2);
   }
@@ -465,7 +465,7 @@
   .contact-popup-phone { font-size:13px; color:var(--text-muted); margin-bottom:16px; }
   .contact-popup-btns { display:flex; gap:10px; }
   .contact-popup-btns a { flex:1; padding:13px; border-radius:12px; font-family:inherit; font-size:15px; font-weight:700; text-align:center; text-decoration:none; cursor:pointer; }
-  .contact-call-btn { background:#15803d; color:#fff; }
+  .contact-call-btn { background:#1565a8; color:#fff; }
   .contact-text-btn { background:#1d4ed8; color:#fff; }
   /* Notes popup overlay */
   .notes-overlay {
@@ -491,7 +491,7 @@
     box-shadow:0 2px 8px rgba(76,175,80,.4);
   }
   .route-finish-card {
-    flex:1; background:linear-gradient(135deg,#f0fdf4,#e8f5e9);
+    flex:1; background:linear-gradient(135deg,#f0fdf4,#e8f4fb);
     border:1.5px solid #a7d9a7; border-radius:14px; padding:14px 18px;
   }
   .route-finish-label { font-size:13px; font-weight:700; color:var(--green-deep); }
@@ -531,13 +531,13 @@
   .btn-send:disabled { background:#a0aec0; cursor:not-allowed; }
   .btn-cancel { padding:14px 20px; background:#fff; color:var(--text-muted); border:2px solid var(--border); border-radius:10px; font-family:inherit; font-size:15px; font-weight:600; cursor:pointer; }
   .modal-error   { color:var(--red); font-size:13px; margin-top:12px; background:#fff5f5; border:1px solid #fed7d7; border-radius:8px; padding:12px 14px; display:none; }
-  .modal-success { background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:16px; text-align:center; color:#15803d; font-weight:600; display:none; margin-top:16px; }
+  .modal-success { background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:16px; text-align:center; color:#1565a8; font-weight:600; display:none; margin-top:16px; }
 
   /* ── Tip selector ── */
   .tip-row { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
   .tip-btn { padding:8px 14px; border:2px solid var(--border); border-radius:8px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; background:#fff; color:var(--text); transition:all .2s; }
   .tip-btn.active { background:var(--green-pale); border-color:var(--green-mid); color:var(--green-deep); }
-  .tip-preview { font-size:13px; color:#15803d; font-weight:600; margin-top:8px; min-height:20px; }
+  .tip-preview { font-size:13px; color:#1565a8; font-weight:600; margin-top:8px; min-height:20px; }
 
   /* ── Add Client form ── */
   .form-section { background:#fff; border:1.5px solid var(--border); border-radius:14px; padding:28px; margin-bottom:24px; }
@@ -554,7 +554,7 @@
   .btn-primary-lg:disabled { background:#a0aec0; cursor:not-allowed; }
 
   /* ── Toast ── */
-  #toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:#1a3a1a; color:#fff; padding:12px 24px; border-radius:12px; font-size:14px; font-weight:600; z-index:2000; opacity:0; transition:opacity .25s, transform .25s; pointer-events:none; white-space:nowrap; }
+  #toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:#0d2a42; color:#fff; padding:12px 24px; border-radius:12px; font-size:14px; font-weight:600; z-index:2000; opacity:0; transition:opacity .25s, transform .25s; pointer-events:none; white-space:nowrap; }
   #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
   /* ── Stats ── */
@@ -603,7 +603,7 @@
   .an-bar { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
   .an-bar-lbl { font-size:13px; min-width:190px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .an-bar-lbl-sm { font-size:13px; min-width:130px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .an-bar-track { flex:1; background:#e8f5e9; border-radius:4px; height:13px; overflow:hidden; }
+  .an-bar-track { flex:1; background:#e8f4fb; border-radius:4px; height:13px; overflow:hidden; }
   .an-bar-fill { height:100%; background:var(--green-mid); border-radius:4px; transition:width .4s; }
   .an-bar-fill.red    { background:#f87171; }
   .an-bar-fill.orange { background:#fb923c; }
@@ -611,26 +611,26 @@
   .an-bar-pct { font-size:12px; color:var(--text-muted); min-width:34px; text-align:right; }
   .an-funnel-step { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
   .an-funnel-lbl { font-size:13px; font-weight:600; color:var(--green-deep); min-width:210px; }
-  .an-funnel-track { flex:1; background:#e8f5e9; border-radius:6px; height:28px; overflow:hidden; }
+  .an-funnel-track { flex:1; background:#e8f4fb; border-radius:6px; height:28px; overflow:hidden; }
   .an-funnel-fill { height:100%; border-radius:6px; display:flex; align-items:center; padding-left:10px; font-size:12px; font-weight:700; color:#fff; white-space:nowrap; transition:width .5s; }
   .an-funnel-pct { font-size:13px; color:var(--text-muted); min-width:40px; text-align:right; font-weight:600; }
   .an-drop { font-size:11px; font-weight:700; padding:2px 7px; border-radius:20px; margin-left:4px; }
   .an-drop.bad  { background:#fee2e2; color:#b91c1c; }
-  .an-drop.ok   { background:#dcfce7; color:#166534; }
+  .an-drop.ok   { background:#dcfce7; color:#0d2a42; }
   .an-drop.warn { background:#fef3c7; color:#92400e; }
   .an-alert { border-radius:10px; padding:12px 16px; margin-bottom:14px; font-size:13px; line-height:1.6; }
-  .an-alert.green  { background:#f0fdf4; border:1.5px solid #86efac; color:#166534; }
+  .an-alert.green  { background:#f0fdf4; border:1.5px solid #86efac; color:#0d2a42; }
   .an-alert.yellow { background:#fffbeb; border:1.5px solid #fcd34d; color:#92400e; }
   .an-alert.red    { background:#fef2f2; border:1.5px solid #fca5a5; color:#991b1b; }
   .an-heat { display:flex; gap:3px; flex-wrap:wrap; }
-  .an-heat-cell { width:30px; height:30px; border-radius:5px; background:#e8f5e9; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:var(--text-muted); cursor:default; }
+  .an-heat-cell { width:30px; height:30px; border-radius:5px; background:#e8f4fb; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:var(--text-muted); cursor:default; }
 
-  /* ── Mow log table ── */
-  .mow-log-table { width:100%; border-collapse:collapse; font-size:13px; }
-  .mow-log-table th { text-align:left; padding:10px 12px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); border-bottom:2px solid var(--border); background:#f8faf8; }
-  .mow-log-table td { padding:10px 12px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:top; }
-  .mow-log-table tr:last-child td { border-bottom:none; }
-  .mow-log-table tr:hover td { background:#f8faf8; }
+  /* ── Clean log table ── */
+  .clean-log-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .clean-log-table th { text-align:left; padding:10px 12px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); border-bottom:2px solid var(--border); background:#f8faf8; }
+  .clean-log-table td { padding:10px 12px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:top; }
+  .clean-log-table tr:last-child td { border-bottom:none; }
+  .clean-log-table tr:hover td { background:#f8faf8; }
 
   /* ── Confirm modal ── */
   .confirm-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; z-index:1100; padding:20px; }
@@ -745,7 +745,7 @@
   .hist-item-name { font-size:15px; font-weight:700; color:var(--green-deep); }
   .hist-item-meta { font-size:12px; color:var(--text-muted); margin-top:2px; }
   .hist-item-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
-  .hist-status-done   { background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px; }
+  .hist-status-done   { background:#dcfce7; color:#1565a8; border:1px solid #bbf7d0; font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px; }
   .hist-status-issue  { background:#fef9c3; color:#92400e; border:1px solid #fde68a; font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px; }
   .hist-photo-count { font-size:11px; color:var(--text-muted); }
   /* Detail overlay */
@@ -856,7 +856,7 @@
   .dispatch-job-block.status-cash      { background:#f9a825; color:#1a1a1a; }  /* yellow = cash collected, awaiting completion */
   .dispatch-job-block.status-invoiced  { background:#f9a825; color:#1a1a1a; }  /* yellow = invoiced, not fully complete */
   .dispatch-job-block.status-paid      { background:#1565c0; color:#fff; }  /* blue = paid but not done yet */
-  .dispatch-job-block.status-completed { background:#2e7d32; color:#fff; }  /* green = fully completed & archived */
+  .dispatch-job-block.status-completed { background:#1565a8; color:#fff; }  /* green = fully completed & archived */
   .dispatch-job-name { font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .dispatch-job-time { font-size:10px; opacity:.8; white-space:nowrap; }
   .dispatch-job-plan { font-size:10px; opacity:.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -907,7 +907,7 @@
   .dispatch-week-card.status-cash      { background:#f9a825; color:#1a1a1a; }
   .dispatch-week-card.status-invoiced  { background:#f9a825; color:#1a1a1a; }
   .dispatch-week-card.status-paid      { background:#1565c0; color:#fff; }    /* blue = paid not done */
-  .dispatch-week-card.status-completed { background:#2e7d32; color:#fff; }    /* green = fully complete */
+  .dispatch-week-card.status-completed { background:#1565a8; color:#fff; }    /* green = fully complete */
   .dispatch-week-card-name { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .dispatch-week-card-meta { font-size:10px; opacity:.85; margin-top:1px; }
   .dispatch-week-card-hint { font-size:10px; margin-top:3px; padding:2px 5px; background:rgba(255,255,255,.25); border-radius:4px; display:inline-block; }
@@ -952,7 +952,7 @@
   .dispatch-month-job-pill.status-cash      { background:#f9a825; color:#1a1a1a; }
   .dispatch-month-job-pill.status-invoiced  { background:#f9a825; color:#1a1a1a; }
   .dispatch-month-job-pill.status-paid      { background:#1565c0; color:#fff; }
-  .dispatch-month-job-pill.status-completed { background:#2e7d32; color:#fff; opacity:.8; }
+  .dispatch-month-job-pill.status-completed { background:#1565a8; color:#fff; opacity:.8; }
   .dispatch-month-more { font-size:10px; font-weight:600; color:var(--text-muted); padding:1px 4px; }
 
   @media (max-width:640px) {
@@ -979,21 +979,21 @@
   .dispatch-mobile-card.status-cash      { border-left-color:#f9a825; }
   .dispatch-mobile-card.status-invoiced  { border-left-color:#1565c0; }
   .dispatch-mobile-card.status-paid      { border-left-color:#1565c0; }
-  .dispatch-mobile-card.status-completed { border-left-color:#2e7d32; opacity:.75; }
+  .dispatch-mobile-card.status-completed { border-left-color:#1565a8; opacity:.75; }
   .dispatch-mobile-dot { width:11px; height:11px; border-radius:50%; flex-shrink:0; }
   .dispatch-mobile-card.status-upcoming  .dispatch-mobile-dot { background:#d32f2f; }
   .dispatch-mobile-card.status-done      .dispatch-mobile-dot { background:#f9a825; }
   .dispatch-mobile-card.status-cash      .dispatch-mobile-dot { background:#f9a825; }
   .dispatch-mobile-card.status-invoiced  .dispatch-mobile-dot { background:#1565c0; }
   .dispatch-mobile-card.status-paid      .dispatch-mobile-dot { background:#1565c0; }
-  .dispatch-mobile-card.status-completed .dispatch-mobile-dot { background:#2e7d32; }
+  .dispatch-mobile-card.status-completed .dispatch-mobile-dot { background:#1565a8; }
   .dispatch-mobile-body { flex:1; min-width:0; }
   .dispatch-mobile-name { font-size:15px; font-weight:700; color:var(--green-deep); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .dispatch-mobile-addr { font-size:12px; color:var(--text-muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .dispatch-mobile-meta { display:flex; gap:6px; margin-top:5px; flex-wrap:wrap; }
   .dispatch-mobile-pill { font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px; background:var(--green-light); color:var(--green-deep); }
   .dispatch-mobile-pill.freq  { background:#f1f5f9; color:#475569; }
-  .dispatch-mobile-pill.price { background:#f0fdf4; color:#15803d; }
+  .dispatch-mobile-pill.price { background:#f0fdf4; color:#1565a8; }
   .dispatch-mobile-arrow { font-size:20px; color:#cbd5e1; flex-shrink:0; line-height:1; }
 
   @media (max-width:640px) {
@@ -1027,7 +1027,7 @@
 <!-- ══ LOGIN ══ -->
 <div id="loginScreen">
   <div class="login-card">
-    <h1>🌿 Evergreen</h1>
+    <h1>🫧 Evergreen</h1>
     <div id="loginStep1">
       <p>Staff access — enter your email for a login code.</p>
       <input type="email" id="emailInput" class="login-input" placeholder="Your work email"
@@ -1051,7 +1051,7 @@
 <div id="appScreen">
 
   <header>
-    <div class="header-brand">🌿 Evergreen <span id="headerTitle">Staff</span></div>
+    <div class="header-brand">🫧 Evergreen <span id="headerTitle">Staff</span></div>
     <div class="header-right">
       <span id="adminGreeting" style="font-size:13px;color:rgba(255,255,255,.7);"></span>
       <span class="header-role" id="roleTag"></span>
@@ -1200,13 +1200,13 @@
             <input type="number" id="ac-custom-days" min="1" placeholder="e.g. 21" style="width:100%;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;box-sizing:border-box;"/>
           </div>
           <div class="form-field">
-            <label for="ac-yard">Yard Size *</label>
+            <label for="ac-yard">Home Size *</label>
             <select id="ac-yard">
-              <option value="small">Small · Under ¼ acre</option>
-              <option value="medium" selected>Medium · ¼–½ acre</option>
-              <option value="threequarter">½–¾ acre</option>
-              <option value="one">¾–1 acre</option>
-              <option value="custom">Over 1 acre · Custom</option>
+              <option value="small">Studio / 1 Bedroom</option>
+              <option value="medium" selected>2 Bedroom</option>
+              <option value="threequarter">3 Bedroom</option>
+              <option value="one">4 Bedroom</option>
+              <option value="custom">5+ Bedroom · Custom</option>
             </select>
           </div>
           <div class="form-field">
@@ -1221,12 +1221,12 @@
             </select>
           </div>
           <div class="form-field">
-            <label for="ac-price">Recurring Price per Mow ($)</label>
+            <label for="ac-price">Recurring Price per Clean ($)</label>
             <input type="number" id="ac-price" placeholder="Auto-filled" step="0.01" min="0" oninput="onAcPromoChange()"/>
           </div>
           <div class="form-field full" id="ac-first-price-toggle-row">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:normal;">
-              <input type="checkbox" id="ac-first-price-check" onchange="onAcFirstPriceToggle()" style="width:16px;height:16px;accent-color:#15803d;">
+              <input type="checkbox" id="ac-first-price-check" onchange="onAcFirstPriceToggle()" style="width:16px;height:16px;accent-color:#1565a8;">
               <span style="font-weight:600;">💰 Set a different first-job price (overgrown, etc.)</span>
             </label>
             <div id="ac-first-price-fields" style="display:none;margin-top:8px;padding-left:26px;">
@@ -1237,10 +1237,10 @@
           </div>
           <div class="form-field full" id="ac-promo-row" style="display:none;">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:normal;">
-              <input type="checkbox" id="ac-promo" onchange="onAcPromoChange()" style="width:16px;height:16px;accent-color:#15803d;">
-              <span style="font-weight:600;">🌿 First mow $19 deal</span>
+              <input type="checkbox" id="ac-promo" onchange="onAcPromoChange()" style="width:16px;height:16px;accent-color:#1565a8;">
+              <span style="font-weight:600;">🫧 First clean $19 deal</span>
             </label>
-            <div id="ac-promo-note" style="font-size:12px;color:#15803d;margin-top:4px;display:none;padding-left:26px;"></div>
+            <div id="ac-promo-note" style="font-size:12px;color:#1565a8;margin-top:4px;display:none;padding-left:26px;"></div>
           </div>
           <div class="form-field full">
             <label for="ac-notes">Notes</label>
@@ -1248,9 +1248,9 @@
           </div>
         </div>
 
-        <div id="ac-price-preview" style="font-size:13px;color:#15803d;font-weight:600;margin:4px 0 16px;min-height:20px;"></div>
+        <div id="ac-price-preview" style="font-size:13px;color:#1565a8;font-weight:600;margin:4px 0 16px;min-height:20px;"></div>
         <div id="ac-error" style="color:var(--red);font-size:13px;margin-bottom:12px;display:none;"></div>
-        <div id="ac-success" style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px;text-align:center;color:#15803d;font-weight:600;display:none;margin-bottom:12px;"></div>
+        <div id="ac-success" style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px;text-align:center;color:#1565a8;font-weight:600;display:none;margin-bottom:12px;"></div>
         <button class="btn-primary-lg" id="acBtn" onclick="addClient()">➕ Add Client & Send Welcome Email</button>
       </div>
     </div>
@@ -1268,7 +1268,7 @@
           <option value="all">All customers</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
-          <option value="free">Free Mow</option>
+          <option value="free">Free Clean</option>
           <option value="weekly">Weekly</option>
           <option value="biweekly">Bi-Weekly</option>
           <option value="onetime">One-Time</option>
@@ -1423,13 +1423,13 @@
 
         <!-- Row 4: optimize button (owners) / clock-in button (employees) -->
         <button class="route-optimize-btn" id="routeOptBtn"    onclick="buildRoute()"         style="display:none;">⚡ Optimize Route</button>
-        <button class="route-optimize-btn" id="routeClockInBtn" onclick="employeeStartRoute()" style="display:none;background:linear-gradient(135deg,#15803d,#166534);">🟢 Clock In &amp; Start Route</button>
+        <button class="route-optimize-btn" id="routeClockInBtn" onclick="employeeStartRoute()" style="display:none;background:linear-gradient(135deg,#1565a8,#0d2a42);">🟢 Clock In &amp; Start Route</button>
 
         <!-- Employee: active route bar (shown after clock-in) -->
         <div id="routeActiveBar" style="display:none;margin-top:10px;background:#f0fdf4;border:2px solid #86efac;border-radius:12px;padding:12px 16px;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
           <div>
-            <div style="font-size:12px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:.06em;">🟢 Route Active</div>
-            <div id="routeElapsedDisplay" style="font-size:22px;font-weight:800;color:#1a3a1a;font-variant-numeric:tabular-nums;">0:00:00</div>
+            <div style="font-size:12px;font-weight:700;color:#1565a8;text-transform:uppercase;letter-spacing:.06em;">🟢 Route Active</div>
+            <div id="routeElapsedDisplay" style="font-size:22px;font-weight:800;color:#0d2a42;font-variant-numeric:tabular-nums;">0:00:00</div>
           </div>
           <button onclick="showFinishRouteModal()" style="padding:12px 20px;background:#dc2626;color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;">🏁 Finish Route</button>
         </div>
@@ -1463,7 +1463,7 @@
         </div>
         <div class="route-stat">
           <div class="route-stat-val" id="rStatMow">—</div>
-          <div class="route-stat-lbl">Mow time</div>
+          <div class="route-stat-lbl">Clean time</div>
         </div>
         <div class="route-stat">
           <div class="route-stat-val" id="rStatDrive">—</div>
@@ -1490,7 +1490,7 @@
       </div>
 
       <!-- Saved route banner -->
-      <div id="routeSavedBanner" style="display:none;padding:10px 14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;font-size:13px;color:#166534;font-weight:600;margin-bottom:12px;"></div>
+      <div id="routeSavedBanner" style="display:none;padding:10px 14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;font-size:13px;color:#0d2a42;font-weight:600;margin-bottom:12px;"></div>
 
       <!-- Timeline renders here -->
       <div id="routeTimeline"></div>
@@ -1509,7 +1509,7 @@
             oninput="filterCrewList(this.value)"
             style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;outline:none;box-sizing:border-box;margin-bottom:6px;">
           <div id="crewSearchResults" style="max-height:200px;overflow-y:auto;border:1.5px solid var(--border);border-radius:10px;margin-bottom:16px;"></div>
-          <button onclick="confirmCrewAndStartRoute()" style="width:100%;padding:15px;background:linear-gradient(135deg,#15803d,#166534);color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;">🟢 Start Route</button>
+          <button onclick="confirmCrewAndStartRoute()" style="width:100%;padding:15px;background:linear-gradient(135deg,#1565a8,#0d2a42);color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;">🟢 Start Route</button>
         </div>
       </div>
 
@@ -1550,7 +1550,7 @@
             <div class="job-step-title">🏁 Submit &amp; Finish</div>
             <div class="job-step-sub" id="jobStep4Sub"></div>
             <div id="jobSubmitError" style="color:var(--red);font-size:13px;margin-bottom:10px;display:none;"></div>
-            <button id="jobSubmitBtn" class="job-complete-btn" style="background:#15803d;color:#fff;" onclick="_jobSubmit()">✓ Submit Job</button>
+            <button id="jobSubmitBtn" class="job-complete-btn" style="background:#1565a8;color:#fff;" onclick="_jobSubmit()">✓ Submit Job</button>
             <span class="job-bypass-link" onclick="closeJobCompleteModal()">Cancel</span>
           </div>
         </div>
@@ -1570,7 +1570,7 @@
           <div style="margin-bottom:20px;">
             <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:block;margin-bottom:6px;">Job Type</label>
             <div id="finishRouteJobBtns" style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="finish-job-btn active" onclick="selectFinishJobType(this,'Mowing')"     style="flex:1;min-width:80px;">🌿 Mowing</button>
+              <button class="finish-job-btn active" onclick="selectFinishJobType(this,'Mowing')"     style="flex:1;min-width:80px;">🫧 Mowing</button>
               <button class="finish-job-btn"        onclick="selectFinishJobType(this,'Weeding')"    style="flex:1;min-width:80px;">🌱 Weeding</button>
               <button class="finish-job-btn"        onclick="selectFinishJobType(this,'Cleaning')"   style="flex:1;min-width:80px;">🧹 Cleaning</button>
               <button class="finish-job-btn"        onclick="selectFinishJobType(this,'Landscaping')" style="flex:1;min-width:80px;">🌳 Landscaping</button>
@@ -1580,7 +1580,7 @@
           <div id="finishRouteError" style="color:var(--red);font-size:13px;margin-bottom:10px;display:none;"></div>
           <div style="display:flex;gap:10px;">
             <button onclick="closeFinishRouteModal()" style="flex:1;padding:14px;border:1.5px solid var(--border);border-radius:12px;background:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
-            <button id="finishRouteSubmitBtn" onclick="submitClockOut()" style="flex:2;padding:14px;background:#15803d;color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;">✓ Submit &amp; Clock Out</button>
+            <button id="finishRouteSubmitBtn" onclick="submitClockOut()" style="flex:2;padding:14px;background:#1565a8;color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;">✓ Submit &amp; Clock Out</button>
           </div>
         </div>
       </div>
@@ -1633,7 +1633,7 @@
             <span class="dispatch-legend-dot" style="background:#d32f2f;"></span>Upcoming
             <span class="dispatch-legend-dot" style="background:#f9a825;margin-left:8px;"></span>Done / Invoiced / Cash
             <span class="dispatch-legend-dot" style="background:#1565c0;margin-left:8px;"></span>Paid (not done)
-            <span class="dispatch-legend-dot" style="background:#2e7d32;margin-left:8px;"></span>Completed &amp; Archived
+            <span class="dispatch-legend-dot" style="background:#1565a8;margin-left:8px;"></span>Completed &amp; Archived
           </div>
         </div>
       </div>
@@ -1793,7 +1793,7 @@
         <div id="qt-items-list"></div>
 
         <!-- Total -->
-        <div style="border-top:2px solid #1a3a1a;margin-top:0;display:grid;grid-template-columns:1fr 130px 32px;gap:8px;align-items:center;background:#1a3a1a;border-radius:0 0 8px 8px;padding:12px 10px;margin-left:-1px;margin-right:-1px;">
+        <div style="border-top:2px solid #0d2a42;margin-top:0;display:grid;grid-template-columns:1fr 130px 32px;gap:8px;align-items:center;background:#0d2a42;border-radius:0 0 8px 8px;padding:12px 10px;margin-left:-1px;margin-right:-1px;">
           <div style="font-size:14px;font-weight:700;color:#fff;text-align:right;grid-column:1/2;">Total</div>
           <div id="qt-subtotal" style="font-size:15px;font-weight:800;color:#fff;text-align:right;">$0.00</div>
           <div></div>
@@ -1815,11 +1815,11 @@
         <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;">Email Message</div>
         <div style="margin-bottom:12px;">
           <label for="qt-email-subject" style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:4px;">Subject Line</label>
-          <input id="qt-email-subject" type="text" class="login-input" style="margin-bottom:0;" placeholder="Your estimate from Evergreen Lawn Care" oninput="this.dataset.edited='1'"/>
+          <input id="qt-email-subject" type="text" class="login-input" style="margin-bottom:0;" placeholder="Your estimate from Evergreen Cleaning Services" oninput="this.dataset.edited='1'"/>
         </div>
         <div>
           <label for="qt-email-body" style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:4px;">Message <span style="font-weight:400;color:var(--text-muted);">(optional — appears at the top of the email)</span></label>
-          <textarea id="qt-email-body" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;min-height:100px;outline:none;box-sizing:border-box;" placeholder="Hey Hunter,&#10;&#10;Here's your estimate — let us know if you have any questions!&#10;&#10;Thanks,&#10;Evergreen Lawn Care &amp; Landscaping" oninput="this.dataset.edited='1'"></textarea>
+          <textarea id="qt-email-body" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;min-height:100px;outline:none;box-sizing:border-box;" placeholder="Hey Hunter,&#10;&#10;Here's your estimate — let us know if you have any questions!&#10;&#10;Thanks,&#10;Evergreen Cleaning Services" oninput="this.dataset.edited='1'"></textarea>
         </div>
       </div>
 
@@ -1847,7 +1847,7 @@
       <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:14px;">
         <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Job Type</div>
         <select id="job-type" class="login-input" style="margin-bottom:0;font-weight:600;" onchange="jobTypeChange()">
-          <option value="mowing">🌿 Mowing</option>
+          <option value="mowing">🫧 Mowing</option>
           <option value="landscaping">🏡 Landscaping</option>
           <option value="pressure-washing">💦 Pressure Washing</option>
           <option value="other">🔧 Other</option>
@@ -1917,17 +1917,17 @@
               <input id="job-custom-days" type="number" min="1" class="login-input" style="margin-bottom:0;" placeholder="e.g. 21"/>
             </div>
             <div>
-              <label for="job-yard" style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:4px;">Yard Size *</label>
+              <label for="job-yard" style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:4px;">Home Size *</label>
               <select id="job-yard" class="login-input" style="margin-bottom:0;" onchange="jobAutoFillPrice()">
-                <option value="small">Small · Under ¼ acre</option>
-                <option value="medium" selected>Medium · ¼–½ acre</option>
-                <option value="threequarter">½–¾ acre</option>
-                <option value="one">¾–1 acre</option>
-                <option value="custom">Over 1 acre · Custom</option>
+                <option value="small">Studio / 1 Bedroom</option>
+                <option value="medium" selected>2 Bedroom</option>
+                <option value="threequarter">3 Bedroom</option>
+                <option value="one">4 Bedroom</option>
+                <option value="custom">5+ Bedroom · Custom</option>
               </select>
             </div>
             <div>
-              <label for="job-price" style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:4px;">Recurring Price per Mow ($)</label>
+              <label for="job-price" style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:4px;">Recurring Price per Clean ($)</label>
               <input id="job-price" type="number" min="0" step="1" class="login-input" style="margin-bottom:0;" placeholder="Auto-filled" oninput="jobPromoCheck();jobAutoFillEmail()"/>
             </div>
           </div>
@@ -1938,7 +1938,7 @@
         <!-- First job price override -->
         <div style="margin-top:10px;">
           <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-            <input type="checkbox" id="job-first-price-check" onchange="jobFirstPriceToggle()" style="width:16px;height:16px;accent-color:#15803d;">
+            <input type="checkbox" id="job-first-price-check" onchange="jobFirstPriceToggle()" style="width:16px;height:16px;accent-color:#1565a8;">
             <span style="font-size:13px;font-weight:600;color:#374151;">💰 Set a different first-job price (overgrown, etc.)</span>
           </label>
           <div id="job-first-price-fields" style="display:none;margin-top:8px;padding-left:26px;">
@@ -1951,12 +1951,12 @@
         <!-- Mowing promo + preview (mowing only) -->
         <div id="job-promo-row" style="margin-top:10px;display:none;">
           <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-            <input type="checkbox" id="job-promo" onchange="jobPromoCheck()" style="width:16px;height:16px;accent-color:#15803d;">
-            <span style="font-size:13px;font-weight:600;color:#374151;">🌿 First mow $19 deal</span>
+            <input type="checkbox" id="job-promo" onchange="jobPromoCheck()" style="width:16px;height:16px;accent-color:#1565a8;">
+            <span style="font-size:13px;font-weight:600;color:#374151;">🫧 First clean $19 deal</span>
           </label>
-          <div id="job-promo-note" style="font-size:12px;color:#15803d;margin-top:4px;padding-left:26px;display:none;"></div>
+          <div id="job-promo-note" style="font-size:12px;color:#1565a8;margin-top:4px;padding-left:26px;display:none;"></div>
         </div>
-        <div id="job-price-preview" style="font-size:13px;color:#15803d;font-weight:600;margin-top:8px;min-height:18px;"></div>
+        <div id="job-price-preview" style="font-size:13px;color:#1565a8;font-weight:600;margin-top:8px;min-height:18px;"></div>
       </div>
 
       <!-- ── NON-MOWING SECTION ── -->
@@ -2009,7 +2009,7 @@
         <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:14px;">
           <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Frequency</div>
           <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:4px;">
-            <input type="checkbox" id="job-recurring" onchange="jobRecurringToggle()" style="width:16px;height:16px;accent-color:#15803d;">
+            <input type="checkbox" id="job-recurring" onchange="jobRecurringToggle()" style="width:16px;height:16px;accent-color:#1565a8;">
             <span style="font-size:14px;font-weight:600;color:#374151;">Make this a recurring job</span>
           </label>
           <div style="font-size:12px;color:var(--text-muted);padding-left:26px;margin-bottom:10px;">By default, jobs are scheduled as one-time only.</div>
@@ -2035,17 +2035,17 @@
         <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;">Job Confirmation Email</div>
         <div style="margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;">
-            <input type="checkbox" id="job-send-email" checked style="width:15px;height:15px;accent-color:#15803d;"> Send job confirmation email to customer
+            <input type="checkbox" id="job-send-email" checked style="width:15px;height:15px;accent-color:#1565a8;"> Send job confirmation email to customer
           </label>
         </div>
         <div id="job-email-fields" style="margin-top:12px;">
           <div style="margin-bottom:12px;">
             <label for="job-email-subject" style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:4px;">Subject Line</label>
-            <input id="job-email-subject" type="text" class="login-input" style="margin-bottom:0;" placeholder="Your service is confirmed — Evergreen Lawn Care" oninput="this.dataset.edited='1'"/>
+            <input id="job-email-subject" type="text" class="login-input" style="margin-bottom:0;" placeholder="Your service is confirmed — Evergreen Cleaning Services" oninput="this.dataset.edited='1'"/>
           </div>
           <div>
             <label for="job-email-body" style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:4px;">Message <span style="font-weight:400;color:var(--text-muted);">(optional — edit freely)</span></label>
-            <textarea id="job-email-body" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;min-height:110px;outline:none;box-sizing:border-box;" placeholder="Hey Jane,&#10;&#10;You're all set! We'll see you on [date].&#10;&#10;Thanks,&#10;Evergreen Lawn Care &amp; Landscaping" oninput="this.dataset.edited='1'"></textarea>
+            <textarea id="job-email-body" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;min-height:110px;outline:none;box-sizing:border-box;" placeholder="Hey Jane,&#10;&#10;You're all set! We'll see you on [date].&#10;&#10;Thanks,&#10;Evergreen Cleaning Services" oninput="this.dataset.edited='1'"></textarea>
             <div style="margin-top:6px;font-size:12px;color:var(--text-muted);">📋 Job details (date, address, price, crew) are automatically added to the email — your message goes above them.</div>
           </div>
         </div>
@@ -2213,14 +2213,14 @@
         <input id="schedCustomDays" type="number" min="1" placeholder="e.g. 21" style="width:100%;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;box-sizing:border-box;">
       </div>
       <div>
-        <label for="schedYard" style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Yard Size</label>
+        <label for="schedYard" style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Home Size</label>
         <select id="schedYard" onchange="schedAutoFillPrice()" style="width:100%;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;">
           <option value="">— Select yard size —</option>
-          <option value="small">Small · Under ¼ acre</option>
-          <option value="medium">Medium · ¼–½ acre</option>
-          <option value="threequarter">½–¾ acre</option>
-          <option value="one">¾–1 acre</option>
-          <option value="custom">Over 1 acre · Custom</option>
+          <option value="small">Studio / 1 Bedroom</option>
+          <option value="medium">2 Bedroom</option>
+          <option value="threequarter">3 Bedroom</option>
+          <option value="one">4 Bedroom</option>
+          <option value="custom">5+ Bedroom · Custom</option>
         </select>
       </div>
       <div>
@@ -2231,15 +2231,15 @@
         </select>
       </div>
       <div>
-        <label for="schedPrice" style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Price per mow ($)</label>
+        <label for="schedPrice" style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Price per clean ($)</label>
         <input id="schedPrice" type="number" min="0" step="1" placeholder="Auto-filled or enter manually" style="width:100%;padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;box-sizing:border-box;" oninput="onSchedPromoChange()">
       </div>
       <div id="sched-promo-row" style="display:none;">
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-          <input type="checkbox" id="sched-promo" onchange="onSchedPromoChange()" style="width:16px;height:16px;accent-color:#15803d;">
-          <span style="font-size:13px;font-weight:600;color:#374151;">🌿 First mow $19 deal</span>
+          <input type="checkbox" id="sched-promo" onchange="onSchedPromoChange()" style="width:16px;height:16px;accent-color:#1565a8;">
+          <span style="font-size:13px;font-weight:600;color:#374151;">🫧 First clean $19 deal</span>
         </label>
-        <div id="sched-promo-note" style="font-size:12px;color:#15803d;margin-top:4px;padding-left:26px;display:none;"></div>
+        <div id="sched-promo-note" style="font-size:12px;color:#1565a8;margin-top:4px;padding-left:26px;display:none;"></div>
       </div>
       <div>
         <label for="schedDate" style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">First appointment date</label>
@@ -2258,7 +2258,7 @@
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwAbZCSvrFrB9AT7P0elSBueERyllZuYOOgV6wGVld54al3aBQNCxYonGuiDDdrvJ7suw/exec';
+const SCRIPT_URL = 'PASTE_CLEANING_WEB_APP_EXEC_URL_HERE'; // ← cleaning Apps Script /exec URL
 
 // ── Core helpers (reconstructed) ─────────────────────────────────────────
 function esc(str) {
@@ -2605,7 +2605,7 @@ function qtRenderItems() {
     const dl = document.createElement('datalist');
     dl.id = 'qt-service-dl';
     dl.innerHTML = [
-      'Lawn Mow & Blow','Biweekly Lawn Service','Weekly Lawn Service',
+      'House Cleaning','Biweekly Home Service','Weekly Home Service',
       'Hedge / Shrub Trimming','Leaf Cleanup','Edging & Trimming',
       'Mulch bed preparation','Debris removal / haul-off','Mulch material','Mulch installation',
       'Fertilization','Weed control','Aeration','Sod installation','Tree trimming',
@@ -2694,11 +2694,11 @@ function qtAutoFillEmail() {
   const bodyEl    = document.getElementById('qt-email-body');
   // Only auto-fill if the field is still at its default or empty (don't overwrite edits)
   if (subjectEl && !subjectEl.dataset.edited) {
-    subjectEl.value = firstName ? 'Your estimate is ready - Evergreen Lawn Care & Landscaping' : '';
+    subjectEl.value = firstName ? 'Your estimate is ready - Evergreen Cleaning Services' : '';
   }
   if (bodyEl && !bodyEl.dataset.edited) {
     bodyEl.value = firstName
-      ? `Hey ${firstName},\n\nHere's your estimate — let us know if you have any questions!\n\nThanks,\nEvergreen Lawn Care & Landscaping`
+      ? `Hey ${firstName},\n\nHere's your estimate — let us know if you have any questions!\n\nThanks,\nEvergreen Cleaning Services`
       : '';
   }
 }
@@ -2785,13 +2785,13 @@ async function qtSend() {
       if (isEmployee) {
         if (status) {
           status.textContent = '✅ Estimate submitted for owner approval!';
-          status.style.color = '#16a34a';
+          status.style.color = '#1565a8';
         }
         showToast('✅ Estimate sent to owner for approval');
       } else {
         if (status) {
           status.textContent = '✅ Estimate ' + (data.quoteNumber || estNum) + ' sent to ' + email + ' — $' + (data.subtotal || '0');
-          status.style.color = '#16a34a';
+          status.style.color = '#1565a8';
         }
         showToast('✅ Estimate emailed to ' + name + '!');
         // Bump estimate number for next time
@@ -2886,7 +2886,7 @@ function jobRecurringToggle() {
 // ── Returns a human-readable label for the current job type ──
 function jobTypeLabel() {
   const map = {
-    'mowing':           'lawn service',
+    'mowing':           'home service',
     'landscaping':      'landscaping job',
     'pressure-washing': 'pressure washing job',
     'other':            'job',
@@ -2912,7 +2912,7 @@ function jobAutoFillPrice() {
   }
   const rate = p[plan] || 0;
   if (rate && priceEl && !priceEl.dataset.manualEdit) priceEl.value = rate;
-  if (preview) preview.textContent = rate ? `Suggested rate: $${rate}/mow` : '';
+  if (preview) preview.textContent = rate ? `Suggested rate: $${rate}/clean` : '';
   jobPromoCheck();
 }
 
@@ -2928,7 +2928,7 @@ function jobPromoCheck() {
   const noteEl  = document.getElementById('job-promo-note');
   if (!noteEl) return;
   if (checked && price) {
-    noteEl.textContent = `First mow: $19 — then $${parseFloat(price).toFixed(0)}/mow after`;
+    noteEl.textContent = `First clean: $19 — then $${parseFloat(price).toFixed(0)}/clean after`;
     noteEl.style.display = 'block';
   } else {
     noteEl.style.display = 'none';
@@ -2973,7 +2973,7 @@ function jobAutoFillEmail() {
   }
 
   if (subjectEl && !subjectEl.dataset.edited) {
-    subjectEl.value = `Your ${label} is confirmed — Evergreen Lawn Care & Landscaping`;
+    subjectEl.value = `Your ${label} is confirmed — Evergreen Cleaning Services`;
   }
 
   if (bodyEl && !bodyEl.dataset.edited) {
@@ -2991,7 +2991,7 @@ function jobAutoFillEmail() {
     if (crew)     lines.push(`👷 Crew: ${crew}`);
     if (duration) lines.push(`⏱ Est. Duration: ${duration}`);
     lines.push('', `If you have any questions, give us a call or text at (352) 462-0627.`);
-    lines.push('', 'Thanks,', 'Evergreen Lawn Care & Landscaping');
+    lines.push('', 'Thanks,', 'Evergreen Cleaning Services');
     bodyEl.value = lines.join('\n');
   }
 }
@@ -3075,7 +3075,7 @@ async function submitJob() {
     const customDays    = plan === 'Custom Plan' ? (parseInt(document.getElementById('job-custom-days')?.value || '') || 0) : 0;
 
     if (!email)   { showToast('Enter customer email'); return; }
-    if (!price)   { showToast('Enter a price per mow'); return; }
+    if (!price)   { showToast('Enter a price per clean'); return; }
     if (plan === 'Custom Plan' && !customDays) { showToast('Enter the number of days for this custom plan'); return; }
 
     // If this job was opened from a visited quote, pass the quote customer's email
@@ -3096,7 +3096,7 @@ async function submitJob() {
       firstMowPromo:     firstMowPromo ? 'true' : '',
       firstMowPrice:     jobFirstMowPrice || '',
       days:              customDays || '',
-      serviceType:       'Lawn Mow & Blow',
+      serviceType:       'House Cleaning',
       sendCustomEmail:   sendEmail && emailSubject ? 'true' : '',
       customEmailSubject: emailSubject,
       customEmailBody:    emailBody,
@@ -3171,7 +3171,7 @@ async function submitJob() {
 
     if (statusEl) {
       statusEl.textContent = `✅ Job scheduled for ${name} on ${displayDate(date)}!`;
-      statusEl.style.color = '#16a34a';
+      statusEl.style.color = '#1565a8';
     }
     showToast('✅ Job scheduled for ' + name + '!');
     jobSourceRowIdx = null;
@@ -3326,7 +3326,7 @@ function renderCustomers() {
       lastDone:   String(c['Last Completed']  || ''),
       nextSched:  String(c['Next Scheduled']  || ''),
       totalPaid:  parseFloat(String(c['Total Paid']  || '0').replace(/[^0-9.]/g, '')) || 0,
-      totalMows:  parseInt(String(c['Total Mows']    || '0')) || 0,
+      totalMows:  parseInt(String(c['Total Cleans']    || '0')) || 0,
       cardLast4:  String(c.CardLast4  || ''),
       cardBrand:  String(c.CardBrand  || ''),
       autopay:    String(c.AutopayEnabled || '').toLowerCase() === 'true',
@@ -3430,7 +3430,7 @@ function renderCustomers() {
       if (ym) entry.yard = ym[1].toLowerCase();
     }
     if (entry.price === 0) {
-      // Priority 1: "Following: X" in notes = the real recurring rate after a promo first-mow
+      // Priority 1: "Following: X" in notes = the real recurring rate after a promo first-clean
       const followM = String(bk.notes || '').match(/following[:\s]+\$?(\d+(?:\.\d+)?)/i);
       if (followM) {
         entry.price = parseFloat(followM[1]);
@@ -3465,7 +3465,7 @@ function renderCustomers() {
     const rows = (_propKey && rowsByProp.has(_propKey) ? rowsByProp.get(_propKey) : rowsByEmail.get(c.email)) || [];
     const nextRow = rows.find(i => !isDone(allBookings[i]) && !allBookings[i]?.rowCancelled) ?? rows[rows.length - 1];
 
-    // Pull per-mow price and next date from the next booking row
+    // Pull per-clean price and next date from the next booking row
     const bookingPrice = nextRow !== undefined
       ? parseFloat(String(allBookings[nextRow]?.price || '').replace(/[^0-9.]/g, '')) || null
       : null;
@@ -3479,7 +3479,7 @@ function renderCustomers() {
 
     // Stats line
     const statsLine = (c.totalPaid > 0 || c.totalMows > 0)
-      ? `💰 $${c.totalPaid.toFixed(2)} paid · ${c.totalMows} mow${c.totalMows !== 1 ? 's' : ''}<br>`
+      ? `💰 $${c.totalPaid.toFixed(2)} paid · ${c.totalMows} clean${c.totalMows !== 1 ? 's' : ''}<br>`
       : '';
     const lastDoneLine = c.lastDone
       ? `✓ Last completed: ${displayDate(c.lastDone)}<br>` : '';
@@ -3520,7 +3520,7 @@ function renderCustomers() {
             ${c.email ? `✉️ <a href="mailto:${esc(c.email)}" style="color:inherit;">${esc(c.email)}</a><br>` : ''}
             ${c.phone ? `📞 <a href="tel:${esc(c.phone)}" style="color:inherit;">${esc(c.phone)}</a><br>` : ''}
             ${c.address ? `📍 ${esc(c.address)}${c.zip ? ' · ' + esc(c.zip) : ''}<br>` : ''}
-            📋 ${esc(c.plan || 'Unknown')}${bookingPrice ? ' · <strong>$' + bookingPrice.toFixed(0) + (/weekly|bi.weekly|custom plan/i.test(c.plan) ? '/mow' : '') + '</strong>' : ''}<br>
+            📋 ${esc(c.plan || 'Unknown')}${bookingPrice ? ' · <strong>$' + bookingPrice.toFixed(0) + (/weekly|bi.weekly|custom plan/i.test(c.plan) ? '/clean' : '') + '</strong>' : ''}<br>
             ${!isInactive ? '📅 Next: ' + (effectiveNextSched ? displayDate(effectiveNextSched) : 'Not scheduled') + '<br>' : ''}
             ${statsLine}${lastDoneLine}${cardLine}${sourceLine}${addedLine}
           </div>
@@ -3649,7 +3649,7 @@ function openScheduleModal(idx) {
   const schedPromo = document.getElementById('sched-promo');
   if (schedPromo) schedPromo.checked = false;
   schedAutoFillPrice(); // show/hide all rows correctly for selected plan (incl. Quote Visit)
-  // Hide $19 promo for returning customers who've already had a mow
+  // Hide $19 promo for returning customers who've already had a clean
   if (c.totalMows > 0) {
     const promoRow = document.getElementById('sched-promo-row');
     if (promoRow) promoRow.style.display = 'none';
@@ -3858,7 +3858,7 @@ function custChangePrice(custIdx, nextRow) {
   const current = c.bookingPrice ? String(Math.round(c.bookingPrice)) : '';
   openCustEdit(
     '💰 Change Price — ' + c.name,
-    'Updates their next upcoming mow.',
+    'Updates their next upcoming clean.',
     `<div style="display:flex;align-items:center;gap:8px;">
       <span style="font-size:16px;font-weight:600;color:#374151;">$</span>
       <input id="custEditPrice" type="number" min="0" step="1" value="${esc(current)}" placeholder="e.g. 49"
@@ -3875,7 +3875,7 @@ function custChangePrice(custIdx, nextRow) {
         const data = await res.json();
         if (data.success) {
           closeCustEdit();
-          showToast('Price updated to $' + price + '/mow.');
+          showToast('Price updated to $' + price + '/clean.');
           sessionStorage.removeItem('evg_customers_cache');
           loadBookings();
         } else {
@@ -3983,7 +3983,7 @@ async function loadPendingEstimates() {
             <span style="font-weight:600;font-size:16px;color:var(--green-mid);">${totalLabel}</span>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               ${isPendingApproval
-                ? `<button class="btn-action btn-invoice" style="background:#16a34a;" onclick="approveAndSendEstimate(${est.rowNum}, '${esc(est.name || 'customer')}')">✅ Approve &amp; Send</button>`
+                ? `<button class="btn-action btn-invoice" style="background:#1565a8;" onclick="approveAndSendEstimate(${est.rowNum}, '${esc(est.name || 'customer')}')">✅ Approve &amp; Send</button>`
                 : `<button class="btn-action btn-schedule-plan" onclick="openJobTabFromEstimate(${JSON.stringify(est).replace(/'/g, '&#39;')})">📅 Schedule Job</button>`
               }
               <button class="btn-action btn-cancel-quote" onclick="triggerCancelEstimate(${est.rowNum}, '${esc(est.name || 'customer')}')">✗ Remove</button>
@@ -4188,7 +4188,7 @@ async function loadBookings() {
           <div style="font-size:13px;color:#64748b;margin-bottom:18px;">
             ${isTimeout ? 'Try refreshing. If this keeps happening, check that you\'re connected to the internet.' : 'Check your connection and try again.'}
           </div>
-          <button class="btn-sm" onclick="loadBookings()" style="padding:10px 24px;background:#2d6a2d;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;">↻ Try Again</button>
+          <button class="btn-sm" onclick="loadBookings()" style="padding:10px 24px;background:#1565a8;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;">↻ Try Again</button>
         </div>`;
       document.getElementById('upcomingList').innerHTML = '';
     } else {
@@ -4348,7 +4348,7 @@ function cardHTML(b, rowIdx, isToday, tomorrowStr) {
   if (isQuote) {
     payBadge = `<span class="badge-paylater" style="background:#e0f7fa;color:#006064;border-color:#80deea;">📋 Quote Visit</span>`;
   } else if (isFree) {
-    payBadge = `<span class="badge-invoiced">🌿 Free Mow</span>`;
+    payBadge = `<span class="badge-invoiced">🫧 Free Clean</span>`;
   } else if (isPaid && cash) {
     payBadge = `<span class="badge-invoiced">✅ Cash Paid</span>`;
   } else if (isPaid) {
@@ -4409,7 +4409,7 @@ function cardHTML(b, rowIdx, isToday, tomorrowStr) {
     const jobReadyToComplete = done && !b.rowCompleted &&
       (isFree || isPaid || invoiced || (cash && isPaid));
     if (adminRole === 'owner' && jobReadyToComplete) {
-      actions += `<button class="btn-action" style="background:#15803d;color:#fff;font-weight:700;margin-top:4px;border-color:#15803d;" onclick="triggerCompleteJob(${rowIdx})">✅ Complete Job</button>`;
+      actions += `<button class="btn-action" style="background:#1565a8;color:#fff;font-weight:700;margin-top:4px;border-color:#1565a8;" onclick="triggerCompleteJob(${rowIdx})">✅ Complete Job</button>`;
     }
 
     // ── Reschedule — owner only, undone jobs ──
@@ -4417,7 +4417,7 @@ function cardHTML(b, rowIdx, isToday, tomorrowStr) {
       actions += `<button class="btn-action btn-invoice" onclick="openOwnerResched(${rowIdx})" style="margin-top:4px;">📅 Reschedule</button>`;
     }
 
-    // ── Cancel Job — owner only; free mows always cancellable, paid jobs only if not yet paid ──
+    // ── Cancel Job — owner only; free cleans always cancellable, paid jobs only if not yet paid ──
     if (adminRole === 'owner' && (isFree || !isPaid)) {
       actions += `<button class="btn-action btn-cancel-job" onclick="triggerCancelJob(${rowIdx})" style="margin-top:4px;">✕ Cancel Job</button>`;
     }
@@ -4439,7 +4439,7 @@ function cardHTML(b, rowIdx, isToday, tomorrowStr) {
   const _crewBadge = crewBadgeHTML(b.crew);
   const _timeBadge = b.jobTime ? `<span style="font-size:11px;font-weight:700;background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;border-radius:5px;padding:2px 7px;vertical-align:middle;">⏰ ${esc(b.jobTime)}</span>` : '';
   const _lotNote = String(b.notes||'').match(/lot:\s*([\d.]+)ac/i);
-  const _lotBadge = _lotNote ? '<span onclick="editLotSize('+rowIdx+',this)" title="Tap to edit" style="font-size:11px;font-weight:600;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:5px;padding:2px 7px;vertical-align:middle;cursor:pointer;">' + '\ud83d\udcd0 ' + _lotNote[1] + 'ac' + ' ✏️' + '</span>' : '';
+  const _lotBadge = _lotNote ? '<span onclick="editLotSize('+rowIdx+',this)" title="Tap to edit" style="font-size:11px;font-weight:600;background:#f0fdf4;color:#0d2a42;border:1px solid #bbf7d0;border-radius:5px;padding:2px 7px;vertical-align:middle;cursor:pointer;">' + '\ud83d\udcd0 ' + _lotNote[1] + 'ac' + ' ✏️' + '</span>' : '';
 
   // Owner-only: crew dropdown + job time input
   let crewTimeBlock = '';
@@ -4473,7 +4473,7 @@ function cardHTML(b, rowIdx, isToday, tomorrowStr) {
             ${_custNotes?`💬 ${esc(_custNotes)}<br>`:''}
           </div>
           <div class="card-badges">
-            <span class="badge-service">${esc(b.service||'Lawn Mow & Blow')}</span>
+            <span class="badge-service">${esc(b.service||'House Cleaning')}</span>
             ${_crewBadge}${_zoneBadge}${_timeBadge}${_lotBadge}
             ${doneBadge}
           </div>
@@ -4496,7 +4496,7 @@ function cardHTML(b, rowIdx, isToday, tomorrowStr) {
           ${_custNotes?`💬 ${esc(_custNotes)}<br>`:''}
         </div>
         <div class="card-badges">
-          <span class="badge-service">${esc(b.service||'Lawn Mow & Blow')}</span>
+          <span class="badge-service">${esc(b.service||'House Cleaning')}</span>
           ${_crewBadge}${_zoneBadge}${_lotBadge}
           ${payBadge}${doneBadge}
         </div>
@@ -5056,7 +5056,7 @@ async function sendInvoice() {
   const invoiceEmail   = b ? b.email   : c.email;
   const invoiceName    = b ? (b.name    || '') : (c.name    || '');
   const invoiceAddr    = b ? (b.address || '') : (c.address || '');
-  const invoiceService = b ? (b.service || b.frequency || 'Lawn Service') : (c.plan || 'Lawn Service');
+  const invoiceService = b ? (b.service || b.frequency || 'Home Service') : (c.plan || 'Home Service');
   const invoiceDate    = b ? (b.serviceDate || b.serviceDateRaw || '') : '';
   const invoiceRowIdx  = b ? (b._rowIndex || (activeRowIdx + 2)) : 0; // 0 = no booking row (advance invoice)
 
@@ -5135,8 +5135,8 @@ async function sendInvoice() {
 const YARD_PRICING = {
   small:        { bw:45, w:39 },  // under ¼ acre
   medium:       { bw:49, w:45 },  // ¼–½ acre
-  threequarter: { bw:65, w:55 },  // ½–¾ acre
-  one:          { bw:79, w:65 },  // ¾–1 acre
+  threequarter: { bw:65, w:55 },  // 3 Bedroom
+  one:          { bw:79, w:65 },  // 4 Bedroom
   // 'custom' has no entry — price input is left blank for manual entry
 };
 
@@ -5187,7 +5187,7 @@ function onAcPromoChange() {
   const noteEl   = document.getElementById('ac-promo-note');
   if (!noteEl) return;
   if (checked && price) {
-    noteEl.textContent = `First mow: $19 — then $${parseFloat(price).toFixed(0)}/mow after`;
+    noteEl.textContent = `First clean: $19 — then $${parseFloat(price).toFixed(0)}/clean after`;
     noteEl.style.display = 'block';
   } else {
     noteEl.style.display = 'none';
@@ -5206,7 +5206,7 @@ function onSchedPromoChange() {
   const noteEl   = document.getElementById('sched-promo-note');
   if (!noteEl) return;
   if (checked && price) {
-    noteEl.textContent = `First mow: $19 — then $${parseFloat(price).toFixed(0)}/mow after`;
+    noteEl.textContent = `First clean: $19 — then $${parseFloat(price).toFixed(0)}/clean after`;
     noteEl.style.display = 'block';
   } else {
     noteEl.style.display = 'none';
@@ -5228,7 +5228,7 @@ function updateAcPricePreview() {
   let rate, label;
   if (plan.includes('Weekly') && !plan.includes('Bi')) {
     rate  = p.w;
-    label = `Suggested rate: $${rate}/mow (weekly)`;
+    label = `Suggested rate: $${rate}/clean (weekly)`;
   } else if (plan === 'One-time visit') {
     // No preset one-time rate — leave for manual entry
     if (priceInput) priceInput.value = '';
@@ -5236,7 +5236,7 @@ function updateAcPricePreview() {
     return;
   } else {
     rate  = p.bw;
-    label = `Suggested rate: $${rate}/mow (bi-weekly)`;
+    label = `Suggested rate: $${rate}/clean (bi-weekly)`;
   }
   if (priceInput) priceInput.value = rate;
   if (prev) prev.textContent = label;
@@ -5382,7 +5382,7 @@ async function loadStats() {
       needsInvoice:    localPending,
       staffActivity,
     };
-    // Build detailed mow log from allBookings (includes archived completed jobs)
+    // Build detailed clean log from allBookings (includes archived completed jobs)
     const mowLog = doneBks
       .map(bk => ({
         date:    bk.doneDate || String(bk.done||'').replace(/^✓ Done —?\s*/i,'').trim() || displayDate(bk.serviceDate) || '—',
@@ -5394,7 +5394,7 @@ async function loadStats() {
       .sort((a,z) => (z.date > a.date ? 1 : -1));
 
     const mowLogHtml = mowLog.length
-      ? `<div style="overflow-x:auto;"><table class="mow-log-table">
+      ? `<div style="overflow-x:auto;"><table class="clean-log-table">
           <thead><tr>
             <th>Date</th><th>Customer</th><th>Address</th><th>Price</th><th>Completed By</th>
           </tr></thead>
@@ -5455,18 +5455,18 @@ async function loadStats() {
           : '<div style="color:var(--text-muted);font-size:14px;">No activity recorded yet.</div>'}
       </div>
 
-      <!-- Mow Log (collapsible, closed by default) -->
+      <!-- Clean Log (collapsible, closed by default) -->
       <div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;">
-        <button onclick="this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');var body=this.parentElement.querySelector('.mow-log-body');body.style.display=body.style.display==='none'?'block':'none';this.querySelector('.mow-log-chevron').style.transform=body.style.display==='none'?'rotate(0deg)':'rotate(180deg)';"
+        <button onclick="this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');var body=this.parentElement.querySelector('.clean-log-body');body.style.display=body.style.display==='none'?'block':'none';this.querySelector('.clean-log-chevron').style.transform=body.style.display==='none'?'rotate(0deg)':'rotate(180deg)';"
           aria-expanded="false"
           style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:20px 24px;background:none;border:none;cursor:pointer;font-family:inherit;text-align:left;">
           <div style="display:flex;align-items:center;gap:10px;">
-            <span class="section-label" style="margin:0;">Mow Log</span>
+            <span class="section-label" style="margin:0;">Clean Log</span>
             <span style="font-size:11px;font-weight:500;color:var(--text-muted);text-transform:none;letter-spacing:0;">${mowLog.length} completed jobs</span>
           </div>
-          <span class="mow-log-chevron" style="font-size:16px;color:var(--text-muted);transition:transform .2s;display:inline-block;">▾</span>
+          <span class="clean-log-chevron" style="font-size:16px;color:var(--text-muted);transition:transform .2s;display:inline-block;">▾</span>
         </button>
-        <div class="mow-log-body" style="display:none;padding:0 24px 20px;">
+        <div class="clean-log-body" style="display:none;padding:0 24px 20px;">
           ${mowLogHtml}
         </div>
       </div>`;
@@ -5506,7 +5506,7 @@ function buildRevProjection(bookings, periodIdx) {
     return !freq.includes('one-time') && !freq.includes('free') && !freq.includes('quote');
   });
 
-  // Resolve the real recurring price for a booking, handling $19 promo first-mow customers
+  // Resolve the real recurring price for a booking, handling $19 promo first-clean customers
   function resolvePrice(bk) {
     const storedPrice = parseFloat(String(bk.price || '').replace(/[^0-9.]/g, '')) || 0;
     const followField = parseFloat(String(bk.followingPrice || '').replace(/[^0-9.]/g, '')) || 0;
@@ -5551,8 +5551,8 @@ function buildRevProjection(bookings, periodIdx) {
   const revTableId = 'revCustTable_' + periodIdx;
   const rowsHtml = rows.sort((a,b)=>b.projectedRev-a.projectedRev).map(r=>`<tr>
     <td style="padding:8px 10px;font-weight:600;border-bottom:1px solid var(--border);">${esc(r.name)}</td>
-    <td style="padding:8px 10px;border-bottom:1px solid var(--border);"><span style="background:${r.plan==='Weekly'?'#dcfce7':'#eff6ff'};color:${r.plan==='Weekly'?'#166534':'#1d4ed8'};border-radius:20px;padding:2px 9px;font-size:11px;font-weight:700;">${esc(r.plan)}</span></td>
-    <td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--border);color:var(--text-muted);">${r.isPromo?`<span title="First mow $${r.firstPrice}, then $${r.price}">$${r.firstPrice}→$${r.price}</span>`:`$${r.price.toFixed(0)}`}</td>
+    <td style="padding:8px 10px;border-bottom:1px solid var(--border);"><span style="background:${r.plan==='Weekly'?'#dcfce7':'#eff6ff'};color:${r.plan==='Weekly'?'#0d2a42':'#1d4ed8'};border-radius:20px;padding:2px 9px;font-size:11px;font-weight:700;">${esc(r.plan)}</span></td>
+    <td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--border);color:var(--text-muted);">${r.isPromo?`<span title="First clean $${r.firstPrice}, then $${r.price}">$${r.firstPrice}→$${r.price}</span>`:`$${r.price.toFixed(0)}`}</td>
     <td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--border);color:var(--text-muted);">${r.projectedMows.toFixed(1)}</td>
     <td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--border);font-weight:700;color:var(--green-deep);">${bigNum(r.projectedRev)}</td>
   </tr>`).join('');
@@ -5568,7 +5568,7 @@ function buildRevProjection(bookings, periodIdx) {
         <div style="font-size:13px;color:var(--text-muted);">📅 Bi-Weekly: <strong style="color:var(--green-deep);">${biweeklyCount}</strong></div>
         <div style="font-size:13px;color:var(--text-muted);">⚡ Weekly: <strong style="color:var(--green-deep);">${weeklyCount}</strong></div>
         ${customCount ? `<div style="font-size:13px;color:var(--text-muted);">🗓️ Custom: <strong style="color:var(--green-deep);">${customCount}</strong></div>` : ''}
-        <div style="font-size:13px;color:var(--text-muted);">🌿 Avg/customer: <strong style="color:var(--green-deep);">${bigNum(totalRev / rows.length)}</strong></div>
+        <div style="font-size:13px;color:var(--text-muted);">🫧 Avg/customer: <strong style="color:var(--green-deep);">${bigNum(totalRev / rows.length)}</strong></div>
       </div>
     </div>
     <div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;">
@@ -5581,8 +5581,8 @@ function buildRevProjection(bookings, periodIdx) {
           <thead><tr>
             <th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:2px solid var(--border);">Customer</th>
             <th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:2px solid var(--border);">Plan</th>
-            <th style="text-align:right;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:2px solid var(--border);">$/Mow</th>
-            <th style="text-align:right;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:2px solid var(--border);">Est. Mows</th>
+            <th style="text-align:right;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:2px solid var(--border);">$/Clean</th>
+            <th style="text-align:right;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:2px solid var(--border);">Est. Cleans</th>
             <th style="text-align:right;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:2px solid var(--border);">Est. Revenue</th>
           </tr></thead>
           <tbody>
@@ -5619,7 +5619,7 @@ function buildOneTimeSection(bookings) {
     if (String(bk.rowCancelled || '').trim()) return false;
     const freq = String(bk.frequency || '').toLowerCase();
     if (freq.includes('free') || freq.includes('quote')) return false;
-    if (freq.includes('extra mow')) return false;
+    if (freq.includes('extra clean')) return false;
     // Exclude recurring subscription plans
     if (SUBSCRIPTION_PLANS.some(p => freq === p)) return false;
     // Include: one-time, landscaping, pressure washing, other, etc.
@@ -5651,7 +5651,7 @@ function buildOneTimeSection(bookings) {
       <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">📌 Confirmed One-Time Jobs</div>
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
         <div style="flex:1;min-width:140px;background:#f0fdf4;border-radius:12px;padding:14px 16px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#15803d;margin-bottom:4px;">Confirmed Revenue</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#1565a8;margin-bottom:4px;">Confirmed Revenue</div>
           <div style="font-size:28px;font-weight:800;color:var(--green-deep);">$${Math.round(total).toLocaleString()}</div>
           <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${pending.length} pending job${pending.length !== 1 ? 's' : ''}</div>
         </div>
@@ -5867,9 +5867,9 @@ function anRenderKpis(E, bk, an, totalViews, uniqueVis, quoteOpens, bookComplete
     { label:'Unique Visitors',   value: uniqueVis  || '—', sub:'distinct browsers',      color:'' },
     { label:'Quote Opens',       value: quoteOpens || '—', sub:'started quote flow',      color:'purple' },
     { label:'Conversion Rate',   value: quoteOpens > 0 ? convRate + '%' : '—', sub:'quote → booking', color: convRate >= 10 ? '' : convRate >= 5 ? 'orange' : quoteOpens > 0 ? 'red' : '' },
-    { label:'Revenue Collected', value: revenue ? '$' + Number(revenue).toLocaleString() : '—', sub:'from paid mows', color:'gold' },
+    { label:'Revenue Collected', value: revenue ? '$' + Number(revenue).toLocaleString() : '—', sub:'from paid cleans', color:'gold' },
     { label:'Active Customers',  value: customers || '—', sub:'unique emails',            color:'' },
-    { label:'Mows Completed',    value: mowsDone  || '—', sub:'marked done',              color:'' },
+    { label:'Cleans Completed',    value: mowsDone  || '—', sub:'marked done',              color:'' },
     { label:'Payment Errors',    value: payErrors || '—', sub:'card declined / network',  color: payErrors > 0 ? 'red' : '' },
     { label:'Out-of-Area Zips',  value: zipBounce || '—', sub:'rejected at zip step',     color: zipBounce > 5 ? 'orange' : '' },
   ];
@@ -5885,7 +5885,7 @@ function anRenderFunnel(E, totalViews, uniqueVis) {
   const el = document.getElementById('an-funnel');
   const STEPS = [
     { key: null,                label:'0 · Unique Visitors',      color:'#4b5563' },
-    { key:'quote_opened',       label:'1 · Quote opened',         color:'#2d6a2d' },
+    { key:'quote_opened',       label:'1 · Quote opened',         color:'#1565a8' },
     { key:'quote_price_viewed', label:'2 · Saw their price',      color:'#3d8c3d' },
     { key:'booking_completed',  label:'3 · Booking confirmed ✅',  color:'#9edd9e' },
   ];
@@ -6010,12 +6010,12 @@ function anRenderStepDur(E) {
     html += `<div style="margin-bottom:16px;">
       <div style="font-size:13px;font-weight:700;color:var(--green-deep);margin-bottom:5px;">${esc(s.label)} <span style="font-weight:400;color:var(--text-muted);">${tot} tracked</span></div>
       <div style="display:flex;border-radius:6px;overflow:hidden;height:20px;margin-bottom:4px;">
-        <div style="width:${fp}%;background:#4caf50;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">${fp > 12 ? fp + '%' : ''}</div>
+        <div style="width:${fp}%;background:#3da9e0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">${fp > 12 ? fp + '%' : ''}</div>
         <div style="width:${mp}%;background:#f97316;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">${mp > 12 ? mp + '%' : ''}</div>
         <div style="width:${sp}%;background:#e53e3e;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">${sp > 12 ? sp + '%' : ''}</div>
       </div>
       <div style="display:flex;gap:12px;font-size:12px;color:var(--text-muted);flex-wrap:wrap;">
-        <span><span style="color:#4caf50;font-weight:700;">■</span> Fast &lt;15s: ${fast}</span>
+        <span><span style="color:#3da9e0;font-weight:700;">■</span> Fast &lt;15s: ${fast}</span>
         <span><span style="color:#f97316;font-weight:700;">■</span> Med 15–60s: ${med}</span>
         <span><span style="color:#e53e3e;font-weight:700;">■</span> Slow 60s+: ${slow}</span>
       </div>
@@ -6032,12 +6032,12 @@ function anRenderPlans(biweekly, weekly) {
   const bwp = anPct(biweekly, total), wp = anPct(weekly, total);
   el.innerHTML = `
     <div style="display:flex;border-radius:8px;overflow:hidden;height:26px;margin-bottom:8px;">
-      <div style="width:${bwp}%;background:#2d6a2d;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">${bwp > 10 ? bwp + '%' : ''}</div>
-      <div style="width:${wp}%;background:#4caf50;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">${wp > 10 ? wp + '%' : ''}</div>
+      <div style="width:${bwp}%;background:#1565a8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">${bwp > 10 ? bwp + '%' : ''}</div>
+      <div style="width:${wp}%;background:#3da9e0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">${wp > 10 ? wp + '%' : ''}</div>
     </div>
     <div style="display:flex;gap:16px;font-size:13px;flex-wrap:wrap;">
-      <span><span style="color:#2d6a2d;font-weight:700;">■</span> Bi-Weekly: ${biweekly} (${bwp}%)</span>
-      <span><span style="color:#4caf50;font-weight:700;">■</span> Weekly: ${weekly} (${wp}%)</span>
+      <span><span style="color:#1565a8;font-weight:700;">■</span> Bi-Weekly: ${biweekly} (${bwp}%)</span>
+      <span><span style="color:#3da9e0;font-weight:700;">■</span> Weekly: ${weekly} (${wp}%)</span>
     </div>
     <div style="font-size:13px;color:var(--text-muted);margin-top:10px;">
       ${biweekly > weekly ? '📅 Most people prefer Bi-Weekly — sweet spot of price vs. frequency.' : weekly > biweekly ? '⚡ Most people prefer Weekly service.' : 'Even split between plans.'}
@@ -6050,7 +6050,7 @@ function anRenderRefs(refStats) {
   const refs = Object.entries(refStats).sort((a, b) => b[1] - a[1]).slice(0, 8);
   if (!refs.length) { el.innerHTML = anEmpty('No referrer data yet.'); return; }
   const max = refs[0][1], total = refs.reduce((s, [, c]) => s + c, 0);
-  el.innerHTML = refs.map(([ref, cnt]) => anBarRow(ref || '(direct)', cnt, max, '#2d6a2d', `${anPct(cnt, total)}%`)).join('');
+  el.innerHTML = refs.map(([ref, cnt]) => anBarRow(ref || '(direct)', cnt, max, '#1565a8', `${anPct(cnt, total)}%`)).join('');
 }
 
 function anRenderWow(bkWow, anWow) {
@@ -6064,7 +6064,7 @@ function anRenderWow(bkWow, anWow) {
     if (prev === 0 && cur === 0) return '<span style="color:#888;">—</span>';
     const pct = prev === 0 ? 100 : Math.round(((cur - prev) / prev) * 100);
     const up = cur >= prev;
-    return `<span style="color:${up ? '#2d6a2d' : '#c0392b'};font-weight:700;">${up ? '▲' : '▼'} ${Math.abs(pct)}%</span>`;
+    return `<span style="color:${up ? '#1565a8' : '#c0392b'};font-weight:700;">${up ? '▲' : '▼'} ${Math.abs(pct)}%</span>`;
   }
   function card(label, cur, prev, fmt) {
     const f = fmt || (v => v);
@@ -6102,7 +6102,7 @@ function anRenderTrend(dailyVisits, dailyRevenue) {
     const h = Math.round((d.visits / maxV) * 80);
     return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;width:${barW};flex:1;">
       <div style="font-size:9px;color:var(--text-muted);white-space:nowrap;overflow:hidden;">${d.visits > 0 ? d.visits : ''}</div>
-      <div title="${d.label}: ${d.visits} visits" style="width:100%;height:${h}px;min-height:2px;background:#4caf50;border-radius:3px 3px 0 0;"></div>
+      <div title="${d.label}: ${d.visits} visits" style="width:100%;height:${h}px;min-height:2px;background:#3da9e0;border-radius:3px 3px 0 0;"></div>
       <div style="font-size:9px;color:var(--text-muted);transform:rotate(-45deg);transform-origin:top left;margin-top:4px;white-space:nowrap;">${d.label}</div>
     </div>`;
   }).join('');
@@ -6111,18 +6111,18 @@ function anRenderTrend(dailyVisits, dailyRevenue) {
     const h = Math.round((d.rev / maxR) * 80);
     return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;width:${barW};flex:1;">
       <div style="font-size:9px;color:var(--text-muted);white-space:nowrap;overflow:hidden;">${d.rev > 0 ? '$'+d.rev.toFixed(0) : ''}</div>
-      <div title="${d.label}: $${d.rev.toFixed(0)} revenue" style="width:100%;height:${h}px;min-height:2px;background:#2d6a2d;border-radius:3px 3px 0 0;"></div>
+      <div title="${d.label}: $${d.rev.toFixed(0)} revenue" style="width:100%;height:${h}px;min-height:2px;background:#1565a8;border-radius:3px 3px 0 0;"></div>
       <div style="font-size:9px;color:var(--text-muted);transform:rotate(-45deg);transform-origin:top left;margin-top:4px;white-space:nowrap;">${d.label}</div>
     </div>`;
   }).join('');
 
   el.innerHTML = `
     <div style="margin-bottom:20px;">
-      <div style="font-size:12px;font-weight:600;color:#4caf50;margin-bottom:6px;">🟢 Daily Visitors (last 30 days)</div>
+      <div style="font-size:12px;font-weight:600;color:#3da9e0;margin-bottom:6px;">🟢 Daily Visitors (last 30 days)</div>
       <div style="display:flex;align-items:flex-end;gap:4px;height:110px;padding-bottom:24px;">${visitBars}</div>
     </div>
     <div>
-      <div style="font-size:12px;font-weight:600;color:#2d6a2d;margin-bottom:6px;">💰 Daily Revenue (last 30 days)</div>
+      <div style="font-size:12px;font-weight:600;color:#1565a8;margin-bottom:6px;">💰 Daily Revenue (last 30 days)</div>
       <div style="display:flex;align-items:flex-end;gap:4px;height:110px;padding-bottom:24px;">${revBars}</div>
     </div>`;
 }
@@ -6135,12 +6135,12 @@ function anRenderNewVsReturning(newV, retV) {
   const np = anPct(newV, total), rp = anPct(retV, total);
   el.innerHTML = `
     <div style="display:flex;border-radius:8px;overflow:hidden;height:26px;margin-bottom:10px;">
-      <div style="width:${np}%;background:#4caf50;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">${np > 10 ? np+'%' : ''}</div>
-      <div style="width:${rp}%;background:#1a3a1a;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">${rp > 10 ? rp+'%' : ''}</div>
+      <div style="width:${np}%;background:#3da9e0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">${np > 10 ? np+'%' : ''}</div>
+      <div style="width:${rp}%;background:#0d2a42;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">${rp > 10 ? rp+'%' : ''}</div>
     </div>
     <div style="display:flex;gap:16px;font-size:13px;flex-wrap:wrap;">
-      <span><span style="color:#4caf50;font-weight:700;">■</span> New: ${newV} (${np}%)</span>
-      <span><span style="color:#1a3a1a;font-weight:700;">■</span> Returning: ${retV} (${rp}%)</span>
+      <span><span style="color:#3da9e0;font-weight:700;">■</span> New: ${newV} (${np}%)</span>
+      <span><span style="color:#0d2a42;font-weight:700;">■</span> Returning: ${retV} (${rp}%)</span>
     </div>
     <div style="font-size:13px;color:var(--text-muted);margin-top:10px;">
       ${rp >= 30 ? '🔁 Solid return rate — people are coming back to reconsider.' : rp >= 15 ? '📌 Some returning visitors — normal for a service business.' : '🆕 Mostly new visitors — typical early-stage growth.'}
@@ -6161,7 +6161,7 @@ function anRenderSourceQuality(sourceQuality) {
       <td style="padding:6px 8px;text-align:center;font-size:13px;">${d.visits || 0}</td>
       <td style="padding:6px 8px;text-align:center;font-size:13px;">${d.uniqueVisitors || 0}</td>
       <td style="padding:6px 8px;text-align:center;font-size:13px;">${d.quoteOpens || 0} <span style="color:var(--text-muted);font-size:11px;">(${quoteRate}%)</span></td>
-      <td style="padding:6px 8px;text-align:center;font-size:13px;">${d.bookings || 0} <span style="color:${convRate >= 5 ? '#2d6a2d' : convRate >= 2 ? '#888' : '#c0392b'};font-size:11px;">(${convRate}%)</span></td>
+      <td style="padding:6px 8px;text-align:center;font-size:13px;">${d.bookings || 0} <span style="color:${convRate >= 5 ? '#1565a8' : convRate >= 2 ? '#888' : '#c0392b'};font-size:11px;">(${convRate}%)</span></td>
     </tr>`;
   }).join('');
   el.innerHTML = `<div style="overflow-x:auto;">
@@ -6188,7 +6188,7 @@ function anRenderFaq(E) {
   const items = keys.map(k => [k.replace('faq_open_', '').replace(/_/g, ' '), E[k]])
     .sort((a, b) => b[1] - a[1]);
   const max = items[0][1];
-  el.innerHTML = items.map(([q, c]) => anBarRow(q, c, max, '#4caf50', `${c}x`)).join('');
+  el.innerHTML = items.map(([q, c]) => anBarRow(q, c, max, '#3da9e0', `${c}x`)).join('');
 }
 
 function anRenderOoaZips(E) {
@@ -6228,8 +6228,8 @@ function anRenderSectionTime(eng) {
     const barW    = Math.round((secs / maxTime) * 100);
     const label   = LABELS[id] || id;
     const timeStr = secs >= 60 ? Math.floor(secs/60)+'m '+(secs%60)+'s' : secs+'s';
-    const reachColor = reach >= 80 ? '#2d6a2d' : reach >= 50 ? '#f97316' : '#c0392b';
-    const timeColor  = secs >= 30 ? '#2d6a2d' : secs >= 10 ? '#f97316' : '#888';
+    const reachColor = reach >= 80 ? '#1565a8' : reach >= 50 ? '#f97316' : '#c0392b';
+    const timeColor  = secs >= 30 ? '#1565a8' : secs >= 10 ? '#f97316' : '#888';
     html += `<div style="margin-bottom:14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
         <div style="font-size:13px;font-weight:600;color:var(--green-deep);">${esc(label)}</div>
@@ -6239,8 +6239,8 @@ function anRenderSectionTime(eng) {
         </div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
-        <div style="flex:1;background:#e8f5e9;border-radius:4px;height:16px;overflow:hidden;">
-          <div style="height:100%;width:${barW}%;background:${secs>=30?'#2d6a2d':secs>=10?'#f97316':'#9ca3af'};border-radius:4px;transition:width .4s;"></div>
+        <div style="flex:1;background:#e8f4fb;border-radius:4px;height:16px;overflow:hidden;">
+          <div style="height:100%;width:${barW}%;background:${secs>=30?'#1565a8':secs>=10?'#f97316':'#9ca3af'};border-radius:4px;transition:width .4s;"></div>
         </div>
       </div>
     </div>`;
@@ -6265,7 +6265,7 @@ function anRenderHoverExits(eng) {
     cta_btn:      '📋 Main CTA button',
     quote_cta:    '💬 Quote CTA link',
     plan_card:    '📦 Pricing plan card',
-    service_card: '🌿 Service card',
+    service_card: '🫧 Service card',
     promo_banner: '🎁 Promo banner',
   };
   const entries = Object.entries(counts)
@@ -6305,7 +6305,7 @@ function anRenderExitSection(eng) {
   let html = `<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
     <div>
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:3px;">Exit Intent Rate</div>
-      <div style="font-size:28px;font-weight:800;color:${intentRate>40?'#b91c1c':intentRate>20?'#c2410c':'#2d6a2d'};">${intentRate}%</div>
+      <div style="font-size:28px;font-weight:800;color:${intentRate>40?'#b91c1c':intentRate>20?'#c2410c':'#1565a8'};">${intentRate}%</div>
       <div style="font-size:12px;color:var(--text-muted);">${intentCount} of ${total} sessions moved cursor to close</div>
     </div>
   </div>`;
@@ -6391,7 +6391,7 @@ function showToast(msg, duration) {
   if (!el) {
     el = document.createElement('div');
     el.id = '_toast';
-    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a3a1a;color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.3);';
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0d2a42;color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.3);';
     document.body.appendChild(el);
   }
   el.textContent = msg;
@@ -6689,7 +6689,7 @@ async function confirmCrewAndStartRoute() {
   if (_clockInCrew.length) {
     const names = _clockInCrew.map(c => c.name).join(', ');
     const summary = document.createElement('div');
-    summary.style.cssText = 'font-size:11px;color:#15803d;margin-top:2px;';
+    summary.style.cssText = 'font-size:11px;color:#1565a8;margin-top:2px;';
     summary.textContent = 'With: ' + names;
     document.getElementById('routeElapsedDisplay').parentNode.appendChild(summary);
   }
@@ -6722,7 +6722,7 @@ function openCrewJobComplete(rowIdx) {
 
   // Step 1 subtitle
   document.getElementById('jobStep1Sub').textContent =
-    `Confirm ${b.name || 'this job'}'s lawn is mowed, trimmed, and blown off.`;
+    `Confirm ${b.name || 'this job'}'s home is mowed, trimmed, and blown off.`;
 
   // Step 2: detect cash vs card, set up accordingly
   const isCash = String(b.calendarEvent||'').toLowerCase().includes('cash') ||
@@ -6910,7 +6910,7 @@ function showFinishRouteModal() {
   if (dayOrder) {
     const stops = Array.isArray(dayOrder) ? dayOrder : Object.values(dayOrder).flat();
     const freq = stops.map(s => String(s.bk?.frequency || s.bk?.service || '').toLowerCase());
-    const isMowing = freq.some(f => /mow|lawn/.test(f));
+    const isMowing = freq.some(f => /clean|home/.test(f));
     const isWeed   = freq.some(f => /weed|trim/.test(f));
     const isClean  = freq.some(f => /clean/.test(f));
     const isLand   = freq.some(f => /landscape|mulch|plant/.test(f));
@@ -7057,7 +7057,7 @@ function renderSavedRoute(saved) {
   // Stats bar
   if (stats && sb) {
     document.getElementById('rStatJobs').textContent  = stats.jobs  || '—';
-    document.getElementById('rStatMow').textContent   = stats.mow   || '—';
+    document.getElementById('rStatMow').textContent   = stats.clean   || '—';
     document.getElementById('rStatDrive').textContent = stats.drive || '—';
     document.getElementById('rStatDist').textContent  = stats.dist  || '—';
     document.getElementById('rStatDone').textContent  = stats.days  || '—';
@@ -7188,7 +7188,7 @@ function moveRouteStop(dateStr, crew, fromIdx, dir) {
     const _b = document.createElement('div');
     _b.id = 'routeReorderBanner';
     _b.style.cssText = 'background:#fff8e1;border:1.5px solid #fde047;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#78350f;display:flex;align-items:center;justify-content:space-between;gap:12px;';
-    _b.innerHTML = '<span>📌 Pinned stops stay fixed. ⚡ Re-optimize fills the rest around them.</span><button onclick="buildRoute()" style="background:#1a3a1a;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;">⚡ Re-optimize</button>';
+    _b.innerHTML = '<span>📌 Pinned stops stay fixed. ⚡ Re-optimize fills the rest around them.</span><button onclick="buildRoute()" style="background:#0d2a42;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;">⚡ Re-optimize</button>';
     _tl.prepend(_b);
   }
 
@@ -7285,14 +7285,14 @@ function buildCrewStopsHtml(dateStr, crew, orderedStops, startTimeStr, startVal)
       : `<span class="route-stop-pill time-pill">🚗 ${driveMin}m</span>`;
     const mowPill  = `<span class="route-stop-pill time-pill">⏱ ~${mowMin}m</span>`;
     const planPill = bk.frequency ? `<span class="route-stop-pill">${esc(bk.frequency)}</span>` : '';
-    const _firstPriceMatch = String(bk.notes||'').match(/First mow:\s*\$?([\d.]+).*?Following:\s*\$?([\d.]+)/i);
+    const _firstPriceMatch = String(bk.notes||'').match(/First clean:\s*\$?([\d.]+).*?Following:\s*\$?([\d.]+)/i);
     const _promoMatch = String(bk.notes||'').match(/First service \$19 promo.*Following:\s*\$?([\d.]+)/i);
     const pricePill = _firstPriceMatch
       ? `<span class="route-stop-pill" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;">💰 First: $${_firstPriceMatch[1]} · Following: $${_firstPriceMatch[2]}</span>`
       : _promoMatch
-        ? `<span class="route-stop-pill" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;">🌿 First: $19 · Following: $${_promoMatch[1]}</span>`
+        ? `<span class="route-stop-pill" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;">🫧 First: $19 · Following: $${_promoMatch[1]}</span>`
         : '';
-    const donePill = done ? `<span class="route-stop-pill" style="background:#dcfce7;color:#166534;border:1px solid #86efac;">✓ Done</span>` : '';
+    const donePill = done ? `<span class="route-stop-pill" style="background:#dcfce7;color:#0d2a42;border:1px solid #86efac;">✓ Done</span>` : '';
     const zBadge   = zoneBadgeHTML(bk.zip, bk.zone);
     // Use single-quoted JS string so it's safe inside double-quoted HTML attributes
     const crewKey  = typeof crew === 'string' ? `'${crew}'` : crew;
@@ -7329,7 +7329,7 @@ function buildCrewStopsHtml(dateStr, crew, orderedStops, startTimeStr, startVal)
     // Show lot size badge if already scanned
     const _lotM = String(bk.notes||'').match(/lot:\s*([\d.]+)ac/i);
     const _lotBadge = _lotM
-      ? `<span onclick="editLotSize(${rowIdx},this)" title="Tap to edit lot size" style="font-size:11px;color:#166534;background:#dcfce7;border:1px solid #bbf7d0;border-radius:6px;padding:2px 8px;white-space:nowrap;cursor:pointer;">📐 ${_lotM[1]}ac ✏️</span>`
+      ? `<span onclick="editLotSize(${rowIdx},this)" title="Tap to edit lot size" style="font-size:11px;color:#0d2a42;background:#dcfce7;border:1px solid #bbf7d0;border-radius:6px;padding:2px 8px;white-space:nowrap;cursor:pointer;">📐 ${_lotM[1]}ac ✏️</span>`
       : '';
 
     // Photo + note buttons (always for all roles)
@@ -7366,7 +7366,7 @@ function buildCrewStopsHtml(dateStr, crew, orderedStops, startTimeStr, startVal)
               ${bk.phone?`<button class="route-contact-btn" onclick="openContactPopup(${JSON.stringify(bk.name||'')},${JSON.stringify(bk.phone||'')})">📞 Contact</button>`:''}
             </div>
             ${rowIdx>=0&&!done?(window._isAtLeast&&!window._isAtLeast('manager')
-              ?`<button class="route-done-btn" style="background:#15803d;" onclick="openCrewJobComplete(${rowIdx})">✓ Mark Done</button>`
+              ?`<button class="route-done-btn" style="background:#1565a8;" onclick="openCrewJobComplete(${rowIdx})">✓ Mark Done</button>`
               :`<button class="route-done-btn" onclick="routeMarkDone(${rowIdx},this)">✓ Mark Done</button>`)
             :''}
           </div>
@@ -7416,7 +7416,7 @@ function buildDayNoteBoard(dateStr, allStops) {
     const bk = s.bk || s;
     const name = (bk.name || '').split(' ')[0] || '?';
     const parts = [];
-    const custNote = String(bk.notes || '').trim().replace(/\|/g, '·').replace(/Lot:\s*[\d.]+ac\s*/gi, '').replace(/First mow.*?Following:.*?\d+/gi,'').replace(/first service.*?following.*?\d+/gi,'').trim();
+    const custNote = String(bk.notes || '').trim().replace(/\|/g, '·').replace(/Lot:\s*[\d.]+ac\s*/gi, '').replace(/First clean.*?Following:.*?\d+/gi,'').replace(/first service.*?following.*?\d+/gi,'').trim();
     if (custNote) parts.push(custNote);
     if (bk.employeeNotes) parts.push('📝 ' + String(bk.employeeNotes).trim());
     // Customer record notes from allCustomers
@@ -7800,7 +7800,7 @@ function haversineMiles(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// ── Mow time estimate from booking notes (looks for Yard: size) ──────────
+// ── Clean time estimate from booking notes (looks for Yard: size) ──────────
 function mowMinutes(bk) {
   // 1. Owner-set custom time overrides everything
   const custom = parseInt(String(bk.mowMinutes || bk.customMowMins || ''));
@@ -7811,7 +7811,7 @@ function mowMinutes(bk) {
   const svc  = String(bk.service || bk.serviceType || '').toLowerCase();
 
   // 2. Non-mowing jobs — use job duration if set, else flat 60m
-  if (svc && !svc.includes('mow') && !svc.includes('lawn') && !svc.includes('blow')) {
+  if (svc && !svc.includes('clean') && !svc.includes('home') && !svc.includes('blow')) {
     const durMatch = n.match(/duration[:\s]+(\d+)\s*(?:min|hr|hour)?/i);
     if (durMatch) return Math.round(parseFloat(durMatch[1]) * (durMatch[0].includes('hr') || durMatch[0].includes('hour') ? 60 : 1));
     return 60;
@@ -7843,12 +7843,12 @@ function mowMinutes(bk) {
 
   // 6. Service type extras (full service / edge + trim adds ~15 min)
   const hasEdgeTrim = /edg|trim|weed\s*eat|string\s*trim/.test(n);
-  const baseFromFreq = /one.time|first/.test(freq) ? 50 : 40; // first mow often overgrown
+  const baseFromFreq = /one.time|first/.test(freq) ? 50 : 40; // first clean often overgrown
   return baseFromFreq + (hasEdgeTrim ? 10 : 0);
 }
 
-// ── Acres → estimated mow minutes ───────────────────────────────────────
-// Calibrated from real-world stop times (mow + trim edges + blow):
+// ── Acres → estimated clean minutes ───────────────────────────────────────
+// Calibrated from real-world stop times (clean + trim edges + blow):
 //   0.25ac ≈ 20 min · 0.50ac ≈ 30 min · 1.00ac ≈ 60 min
 // Linear interpolation between table entries.
 function mowMinsFromAcres(acres) {
@@ -8022,7 +8022,7 @@ function editLotSize(rowIdx, badgeEl) {
   inp.step = '0.01';
   inp.min = '0.01';
   inp.value = current;
-  inp.style.cssText = 'width:80px;padding:2px 6px;font-size:12px;border:1.5px solid #86efac;border-radius:6px;font-family:inherit;background:#f0fdf4;color:#166534;outline:none;';
+  inp.style.cssText = 'width:80px;padding:2px 6px;font-size:12px;border:1.5px solid #86efac;border-radius:6px;font-family:inherit;background:#f0fdf4;color:#0d2a42;outline:none;';
   inp.title = 'Enter lot size in acres, then press Enter';
 
   const saveIt = async () => {
@@ -8037,10 +8037,10 @@ function editLotSize(rowIdx, badgeEl) {
       await fetch(SCRIPT_URL+'?'+p);
     } catch(e) {}
     inp.remove();
-    // Recalculate cascading arrival times with the new mow duration, then re-render
+    // Recalculate cascading arrival times with the new clean duration, then re-render
     const dateStr = _routeViewDates[_routeViewDayIdx] || _routeViewDates[0];
     if (dateStr && _routeCustomOrder[dateStr]) {
-      _syncRouteOrderToDispatch(dateStr); // updates all bk.jobTime with new mow mins
+      _syncRouteOrderToDispatch(dateStr); // updates all bk.jobTime with new clean mins
       renderRouteDay(dateStr, _routeCustomOrder[dateStr]);
       _reinjectRouteAllBtns(dateStr);
     }
@@ -8092,10 +8092,10 @@ async function scanAndSaveLotSize(rowIdx, lat, lon, btnEl) {
     await fetch(SCRIPT_URL + '?' + params);
   } catch(e) {}
 
-  // Recalculate cascading times with new mow duration, then re-render
+  // Recalculate cascading times with new clean duration, then re-render
   const dateStr = _routeViewDates[_routeViewDayIdx] || _routeViewDates[0];
   if (dateStr && _routeCustomOrder[dateStr]) {
-    _syncRouteOrderToDispatch(dateStr); // cascades updated mow mins through all stops
+    _syncRouteOrderToDispatch(dateStr); // cascades updated clean mins through all stops
     renderRouteDay(dateStr, _routeCustomOrder[dateStr]);
     _reinjectRouteAllBtns(dateStr);
   }
@@ -8543,7 +8543,7 @@ async function buildRoute() {
             rowIndex:  stop.bk._rowIndex || 0,
             name:      stop.bk.name      || '',
             address:   (stop.bk.address || '') + (stop.bk.zip ? ', ' + stop.bk.zip : '') + ', FL',
-            service:   stop.bk.service   || stop.bk.frequency || 'Lawn Service',
+            service:   stop.bk.service   || stop.bk.frequency || 'Home Service',
             frequency: stop.bk.frequency || '',
             startIso:  cursor.toISOString(),
             endIso:    doneAt.toISOString(),
@@ -8569,13 +8569,13 @@ async function buildRoute() {
     // Stats bar
     const statsObj = {
       jobs:  totalJobs + (allFailedStops.length ? ' +'+allFailedStops.length+'⚠' : ''),
-      mow:   fmtMin(totalMowMin),
+      clean:   fmtMin(totalMowMin),
       drive: fmtMin(totalDriveMin),
       dist:  totalMiles.toFixed(1),
       days:  sortedDates.length + (sortedDates.length !== 1 ? ' days' : ' day'),
     };
     document.getElementById('rStatJobs').textContent  = statsObj.jobs;
-    document.getElementById('rStatMow').textContent   = statsObj.mow;
+    document.getElementById('rStatMow').textContent   = statsObj.clean;
     document.getElementById('rStatDrive').textContent = statsObj.drive;
     document.getElementById('rStatDist').textContent  = statsObj.dist;
     document.getElementById('rStatDone').textContent  = statsObj.days;
@@ -8676,7 +8676,7 @@ async function syncRouteToCalendar(silent) {
         const tl = document.getElementById('routeTimeline');
         if (tl) {
           const b = document.createElement('div');
-          b.style.cssText = 'padding:10px 14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;font-size:13px;color:#166534;font-weight:600;margin-bottom:12px;';
+          b.style.cssText = 'padding:10px 14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;font-size:13px;color:#0d2a42;font-weight:600;margin-bottom:12px;';
           b.textContent = msg;
           tl.prepend(b);
           setTimeout(() => b.remove(), 5000);
@@ -8940,7 +8940,7 @@ function renderZoneSchedule() {
       return '<div style="display:inline-flex;align-items:center;gap:4px;background:' + (isPrimary?'#f0faf0':'#fafafa') + ';border:1.5px ' + (isPrimary?'solid':'dashed') + ' ' + (isPrimary?'var(--green-mid)':'#9ca3af') + ';border-radius:10px;padding:4px 8px;margin:2px;">'
         + '<button data-zone="' + z + '" data-day="' + d + '" data-action="add" style="background:none;border:none;cursor:pointer;padding:0;display:flex;flex-direction:column;align-items:center;">'
         + '<span style="font-size:11px;font-weight:800;color:' + (isPrimary?'var(--green-mid)':'#6b7280') + ';">' + d + '</span>'
-        + '<span style="font-size:9px;color:' + (isPrimary?'#15803d':'#9ca3af') + ';text-transform:uppercase;">' + entry.type + '</span>'
+        + '<span style="font-size:9px;color:' + (isPrimary?'#1565a8':'#9ca3af') + ';text-transform:uppercase;">' + entry.type + '</span>'
         + '</button>'
         + '<button data-zone="' + z + '" data-day="' + d + '" data-action="crew" data-crew="" class="cfg-crew-pill' + (crew===''?' active-none':'') + '" style="padding:3px 8px;font-size:11px;">—</button>'
         + '<button data-zone="' + z + '" data-day="' + d + '" data-action="crew" data-crew="A" class="cfg-crew-pill' + (crew==='A'?' active-a':'') + '" style="padding:3px 8px;font-size:11px;">' + nameA + '</button>'
@@ -9035,7 +9035,7 @@ async function invUploadPhoto() {
       const res = await fetch(SCRIPT_URL, { method:'POST', body:JSON.stringify(payload) });
       const data = await res.json();
       if (data.success) {
-        status.style.color = '#15803d'; status.textContent = 'Uploaded!';
+        status.style.color = '#1565a8'; status.textContent = 'Uploaded!';
         if (b && data.fileUrl) allBookings[_photoRowIdx].photos = b.photos ? b.photos+','+data.fileUrl : data.fileUrl;
         setTimeout(function() { document.getElementById('photoModalInvoice').style.display='none'; renderBookings(); }, 1400);
       } else { status.style.color='#dc2626'; status.textContent=data.error||'Failed'; btn.disabled=false; btn.textContent='Upload'; }
@@ -9317,7 +9317,7 @@ function _zoneHeaderBadges(zones) {
     zones.map(function(z) {
       var info    = ZONE_CITIES[z.zone] || {};
       var primary = z.type === 'primary';
-      var bg = primary ? '#e8f5e9' : '#f3f4f6';
+      var bg = primary ? '#e8f4fb' : '#f3f4f6';
       var bd = primary ? 'var(--green-mid)' : '#cbd5e1';
       var fg = primary ? 'var(--green-deep)' : '#64748b';
       return '<span title="' + esc((info.cities || z.zone)) + (primary ? '' : ' (backup day)') +
@@ -9778,7 +9778,7 @@ function renderHistoryList() {
     var price = parseFloat(String(b.price || '').replace(/[^0-9.]/g, '')) || 0;
     var addr  = [b.address, b.zip].filter(Boolean).join(', ');
     var paid  = isPaidDone(b);
-    var pill  = b.rowCompleted ? '<span style="font-size:11px;font-weight:700;background:#dcfce7;color:#166534;border-radius:6px;padding:2px 8px;">✓ Archived</span>'
+    var pill  = b.rowCompleted ? '<span style="font-size:11px;font-weight:700;background:#dcfce7;color:#0d2a42;border-radius:6px;padding:2px 8px;">✓ Archived</span>'
               : paid ? '<span style="font-size:11px;font-weight:700;background:#dbeafe;color:#1e40af;border-radius:6px;padding:2px 8px;">Paid</span>'
               : '<span style="font-size:11px;font-weight:700;background:#fef9c3;color:#854d0e;border-radius:6px;padding:2px 8px;">Done</span>';
     return '<div class="hist-card" style="cursor:pointer;margin-bottom:10px;" onclick="openHistoryDetail(' + ri + ')">' +
@@ -9799,7 +9799,7 @@ function openHistoryDetail(rowIdx) {
   var bodyEl   = document.getElementById('histDetailBody');
   if (titleEl) titleEl.textContent = b.name || 'Job detail';
   if (statusEl) {
-    statusEl.innerHTML = b.rowCompleted ? '<span style="font-size:12px;font-weight:700;background:#dcfce7;color:#166534;border-radius:6px;padding:3px 10px;">✓ Archived</span>'
+    statusEl.innerHTML = b.rowCompleted ? '<span style="font-size:12px;font-weight:700;background:#dcfce7;color:#0d2a42;border-radius:6px;padding:3px 10px;">✓ Archived</span>'
       : isPaidDone(b) ? '<span style="font-size:12px;font-weight:700;background:#dbeafe;color:#1e40af;border-radius:6px;padding:3px 10px;">Paid</span>'
       : '<span style="font-size:12px;font-weight:700;background:#fef9c3;color:#854d0e;border-radius:6px;padding:3px 10px;">Done</span>';
   }
@@ -9900,7 +9900,7 @@ function _renderZoneGuide() {
       }).map(function(e) {
         var primary = e.type === 'primary';
         var crew = e.crew ? (' · ' + getCrewDisplayName(e.crew)) : '';
-        return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;background:' + (primary ? '#e8f5e9' : '#f3f4f6') +
+        return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;background:' + (primary ? '#e8f4fb' : '#f3f4f6') +
           ';border:1px ' + (primary ? 'solid var(--green-mid)' : 'dashed #cbd5e1') + ';color:' + (primary ? 'var(--green-deep)' : '#64748b') +
           ';border-radius:7px;padding:3px 9px;margin:2px;">' + esc(e.day) + (primary ? '' : ' (backup)') + esc(crew) + '</span>';
       }).join('');
