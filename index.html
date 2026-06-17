@@ -73,7 +73,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
 <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/></noscript>
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1600&q=80&fm=jpg"/>
+<link rel="preload" as="image" href="hero.jpg"/>
 <link rel="icon" type="image/x-icon" href="favicon.ico?v=3"/>
 <link rel="icon" type="image/png" href="favicon.png?v=3"/>
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=3"/>
@@ -197,7 +197,9 @@
   }
   .hero-right {
     flex: 1; position: relative; z-index: 1;
-    background: url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1600&q=80&fm=jpg') center/cover no-repeat;
+    /* Drop your own photo in as hero.jpg — it takes priority; the Unsplash kitchen is the fallback. */
+    background: url('hero.jpg') center/cover no-repeat,
+                url('https://images.unsplash.com/photo-1484154218962-a197022b5858?w=1600&q=80&fm=jpg') center/cover no-repeat;
   }
   .hero-right::before {
     content: '';
