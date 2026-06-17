@@ -397,6 +397,31 @@
     display:grid; grid-template-columns:1.25fr 1fr; gap:24px;
     align-items:start;
   }
+  /* Prominent form shell around the whole builder */
+  .builder-shell {
+    max-width:1040px; margin:0 auto;
+    background:#fff; border:1px solid #d7e6f2; border-radius:24px;
+    box-shadow:0 26px 70px rgba(13,42,66,0.15);
+    padding:14px;
+  }
+  .builder-shell .builder-wrap { max-width:none; margin:0; }
+  .builder-shell .builder-panel { box-shadow:none; border:1px solid #eef4f9; }
+  .builder-form-head { text-align:center; padding:14px 10px 16px; }
+  .builder-form-head .bfh-pill {
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--blue-mid); color:#fff;
+    font-size:13px; font-weight:700; letter-spacing:.03em;
+    padding:9px 20px; border-radius:100px;
+    box-shadow:0 6px 18px rgba(21,101,168,0.3);
+  }
+  /* Booking modal that holds the builder + contact form */
+  .book-modal {
+    background:#fff; border-radius:20px; width:100%; max-width:940px;
+    max-height:92vh; overflow-y:auto; padding:30px 28px; position:relative;
+    animation:fadeUp .3s ease both;
+  }
+  .book-modal .result-panel { position:static; }
+  @media (max-width:600px){ .book-modal { padding:24px 16px; } }
   .builder-panel {
     background:#fff; border:1px solid #e2ecf4; border-radius:18px;
     box-shadow:0 6px 30px rgba(13,42,66,0.06);
@@ -640,26 +665,26 @@
     <div class="nav-right">
       <ul class="nav-links">
         <li><a href="#services">Services</a></li>
-        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="javascript:void(0)" onclick="openBookModal()">Pricing</a></li>
         <li><a href="pool-cleaning.html">Pool Cleaning</a></li>
         <li><a href="pressure-washing.html">Pressure Washing</a></li>
         <li><a href="/faq.html">FAQ</a></li>
         <li><a href="/about.html">About</a></li>
         <li><a href="tel:+13524620627">📞 (352) 462-0627</a></li>
       </ul>
-      <a href="#pricing" class="nav-cta">Book Now</a>
+      <a href="javascript:void(0)" onclick="openBookModal()" class="nav-cta">Book Now</a>
       <a href="profile.html" style="color:var(--blue-deep);border:1.5px solid var(--blue-mid);padding:9px 18px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600;white-space:nowrap;transition:background .2s;">👤 My Account</a>
     </div>
   </nav>
   <div class="mobile-nav" id="mobileNav">
     <a href="#services" onclick="closeMobileMenu()">Services</a>
-    <a href="#pricing" onclick="closeMobileMenu()">Pricing</a>
+    <a href="javascript:void(0)" onclick="closeMobileMenu();openBookModal()">Pricing</a>
     <a href="pool-cleaning.html">Pool Cleaning</a>
     <a href="pressure-washing.html">Pressure Washing</a>
     <a href="/faq.html">FAQ</a>
     <a href="/about.html">About</a>
     <a href="profile.html" onclick="closeMobileMenu()">👤 My Account</a>
-    <a href="#pricing" class="mobile-nav-cta" onclick="closeMobileMenu()">Book Now</a>
+    <a href="javascript:void(0)" class="mobile-nav-cta" onclick="closeMobileMenu();openBookModal()">Book Now</a>
     <a href="tel:+13524620627">📞 (352) 462-0627</a>
   </div>
 </div>
@@ -672,7 +697,7 @@
       <h1>A Spotless Home,<br/><em>Every Single Time</em></h1>
       <p>Central Florida's professional house cleaning company. Flat-rate pricing starting at $90, eco-friendly supplies, and a 5-star service guarantee — no contracts, cancel anytime.</p>
       <div class="hero-btns">
-        <a href="#pricing" class="btn-primary">Book Now →</a>
+        <a href="javascript:void(0)" onclick="openBookModal()" class="btn-primary">Book Now →</a>
         <a href="#contact" class="btn-secondary">Contact Us</a>
       </div>
       <div style="border-top:1px solid rgba(255,255,255,0.12);padding-top:22px;margin-top:34px;">
@@ -748,13 +773,16 @@
   </div>
 </section>
 
-<!-- PRICING / BUILD YOUR HOME -->
-<section id="pricing" style="background:var(--cream);padding:96px 48px;">
-  <p class="section-label animate-up">Build Your Home</p>
-  <h2 class="section-title animate-up">Build Your Home. See Your Price.</h2>
-  <p class="section-sub animate-up">Tell us about your home and your price appears instantly — every room and option updates it live.</p>
-
-  <div class="builder-wrap animate-up">
+<!-- BOOK MODAL (builder + contact + date) — opens from any "Book Now" button -->
+<div class="modal-overlay" id="bookModalOverlay" onclick="if(event.target===this)closeBookModal()">
+  <div class="book-modal">
+    <button class="modal-close" onclick="closeBookModal()" aria-label="Close">✕</button>
+    <div id="bookFormView">
+    <div class="builder-form-head" style="padding-top:2px;">
+      <span class="bfh-pill">🏠 Build Your Home &amp; Book</span>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:10px;line-height:1.5;">Pick your home and options — your price updates live. Then choose a date and book.</p>
+    </div>
+    <div class="builder-wrap">
 
     <!-- LEFT: configurator -->
     <div class="builder-panel">
@@ -771,7 +799,7 @@
         <span class="sr-label">Bedrooms <small>Studio = 0</small></span>
         <div class="stepper">
           <button onclick="step('bed',-1)" id="bedMinus">−</button>
-          <span class="sval" id="bedVal">2</span>
+          <span class="sval" id="bedVal">Studio</span>
           <button onclick="step('bed',1)" id="bedPlus">+</button>
         </div>
       </div>
@@ -816,33 +844,53 @@
     <!-- RIGHT: live price -->
     <div class="result-panel">
       <div class="result-inner">
-        <div class="result-locked-msg" id="resultLocked">
-          <div class="lock-ic">🔒</div>
-          <h4>Your price is hidden</h4>
-          <p>Start building your home and your flat rate appears here instantly.</p>
-        </div>
-
-        <div class="result-revealed" id="resultRevealed">
+        <div class="result-revealed show" id="resultRevealed">
           <div class="result-eyebrow" id="rService">Standard Clean</div>
-          <div class="result-home" id="rHome">2 bed · 1 bath</div>
-          <div class="price-big"><span class="pb-cur">$</span><span class="pb-num" id="rPrice">120</span></div>
+          <div class="result-home" id="rHome">Studio · 1 bath</div>
+          <div class="price-big"><span class="pb-cur">$</span><span class="pb-num" id="rPrice">80</span></div>
           <div class="price-sub">Flat rate · what you see is what you pay</div>
 
           <div class="alt-prices" id="altPrices"><!-- filled by JS --></div>
 
-          <button class="result-cta" onclick="bookFromBuilder()">Book This Clean →</button>
+          <button class="result-cta" onclick="document.getElementById('bookContact').scrollIntoView({behavior:'smooth'});setTimeout(function(){document.getElementById('q-name').focus();},300);">Continue to Book →</button>
           <p class="result-note">Prices may vary based on home condition &amp; access · No contracts · Cancel anytime</p>
         </div>
       </div>
     </div>
-  </div>
+    </div><!-- builder-wrap -->
 
-  <div class="pricing-badges animate-up" style="margin-top:34px;">
-    <div>Fully Insured</div>
-    <div>Eco-Friendly Supplies</div>
-    <div>5-Star Service</div>
+    <!-- Contact + preferred date + submit -->
+    <div id="bookContact" style="max-width:980px;margin:20px auto 0;border-top:1px solid #eef4f9;padding-top:20px;">
+      <label style="display:block;font-size:12.5px;font-weight:700;color:var(--blue-deep);margin-bottom:6px;">How often?</label>
+      <div class="seg" id="freqSeg" style="margin-bottom:14px;">
+        <button type="button" data-freq="One-time visit" class="active" onclick="setFreq(this)">One-time</button>
+        <button type="button" data-freq="Weekly Plan" onclick="setFreq(this)">Weekly</button>
+        <button type="button" data-freq="Bi-Weekly Plan" onclick="setFreq(this)">Bi-Weekly</button>
+        <button type="button" data-freq="Monthly Plan" onclick="setFreq(this)">Monthly</button>
+      </div>
+      <div class="addon" id="firstDeepToggle" onclick="toggleFirstDeep()" style="margin-bottom:18px;">
+        <div class="addon-left"><span class="ad-check" id="firstDeepCheck">✓</span><span class="ad-name">✨ Make my first visit a Deep Clean</span></div>
+        <span class="ad-price" id="firstDeepPrice">+$—</span>
+      </div>
+      <div class="form-row"><label>Full Name</label><input type="text" id="q-name" placeholder="Jane Smith" autocomplete="name"/></div>
+      <div class="form-row"><label>Phone or Email</label><input type="text" id="q-contact" placeholder="(352) 555-0123 or you@email.com"/></div>
+      <div class="form-row"><label>Address or Area</label><input type="text" id="q-address" placeholder="123 Oak St, Inverness, FL" autocomplete="street-address"/></div>
+      <div class="form-row"><label>Preferred Date</label><input type="date" id="q-date"/></div>
+      <div class="form-row"><label>Anything else? <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label><textarea id="q-notes" rows="2" placeholder="Pets, preferred time, gate code, special requests..."></textarea></div>
+      <div id="q-error" style="color:#e53e3e;font-size:13px;margin-bottom:12px;display:none;">Please add your name and a phone number or email so we can reach you.</div>
+      <button class="btn-primary" style="width:100%;font-size:16px;padding:15px;" onclick="submitQuote()">Book Now →</button>
+      <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;">Prefer to talk? Call <a href="tel:+13524620627" style="color:var(--blue-mid);font-weight:600;">(352) 462-0627</a></div>
+    </div>
+    </div><!-- bookFormView -->
+
+    <div id="quoteSuccessView" style="display:none;text-align:center;padding:26px 0;">
+      <div style="font-size:44px;margin-bottom:12px;">✅</div>
+      <h3 style="font-family:'Playfair Display',serif;font-size:23px;font-weight:700;color:var(--blue-deep);margin-bottom:10px;">Booking received! 🎉</h3>
+      <p style="font-size:14.5px;color:var(--text-muted);line-height:1.7;">Thanks! Your request is in — we'll confirm your day and exact price by text or email shortly. Need us sooner? Call or text <a href="tel:+13524620627" style="color:var(--blue-mid);font-weight:600;">(352) 462-0627</a>.</p>
+      <button class="btn-primary" style="width:100%;margin-top:18px;" onclick="closeBookModal()">Close</button>
+    </div>
   </div>
-</section>
+</div>
 
 <!-- PHOTO GRID -->
 <section style="background:#fff;padding:90px 48px;">
@@ -882,7 +930,7 @@
 <!-- CLOSING CTA -->
 <section style="background:#fff;padding:64px 48px;text-align:center;border-top:1px solid #e4edf4;">
   <div class="animate-up" style="display:inline-flex;flex-direction:column;align-items:center;gap:14px;">
-    <a href="#pricing" class="btn-primary" style="padding:17px 48px;font-size:16px;border-radius:10px;text-decoration:none;">Book Now →</a>
+    <a href="javascript:void(0)" onclick="openBookModal()" class="btn-primary" style="padding:17px 48px;font-size:16px;border-radius:10px;text-decoration:none;">Book Now →</a>
     <span style="font-size:13px;color:var(--text-muted);">No contracts · Cancel anytime · Or call <a href="tel:+13524620627" style="color:var(--blue-mid);font-weight:600;">(352) 462-0627</a></span>
   </div>
 </section>
@@ -896,7 +944,7 @@
   <div class="footer-tagline">We clean. You relax.</div>
   <ul class="footer-links">
     <li><a href="#services">Services</a></li>
-    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="javascript:void(0)" onclick="openBookModal()">Pricing</a></li>
     <li><a href="pool-cleaning.html">Pool Cleaning</a></li>
     <li><a href="pressure-washing.html">Pressure Washing</a></li>
     <li><a href="/faq.html">FAQ</a></li>
@@ -912,60 +960,7 @@
   <div class="footer-copy">© <span id="copy-year"></span> Evergreen Cleaning Services — A Solutions Based Company</div>
 </footer>
 
-<!-- QUOTE MODAL -->
-<div class="modal-overlay" id="quoteModalOverlay" onclick="if(event.target===this)closeQuoteModal()">
-  <div class="modal">
-    <button class="modal-close" onclick="closeQuoteModal()" aria-label="Close">✕</button>
-    <div id="quoteFormView">
-      <h2 style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--blue-deep);margin-bottom:6px;">Book your clean</h2>
-      <p style="font-size:14px;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Send us your details and we'll lock in your day. Your builder price is your rate — final price may vary slightly based on home condition &amp; access.</p>
-      <div class="form-row">
-        <label>Full Name</label>
-        <input type="text" id="q-name" placeholder="Jane Smith" autocomplete="name"/>
-      </div>
-      <div class="form-row">
-        <label>Phone or Email</label>
-        <input type="text" id="q-contact" placeholder="(352) 555-0123 or you@email.com"/>
-      </div>
-      <div class="form-row">
-        <label>Type of Clean</label>
-        <select id="q-type">
-          <option value="Standard Clean">Standard Clean</option>
-          <option value="Deep Clean">Deep Clean</option>
-          <option value="Move In/Out Clean">Move In/Out Clean</option>
-          <option value="Not sure yet">Not sure yet</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label>Home Size</label>
-        <select id="q-size">
-          <option value="Studio / 1 bed">Studio / 1 bedroom</option>
-          <option value="2 bed · 1 bath">2 bedroom · 1 bathroom</option>
-          <option value="3 bed · 2 bath">3 bedroom · 2 bathroom</option>
-          <option value="4 bed · 2-3 bath">4 bedroom · 2–3 bathroom</option>
-          <option value="Larger / other">Larger / other</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label>Address or Area</label>
-        <input type="text" id="q-address" placeholder="123 Oak St, Inverness, FL" autocomplete="street-address"/>
-      </div>
-      <div class="form-row">
-        <label>Anything else? <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
-        <textarea id="q-notes" rows="2" placeholder="Pets, preferred days, special requests..."></textarea>
-      </div>
-      <div id="q-error" style="color:#e53e3e;font-size:13px;margin-bottom:12px;display:none;">Please add your name and a phone number or email so we can reach you.</div>
-      <button class="btn-primary" style="width:100%;font-size:16px;padding:15px;" onclick="submitQuote()">Send My Quote Request →</button>
-      <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;">Prefer to talk? Call <a href="tel:+13524620627" style="color:var(--blue-mid);font-weight:600;">(352) 462-0627</a></div>
-    </div>
-    <div id="quoteSuccessView" style="display:none;text-align:center;padding:14px 0;">
-      <div style="font-size:44px;margin-bottom:12px;">✅</div>
-      <h3 style="font-family:'Playfair Display',serif;font-size:23px;font-weight:700;color:var(--blue-deep);margin-bottom:10px;">Booking received! 🎉</h3>
-      <p style="font-size:14.5px;color:var(--text-muted);line-height:1.7;">Thanks! Your request is in — we'll confirm your day and exact price by text or email shortly. Need us sooner? Call or text <a href="tel:+13524620627" style="color:var(--blue-mid);font-weight:600;">(352) 462-0627</a>.</p>
-      <button class="btn-primary" style="width:100%;margin-top:18px;" onclick="closeQuoteModal()">Close</button>
-    </div>
-  </div>
-</div>
+<!-- (booking is handled by #bookModalOverlay above) -->
 
 <script>
 // ── CONTACT CONFIG ──
@@ -989,70 +984,77 @@ function closeMobileMenu() {
   document.getElementById('navHamburger').setAttribute('aria-expanded', 'false');
 }
 
-// ── QUOTE MODAL ──
-function openQuoteModal(presetType) {
-  document.getElementById('quoteFormView').style.display = '';
+// ── BOOKING MODAL ──
+let _freq = 'One-time visit';
+let _firstDeep = false;
+function openBookModal(presetSvc) {
+  if (presetSvc) setService(presetSvc);
+  document.getElementById('bookFormView').style.display = '';
   document.getElementById('quoteSuccessView').style.display = 'none';
-  if (presetType) {
-    const sel = document.getElementById('q-type');
-    [...sel.options].forEach(o => { if (o.value === presetType) sel.value = presetType; });
-  }
-  document.getElementById('quoteModalOverlay').classList.add('open');
+  renderBuilder();
+  document.getElementById('bookModalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-function closeQuoteModal() {
-  document.getElementById('quoteModalOverlay').classList.remove('open');
+function closeBookModal() {
+  document.getElementById('bookModalOverlay').classList.remove('open');
   document.body.style.overflow = '';
+}
+function setFreq(btn){
+  _freq = btn.dataset.freq;
+  document.querySelectorAll('#freqSeg button').forEach(b=>b.classList.toggle('active', b===btn));
+}
+function toggleFirstDeep(){
+  _firstDeep = !_firstDeep;
+  document.getElementById('firstDeepToggle').classList.toggle('on', _firstDeep);
+  renderBuilder();
 }
 function submitQuote() {
   const name    = document.getElementById('q-name').value.trim();
   const contact = document.getElementById('q-contact').value.trim();
-  const type    = document.getElementById('q-type').value;
-  const size    = document.getElementById('q-size').value;
   const address = document.getElementById('q-address').value.trim();
+  const date    = document.getElementById('q-date').value;
   const notes   = document.getElementById('q-notes').value.trim();
   const err     = document.getElementById('q-error');
 
   if (!name || !contact) { err.style.display = 'block'; return; }
   err.style.display = 'none';
 
-  // Split the single contact field into email vs phone.
-  const isEmail = contact.includes('@');
-  const price   = (_bookCtx && _bookCtx.price != null) ? _bookCtx.price : '';
+  const isEmail     = contact.includes('@');
+  const baseService = SVC_NAME[BLD.service];
+  const basePrice   = totalFor(BLD.service);
+  const deepPrice   = totalFor('deep');
+  const firstDeep   = _firstDeep && BLD.service !== 'deep';
+  const isRecurring = _freq !== 'One-time visit';
+  // First visit is what lands on the calendar; recurring follow-ups bill at basePrice.
+  const svcOut   = firstDeep ? 'Deep Clean' : baseService;
+  const priceOut = firstDeep ? deepPrice : basePrice;
 
-  // Send the booking to the Apps Script backend (lands in the Bookings sheet).
-  // no-cors = fire-and-forget; we confirm the customer by email/text.
+  const chosen = ADDONS.filter(a => BLD.addons[a.id]).map(a => a.name.replace(/^[^ ]+ /,''));
+  if (BLD.pets) chosen.push('Pets');
+  let note = homeSummary() + (chosen.length ? (' · ' + chosen.join(', ')) : '');
+  if (firstDeep && isRecurring)      note += '. First visit DEEP CLEAN $' + deepPrice + '. Following: ' + basePrice + ' (' + baseService + ')';
+  else if (firstDeep)                note += '. First visit: Deep Clean';
+  else if (isRecurring)              note += '. Recurring ' + baseService;
+  if (notes) note += '. ' + notes;
+
   const params = new URLSearchParams({
     name:           name,
     email:          isEmail ? contact : '',
     phone:          isEmail ? '' : contact,
     address:        address || '',
     zip:            '',
-    service:        type,
-    price:          String(price),
-    frequency:      'One-time visit',
-    serviceDateRaw: '',
-    serviceDate:    '',
-    notes:          (size ? ('Home size: ' + size + '. ') : '') + (notes || ''),
+    service:        svcOut,
+    price:          String(priceOut),
+    frequency:      _freq,
+    serviceDateRaw: date || '',
+    serviceDate:    date || '',
+    notes:          note,
     payMethod:      'Pay After Service'
   });
-  try {
-    fetch(SCRIPT_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' });
-  } catch (e) { /* fire-and-forget */ }
+  // Fire-and-forget to the Apps Script backend → Bookings sheet + Google Calendar event + emails.
+  try { fetch(SCRIPT_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' }); } catch (e) {}
 
-  // Email fallback so the request is never lost if the backend is unreachable.
-  const subject = encodeURIComponent('Booking Request — ' + name);
-  const body = encodeURIComponent(
-    'Name: ' + name + '\nContact: ' + contact + '\nService: ' + type +
-    '\nHome size: ' + size + '\nAddress: ' + (address || '(not provided)') +
-    (price ? ('\nBuilder price: $' + price) : '') + '\nNotes: ' + (notes || '(none)')
-  );
-  // Only open the email client as a backstop if there's no backend configured.
-  if (!SCRIPT_URL || SCRIPT_URL.indexOf('script.google.com') === -1) {
-    window.location.href = 'mailto:' + QUOTE_EMAIL + '?subject=' + subject + '&body=' + body;
-  }
-
-  document.getElementById('quoteFormView').style.display = 'none';
+  document.getElementById('bookFormView').style.display = 'none';
   document.getElementById('quoteSuccessView').style.display = '';
 }
 
@@ -1091,10 +1093,10 @@ const ADDONS = [
 
 const BLD = {
   service:'standard',
-  bed:2, bath:1, extra:0,
+  bed:0, bath:1, extra:0,
   sqft:'1,000–2,000 sq ft',
   addons:{}, pets:false,
-  touched:false
+  touched:true
 };
 const LIMITS = { bed:[0,8], bath:[0,6], extra:[0,6] };
 
@@ -1122,7 +1124,8 @@ function homeSummary(){
 
 function reveal(){
   BLD.touched = true;
-  document.getElementById('resultLocked').style.display = 'none';
+  const l = document.getElementById('resultLocked');
+  if (l) l.style.display = 'none';
   document.getElementById('resultRevealed').classList.add('show');
 }
 
@@ -1155,6 +1158,12 @@ function renderBuilder(){
     row.onclick = ()=> setService(s);
     alt.appendChild(row);
   });
+
+  // First-visit Deep Clean upcharge label + hide toggle when Deep is already selected
+  const fdp = document.getElementById('firstDeepPrice');
+  if (fdp) { const up = totalFor('deep') - totalFor(BLD.service); fdp.textContent = up > 0 ? ('+$' + up) : 'included'; }
+  const fdt = document.getElementById('firstDeepToggle');
+  if (fdt) fdt.style.display = (BLD.service === 'deep') ? 'none' : '';
 }
 
 function setService(s){
@@ -1188,8 +1197,7 @@ function togglePets(){
 
 // from the two service cards up top
 function selectBuilderService(which){
-  setService(which === 'move' ? 'move' : 'standard');
-  document.getElementById('pricing').scrollIntoView({behavior:'smooth'});
+  openBookModal(which === 'move' ? 'move' : 'standard');
 }
 
 // hand off the built home to the quote modal
@@ -1252,7 +1260,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Auto-open quote modal via /?quote=1 or #quote
   const params = new URLSearchParams(window.location.search);
-  if (params.get('quote') === '1' || location.hash === '#quote') openQuoteModal();
+  if (params.get('quote') === '1' || location.hash === '#quote') openBookModal();
 });
 </script>
 
