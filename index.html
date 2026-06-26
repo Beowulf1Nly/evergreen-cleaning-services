@@ -9,6 +9,22 @@
     gtag('js', new Date());
     gtag('config', 'G-M0NHPHJNVK');
   </script>
+
+  <!-- Google tag event helper — fires the booking conversion, then navigates. -->
+  <script>
+    // Sends the GA4/Ads conversion event, then opens `url` once the event has
+    // been sent (or after a 2s timeout, so navigation never hangs).
+    function gtagSendEvent(url) {
+      var callback = function () {
+        if (typeof url === 'string') { window.location = url; }
+      };
+      gtag('event', 'conversion_event_book_appointment', {
+        'event_callback': callback,
+        'event_timeout': 2000
+      });
+      return false;
+    }
+  </script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Evergreen Cleaning Services | House Cleaning in Central Florida</title>
@@ -1110,9 +1126,11 @@ function submitQuote() {
   // keepalive lets the request finish even after we navigate away to /booked.
   try { fetch(SCRIPT_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors', keepalive: true }); } catch (e) {}
 
-  // Route to the dedicated /booked page so GA4 records a page_view at /booked
-  // (this is the page load the Google Ads "Request quote" conversion watches).
-  window.location.href = '/booked';
+  // Fire the GA4 booking conversion (conversion_event_book_appointment), then route to /booked.
+  // gtagSendEvent waits for the event to send (up to 2s) before navigating; /booked also
+  // records a page_view for the page-load based conversion.
+  if (typeof gtagSendEvent === 'function') { gtagSendEvent('/booked'); }
+  else { window.location.href = '/booked'; }
 }
 
 // ── HOME BUILDER ──────────────────────────────────────────
