@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Google tag (gtag.js) — GA4: Evergreen Cleaning Services (G-M0NHPHJNVK) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0NHPHJNVK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-M0NHPHJNVK');
+  </script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Evergreen Cleaning Services | House Cleaning in Central Florida</title>
@@ -1099,10 +1107,12 @@ function submitQuote() {
     payMethod:      'Pay After Service'
   });
   // Fire-and-forget to the Apps Script backend → Bookings sheet + Google Calendar event + emails.
-  try { fetch(SCRIPT_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors' }); } catch (e) {}
+  // keepalive lets the request finish even after we navigate away to /booked.
+  try { fetch(SCRIPT_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors', keepalive: true }); } catch (e) {}
 
-  document.getElementById('bookFormView').style.display = 'none';
-  document.getElementById('quoteSuccessView').style.display = '';
+  // Route to the dedicated /booked page so GA4 records a page_view at /booked
+  // (this is the page load the Google Ads "Request quote" conversion watches).
+  window.location.href = '/booked';
 }
 
 // ── HOME BUILDER ──────────────────────────────────────────
