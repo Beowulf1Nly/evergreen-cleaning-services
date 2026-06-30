@@ -258,7 +258,7 @@
         <span class="severity critical">Critical</span>
       </div>
       <div class="issue-desc">
-        The privacy policy explicitly states: <em>"Our website does not use cookies or tracking technologies."</em> This is false. The site sets <code>eg_free_claimed</code> and <code>eg_vid</code> cookies, uses Google Ads/Google Analytics tag (<code>AW-18107107722</code>), and fires tracking requests to an Apps Script analytics endpoint. This is a potential FTC, GDPR, and CCPA compliance violation — and if a customer or regulator ever checks, it's provably inaccurate.
+        The privacy policy explicitly states: <em>"Our website does not use cookies or tracking technologies."</em> This is false. The site sets <code>eg_free_claimed</code> and <code>eg_vid</code> cookies, uses Google Ads/Google Analytics tag, and fires tracking requests to an Apps Script analytics endpoint. This is a potential FTC, GDPR, and CCPA compliance violation — and if a customer or regulator ever checks, it's provably inaccurate.
       </div>
       <span class="issue-file">privacy-policy.html</span>
       <div class="fix"><strong>Fix:</strong> Update the privacy policy to accurately describe: the visitor ID cookie (<code>eg_vid</code>), the free-mow claim cookie (<code>eg_free_claimed</code>), and Google Ads remarketing. Describe what data is collected, why, and how long it's kept.</div>
@@ -413,7 +413,7 @@
         <span class="severity medium">Medium</span>
       </div>
       <div class="issue-desc">
-        faq.html loads the Google Ads tag (<code>AW-18107107722</code>) but has no structured analytics beyond that. No FAQ page-level tracking events. You don't know which questions are being opened most often, whether people who visit the FAQ convert at a higher or lower rate, or how long they spend there.
+        faq.html loads the Google Ads tag but has no structured analytics beyond that. No FAQ page-level tracking events. You don't know which questions are being opened most often, whether people who visit the FAQ convert at a higher or lower rate, or how long they spend there.
       </div>
       <div class="fix"><strong>Fix:</strong> Add <code>details</code> element <code>toggle</code> event listeners on faq.html to fire a <code>trackEvt</code> call with the question text whenever a user opens an FAQ item. This will tell you which questions matter most.</div>
     </div>

@@ -8,7 +8,20 @@
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-M0NHPHJNVK');
-    gtag('config', 'AW-18107107722'); // Google Ads (conversion tracking)
+  </script>
+
+  <!-- Tap-to-call conversion tracking -->
+  <!-- Fires the GA4 event 'conversion_event_phone_call' whenever a visitor taps any
+       tel: link. A matching GA4 key event must be imported as a conversion in the
+       cleaning Google Ads account for this to record as a conversion. -->
+  <script>
+    document.addEventListener('click', function (e) {
+      var a = e.target && e.target.closest && e.target.closest('a[href^="tel:"]');
+      if (!a || typeof gtag !== 'function') return;
+      gtag('event', 'conversion_event_phone_call', {
+        'phone_number': a.getAttribute('href').replace('tel:', '')
+      });
+    }, true);
   </script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
