@@ -1171,7 +1171,7 @@
             <input type="text" id="ac-name" placeholder="Jane Smith"/>
           </div>
           <div class="form-field">
-            <label for="ac-email">Email *</label>
+            <label for="ac-email">Email <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
             <input type="email" id="ac-email" placeholder="jane@email.com"/>
           </div>
           <div class="form-field">
@@ -5373,10 +5373,6 @@ async function addClient() {
   }
   if (plan === 'Custom Plan' && !customDays) {
     errEl.textContent = 'Enter the number of days for the custom plan.';
-    errEl.style.display = 'block'; return;
-  }
-  if (paymethod === 'card' && !email) {
-    errEl.textContent = 'Email is required for card customers.';
     errEl.style.display = 'block'; return;
   }
   if (email && !email.includes('@')) {
