@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-03.2 */
+/* APP_VER:2026-07-03.3 */
 (function(){
-  var V='2026-07-03.2'; window.__APP_VER=V;
+  var V='2026-07-03.3'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -1702,28 +1702,100 @@ function _qjFinish(toastMsg,note){
   qjClose(); showToast(toastMsg); _persist(); _fmRender();
 }
 
-/* cleaning quote builder: reuses the calculator state (_qc) with a checklist for add-ons */
+/* cleaning quote builder: calculator state + plan frequency + deep-clean cadence */
+let _qjc={freq:'biweekly',customN:3,firstDeep:false,everyDeep:false,everyN:4};
 function _qjCalcPrice(){ return qcPrice(); }
-function _qjFreqLabel(){ return ({standard:'Standard Clean',deep:'Deep Clean',move:'Move In/Out Clean'})[_qc.service]; }
-function _qjDesc(){ return _qjFreqLabel()+' — '+(_qc.bed===0?'Studio':_qc.bed+' bed')+'/'+_qc.bath+' bath, '+_qc.sqft+(QC_ADDONS.some(a=>_qc.addons[a.id])?(' + '+QC_ADDONS.filter(a=>_qc.addons[a.id]).map(a=>a.name).join(', ')):''); }
+function _qjDeepPrice(){ const keep=_qc.service; _qc.service='deep'; const p=qcPrice(); _qc.service=keep; return p; }
+function _qjFreqLabel(){
+  return _qjc.freq==='weekly'?'Weekly Plan'
+       :_qjc.freq==='biweekly'?'Bi-Weekly Plan'
+       :_qjc.freq==='custom'?('Every '+_qjc.customN+' Weeks')
+       :'One-time';
+}
+function _qjSvcLabel(){ return ({standard:'Standard Clean',deep:'Deep Clean',move:'Move In/Out Clean'})[_qc.service]; }
+function _qjDesc(){
+  let d=_qjSvcLabel()+' — '+(_qc.bed===0?'Studio':_qc.bed+' bed')+'/'+_qc.bath+' bath, '+_qc.sqft
+    +(QC_ADDONS.some(a=>_qc.addons[a.id])?(' + '+QC_ADDONS.filter(a=>_qc.addons[a.id]).map(a=>a.name).join(', ')):'')
+    +' · '+_qjFreqLabel();
+  if(_qc.service!=='deep'&&_qjc.freq!=='onetime'){
+    if(_qjc.firstDeep) d+=' · 1st visit Deep';
+    if(_qjc.everyDeep) d+=' · every '+_qjc.everyN+'th visit Deep';
+  }
+  return d;
+}
 function qjSetSvc(v){ _qc.service=v; qjRefresh(); }
 function qjStep(k,d){ const lim={bed:[0,8],bath:[0,6],extra:[0,6]}[k]; _qc[k]=Math.max(lim[0],Math.min(lim[1],_qc[k]+d)); qjRefresh(); }
 function qjAddon(id){ _qc.addons[id]=!_qc.addons[id]; qjRefresh(); }
 function qjSqft(v){ _qc.sqft=v; qjRefresh(); }
+function qjFreq(v){ _qjc.freq=v; qjRefresh(); }
+function qjTgl(k){ _qjc[k]=!_qjc[k]; qjRefresh(); }
+function qjcN(k,d,min,max){ _qjc[k]=Math.max(min,Math.min(max,_qjc[k]+d)); qjRefresh(); }
 function qjRenderBuilder(){
   const b=document.getElementById('qjBuilder'); if(!b) return;
-  const seg=(v,l)=>'<button onclick="qjSetSvc(\''+v+'\')" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid '+(_qc.service===v?'#0284c7':'#e2e8f0')+';background:'+(_qc.service===v?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;">'+l+'</button>';
+  const seg=(v,l,cur,fn)=>'<button onclick="'+fn+'(\''+v+'\')" style="flex:1;padding:10px 4px;border-radius:10px;border:1.5px solid '+(cur===v?'#0284c7':'#e2e8f0')+';background:'+(cur===v?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;">'+l+'</button>';
   const stepper=(k,l,val)=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;">'
     +'<span style="font-size:14px;font-weight:700;">'+l+'</span><span style="display:flex;align-items:center;gap:12px;">'
     +'<button onclick="qjStep(\''+k+'\',-1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:17px;cursor:pointer;">−</button>'
     +'<b style="min-width:40px;text-align:center;">'+val+'</b>'
     +'<button onclick="qjStep(\''+k+'\',1)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:17px;cursor:pointer;">＋</button></span></div>';
-  b.innerHTML='<div style="display:flex;gap:7px;margin-bottom:10px;">'+seg('standard','Standard')+seg('deep','Deep')+seg('move','Move In/Out')+'</div>'
+  const miniN=(k,val,min,max)=>'<span style="display:inline-flex;align-items:center;gap:8px;margin-left:8px;">'
+    +'<button onclick="event.stopPropagation();qjcN(\''+k+'\',-1,'+min+','+max+')" style="width:26px;height:26px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:14px;cursor:pointer;">−</button>'
+    +'<b>'+val+'</b>'
+    +'<button onclick="event.stopPropagation();qjcN(\''+k+'\',1,'+min+','+max+')" style="width:26px;height:26px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:14px;cursor:pointer;">＋</button></span>';
+  const tglRow=(on,label,onclick,extra)=>'<div onclick="'+onclick+'" style="display:flex;align-items:center;gap:11px;padding:11px 13px;border:1.5px solid '+(on?'#0284c7':'#e2e8f0')+';border-radius:12px;background:'+(on?'#f0f9ff':'#fff')+';margin-bottom:7px;cursor:pointer;">'
+    +'<span style="width:23px;height:23px;border-radius:7px;border:2px solid '+(on?'#0284c7':'#cbd5e1')+';background:'+(on?'#0284c7':'#fff')+';color:#fff;font-size:15px;line-height:20px;text-align:center;flex-shrink:0;font-weight:800;">'+(on?'✓':'')+'</span>'
+    +'<span style="flex:1;font-size:14px;font-weight:700;">'+label+'</span>'+(extra||'')+'</div>';
+  const recurring=_qjc.freq!=='onetime';
+  let h='<div style="display:flex;gap:7px;margin-bottom:10px;">'+seg('standard','Standard',_qc.service,'qjSetSvc')+seg('deep','Deep',_qc.service,'qjSetSvc')+seg('move','Move In/Out',_qc.service,'qjSetSvc')+'</div>'
     +stepper('bed','Bedrooms',_qc.bed===0?'Studio':_qc.bed)+stepper('bath','Bathrooms',_qc.bath)+stepper('extra','Extra rooms',_qc.extra)
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 6px;">Square footage</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+Object.keys(QC_SQFT).map(k2=>'<button onclick="qjSqft(\''+k2+'\')" style="padding:8px 11px;border-radius:999px;border:1.5px solid '+(_qc.sqft===k2?'#0284c7':'#e2e8f0')+';background:'+(_qc.sqft===k2?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">'+k2.replace(' sq ft','')+'</button>').join('')+'</div>'
-    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Add-ons</div>'
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">How often?</div>'
+    +'<div style="display:flex;gap:6px;">'+seg('onetime','One-time',_qjc.freq,'qjFreq')+seg('weekly','Weekly',_qjc.freq,'qjFreq')+seg('biweekly','Bi-Weekly',_qjc.freq,'qjFreq')+seg('custom','Custom',_qjc.freq,'qjFreq')+'</div>'
+    +(_qjc.freq==='custom'?'<div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 0 2px;font-size:14px;font-weight:700;">Every '+miniN('customN',_qjc.customN,2,12)+' weeks</div>':'');
+  if(recurring&&_qc.service!=='deep'){
+    h+='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Deep-clean options</div>'
+      +tglRow(_qjc.firstDeep,'1st clean is a Deep Clean — $'+_qjDeepPrice(),"qjTgl('firstDeep')")
+      +tglRow(_qjc.everyDeep,'Every <b style=\"margin:0 2px;\">'+_qjc.everyN+'th</b> clean is a Deep Clean',"qjTgl('everyDeep')",_qjc.everyDeep?miniN('everyN',_qjc.everyN,2,12):'');
+    if(_qjc.firstDeep||_qjc.everyDeep){
+      h+='<div style="font-size:12px;color:#0369a1;font-weight:700;padding:2px 2px 4px;">'
+        +(_qjc.firstDeep?('1st visit $'+_qjDeepPrice()+' · then $'+qjPriceVal()+'/visit'):('$'+qjPriceVal()+'/visit · Deep visits $'+_qjDeepPrice()))
+        +'</div>';
+    }
+  }
+  h+='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Add-ons</div>'
     +_qcAddonChecklist('qjAddon');
+  b.innerHTML=h;
+}
+/* cleaning-specific outcomes: first-deep / every-Nth-deep pricing woven into booking & estimates */
+async function qjOutcome(kind){
+  const bk=_qjBk; if(!bk) return;
+  const recurring=qjPriceVal();
+  const deepP=_qjDeepPrice();
+  const useFirstDeep=_qjc.firstDeep&&_qc.service!=='deep'&&_qjc.freq!=='onetime';
+  const useEveryDeep=_qjc.everyDeep&&_qc.service!=='deep'&&_qjc.freq!=='onetime';
+  const firstPrice=useFirstDeep?deepP:recurring;
+  const desc=_qjDesc();
+  if(kind!=='no'&&(!recurring||recurring<=0)){ showToast('Set a price first'); return; }
+  const base=_stopKey(bk);
+  const cadenceNote=(useFirstDeep?(' · 1st visit DEEP $'+deepP+' · following $'+recurring+'/visit'):'')
+                   +(useEveryDeep?(' · every '+_qjc.everyN+'th visit DEEP $'+deepP):'');
+  if(kind==='book'){
+    const date=document.getElementById('qjDate').value;
+    if(!date){ showToast('Pick a start date'); return; }
+    if(!confirm('Book '+(bk.name||'customer')+':\n'+desc+'\n1st visit $'+firstPrice+(_qjc.freq!=='onetime'?(' · then $'+recurring+'/visit'):'')+'\nstarting '+date+'?')) return;
+    _fmEnqueue({ kind:'quotebook', idemKey:'qb:'+base, method:'GET', params:{ action:'manual_schedule', name:bk.name||'', email:bk.email||'', phone:String(bk.phone||''), address:bk.address||'', zip:String(bk.zip||''), frequency:_qjFreqLabel(), price:String(firstPrice), serviceDate:date, notes:'Booked at quote visit — '+desc+cadenceNote+' — by '+(adminName||'crew'), payMethod:'card', adminToken } });
+    _qjFinish('✅ Booked! 1st visit $'+firstPrice+' · starts '+date, 'Quote WON — '+_qjFreqLabel()+' $'+recurring+'/visit'+cadenceNote+' ('+desc+')');
+  } else if(kind==='estimate'){
+    const items=[];
+    if(useFirstDeep) items.push({desc:'First visit — Deep Clean ('+(_qc.bed===0?'Studio':_qc.bed+' bed')+'/'+_qc.bath+' bath)',price:deepP,included:'true'});
+    items.push({desc:_qjSvcLabel()+' — '+_qjFreqLabel()+(useEveryDeep?(' (every '+_qjc.everyN+'th visit Deep $'+deepP+')'):''),price:recurring,included:'true'});
+    _fmEnqueue({ kind:'quoteest', idemKey:'qe:'+base, method:'GET', params:{ action:'submit_estimate_for_approval', submittedBy:adminName||'Crew', name:bk.name||'', email:bk.email||'', phone:String(bk.phone||''), address:(bk.address||'')+(bk.zip?', '+bk.zip:''), summary:desc+cadenceNote, items:JSON.stringify(items), notes:'[]', estimateDate:todayISOStr(), adminToken } });
+    _qjFinish('✉️ Estimate queued — the owner approves & it emails '+(bk.email||'the customer'), 'Estimate submitted for approval — $'+recurring+'/visit'+cadenceNote+' ('+desc+')');
+  } else {
+    if(!confirm('Log this quote as a NO for '+(bk.name||'customer')+'?')) return;
+    _qjFinish('👍 Logged — maybe next time', 'Quote declined ('+desc+' · quoted $'+recurring+cadenceNote+')');
+  }
 }
 /* checklist-style add-on rows — shared by the calculator and the quote closer */
 function _qcAddonChecklist(fn){
