@@ -957,7 +957,21 @@
       <div class="form-row"><label>Phone Number</label><input type="tel" id="q-phone" placeholder="(352) 555-0123" autocomplete="tel"/></div>
       <div class="form-row"><label>Service Address</label><input type="text" id="q-address" placeholder="123 Oak St, Inverness, FL" autocomplete="street-address"/></div>
       <div class="form-row"><label>Zip Code</label><input type="text" id="q-zip" placeholder="34450" inputmode="numeric" autocomplete="postal-code"/></div>
-      <div class="form-row"><label>Preferred Date</label><input type="date" id="q-date"/></div>
+      <div class="form-row"><label>Preferred Date</label>
+        <div class="cal-widget">
+          <div class="cal-header">
+            <button class="cal-nav" id="cqCalPrev" type="button" onclick="cqCalPrev()" aria-label="Previous month">‹</button>
+            <span class="cal-month-label" id="cqCalMonthLabel"></span>
+            <button class="cal-nav" id="cqCalNext" type="button" onclick="cqCalNext()" aria-label="Next month">›</button>
+          </div>
+          <div class="cal-day-names">
+            <div class="cal-day-name wknd">Su</div><div class="cal-day-name">Mo</div><div class="cal-day-name">Tu</div><div class="cal-day-name">We</div><div class="cal-day-name">Th</div><div class="cal-day-name">Fr</div><div class="cal-day-name wknd">Sa</div>
+          </div>
+          <div class="cal-grid" id="cqCalGrid" role="grid" aria-label="Service date picker"></div>
+          <div class="cal-picked none" id="cqCalPicked">Select a date above</div>
+        </div>
+        <input type="hidden" id="q-date"/>
+      </div>
       <div class="form-row"><label>Anything else? <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label><textarea id="q-notes" rows="2" placeholder="Preferred time, gate code, special requests..."></textarea></div>
       <div id="q-error" style="color:#e53e3e;font-size:13px;margin-bottom:12px;display:none;">Please add your name, email, and phone number so we can reach you.</div>
       <button id="ctaBookNow" class="btn-primary" style="width:100%;font-size:16px;padding:15px;" onclick="submitQuote()">Book Now →</button>
@@ -1129,7 +1143,8 @@ function submitQuote() {
   const zip     = (document.getElementById('q-zip') ? document.getElementById('q-zip').value.trim() : '');
   const err     = document.getElementById('q-error');
 
-  if (!name || !email || !phone) { err.style.display = 'block'; return; }
+  if (!name || !email || !phone) { err.textContent = 'Please add your name, email, and phone number so we can reach you.'; err.style.display = 'block'; return; }
+  if (!date) { err.textContent = 'Please pick a preferred date.'; err.style.display = 'block'; return; }
   err.style.display = 'none';
 
   const baseService = SVC_NAME[BLD.service];
@@ -1421,6 +1436,67 @@ if (window.QUOTE_ONLY_MODE) document.addEventListener('DOMContentLoaded', functi
     if (day === 0 || day === 6) { this.value = ''; alert('We schedule Monday to Friday only. Please choose a weekday.'); }
   });
 });
+</script>
+<style>
+  .cal-widget { border:1.5px solid rgba(13,42,66,0.15); border-radius:10px; overflow:hidden; background:#fff; margin-bottom:4px; }
+  .cal-header { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--blue-pale); }
+  .cal-month-label { font-weight:700; font-size:14px; color:var(--blue-deep); letter-spacing:.01em; }
+  .cal-nav { background:none; border:none; font-size:22px; line-height:1; cursor:pointer; color:var(--blue-mid); padding:2px 8px; border-radius:6px; transition:background .15s; }
+  .cal-nav:hover:not(:disabled) { background:rgba(21,101,168,0.12); }
+  .cal-nav:disabled { color:#ccc; cursor:not-allowed; }
+  .cal-day-names { display:grid; grid-template-columns:repeat(7,1fr); padding:8px 8px 0; border-bottom:1px solid rgba(13,42,66,0.07); }
+  .cal-day-name { text-align:center; font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:.06em; padding-bottom:8px; }
+  .cal-day-name.wknd { color:#d1d5db; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; padding:8px; }
+  .cal-cell { aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:13px; font-weight:500; transition:background .15s, color .15s; }
+  .cal-cell.available { color:var(--blue-deep); cursor:pointer; }
+  .cal-cell.available:hover { background:var(--blue-pale); }
+  .cal-cell.selected { background:var(--blue-mid) !important; color:#fff !important; font-weight:700; cursor:pointer; }
+  .cal-cell.disabled, .cal-cell.wknd-cell, .cal-cell.blocked { color:#d1d5db; cursor:not-allowed; }
+  .cal-cell.empty { cursor:default; }
+  .cal-picked { padding:10px 14px; border-top:1px solid rgba(13,42,66,0.08); font-size:13px; font-weight:600; color:var(--blue-mid); text-align:center; min-height:40px; display:flex; align-items:center; justify-content:center; }
+  .cal-picked.none { color:var(--text-muted); font-weight:400; }
+</style>
+<script>
+/* Cleaning quote form: weekend-blocking calendar (matches mowing site) */
+(function(){
+  var CQ_MIN=1, CQ_MAX=30;
+  var cqYear, cqMonth, cqSel='';
+  var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function pad(x){ return (x<10?'0':'')+x; }
+  window.cqCalInit=function(){ cqSel=''; var d=new Date(); d.setDate(d.getDate()+CQ_MIN); cqYear=d.getFullYear(); cqMonth=d.getMonth(); var dz=document.getElementById('q-date'); if(dz) dz.value=''; cqCalRender(); };
+  window.cqCalRender=function(){
+    var grid=document.getElementById('cqCalGrid'); if(!grid) return;
+    var today=new Date(); today.setHours(0,0,0,0);
+    var earliest=new Date(today); earliest.setDate(today.getDate()+CQ_MIN);
+    var maxDate=new Date(today); maxDate.setDate(today.getDate()+CQ_MAX);
+    var lbl=document.getElementById('cqCalMonthLabel'); if(lbl) lbl.textContent=MONTHS[cqMonth]+' '+cqYear;
+    var firstOfMonth=new Date(cqYear,cqMonth,1), lastOfMonth=new Date(cqYear,cqMonth+1,0);
+    var prev=document.getElementById('cqCalPrev'), next=document.getElementById('cqCalNext');
+    if(prev) prev.disabled=firstOfMonth<=earliest;
+    if(next) next.disabled=lastOfMonth>=maxDate;
+    grid.innerHTML='';
+    var startDay=firstOfMonth.getDay();
+    for(var i=0;i<startDay;i++){ var e=document.createElement('div'); e.className='cal-cell empty'; grid.appendChild(e); }
+    for(var day=1;day<=lastOfMonth.getDate();day++){
+      var date=new Date(cqYear,cqMonth,day);
+      var dateStr=cqYear+'-'+pad(cqMonth+1)+'-'+pad(day);
+      var dow=date.getDay(), isWknd=(dow===0||dow===6), isPast=date<earliest, isFar=date>maxDate, isSel=(dateStr===cqSel);
+      var el=document.createElement('div'); el.textContent=day;
+      if(isSel){ el.className='cal-cell selected'; (function(ds){ el.onclick=function(){ cqCalPick(ds); }; })(dateStr); }
+      else if(isPast||isFar){ el.className='cal-cell disabled'; }
+      else if(isWknd){ el.className='cal-cell wknd-cell disabled'; }
+      else { el.className='cal-cell available'; (function(ds){ el.onclick=function(){ cqCalPick(ds); }; })(dateStr); }
+      grid.appendChild(el);
+    }
+    var picked=document.getElementById('cqCalPicked');
+    if(picked){ if(cqSel){ picked.textContent=new Date(cqSel+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}); picked.classList.remove('none'); } else { picked.textContent='Select a date above'; picked.classList.add('none'); } }
+  };
+  window.cqCalPick=function(ds){ cqSel=ds; var dz=document.getElementById('q-date'); if(dz) dz.value=ds; var er=document.getElementById('q-error'); if(er) er.style.display='none'; cqCalRender(); };
+  window.cqCalPrev=function(){ cqMonth--; if(cqMonth<0){ cqMonth=11; cqYear--; } cqCalRender(); };
+  window.cqCalNext=function(){ cqMonth++; if(cqMonth>11){ cqMonth=0; cqYear++; } cqCalRender(); };
+  if(typeof window.openBookModal==='function'){ var _o=window.openBookModal; window.openBookModal=function(){ var r=_o.apply(this,arguments); try{ setTimeout(cqCalInit,30); }catch(e){} return r; }; }
+})();
 </script>
 </body>
 </html>
