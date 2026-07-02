@@ -1,0 +1,2593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no"/>
+<!-- Tell the browser to revalidate the HTML instead of serving a stale cached copy -->
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<!-- Auto-updater: on launch + every time the app is foregrounded, fetch the newest
+     index.html straight from the network (bypassing the service worker via a cache-bust
+     param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
+     worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
+<script>
+/* APP_VER:C2026-07-02.1 */
+(function(){
+  var V='C2026-07-02.1'; window.__APP_VER=V;
+  // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
+  // the service worker can't answer with the old shell). If a newer APP_VER is live AND
+  // we have not already reloaded for that exact version, reload ONCE. The localStorage
+  // guard means that even if the SW keeps serving a stale shell, we reload at most once
+  // per version and then sit still — never a flicker loop. No controllerchange reload.
+  function check(){
+    if(document.hidden) return;
+    fetch('index.html?_='+Date.now(),{cache:'no-store'})
+      .then(function(r){ return r.ok ? r.text() : null; })
+      .then(function(html){
+        if(!html) return;
+        var m=html.match(/APP_VER:([0-9.\-]+)/);
+        if(!m||!m[1]) return;
+        var tgt=m[1];
+        if(tgt===V) return;                                   // already current
+        var done=''; try{ done=localStorage.getItem('evg_field_updated_to')||''; }catch(e){}
+        if(done===tgt) return;                                // already reloaded once for this version — stop
+        try{ localStorage.setItem('evg_field_updated_to', tgt); }catch(e){}
+        location.replace('index.html?_='+Date.now());         // one clean reload to the new build
+      }).catch(function(){});
+  }
+  setTimeout(check, 8000);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) setTimeout(check, 3000); });
+})();
+</script>
+<title>Evergreen Cleaning — Field Mode</title>
+<meta name="description" content="On-the-job crew app for Evergreen Cleaning Services."/>
+<meta name="robots" content="noindex,nofollow"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<meta name="theme-color" content="#0c1a28"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Cleaning Field"/>
+<link rel="apple-touch-icon" href="../apple-touch-icon.png"/>
+<link rel="icon" href="../favicon.png"/>
+<style>
+  :root{ --green-deep:#0c1a28; --green:#0369a1; --border:#e2e8f0; --text-muted:#64748b; --red:#dc2626; --text:#12293e; --green-mid:#0369a1; --green-pale:#f0fdf4; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; height:100%; }
+  /* position:fixed body = iOS can never scroll the page behind the app. That
+     residual keyboard-scroll offset is what made taps land ABOVE the target. */
+  body{ position:fixed; inset:0; width:100%; overflow:hidden; touch-action:manipulation;
+    font-family:var(--font); background:#0c1a28; color:#12293e; -webkit-font-smoothing:antialiased; overscroll-behavior:none; -webkit-tap-highlight-color:transparent; }
+  #netBanner{ position:fixed; left:0; right:0; top:0; z-index:4000; display:none; text-align:center; font-size:13px; font-weight:700; padding:max(6px,env(safe-area-inset-top)) 10px 6px; background:#b45309; color:#fff; pointer-events:none; }
+  #netBanner.show{ display:block; }
+  #loginScreen{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:linear-gradient(170deg,#0c1a28,#12293e 55%,#0a2133); padding:24px; }
+  .login-card{ background:#fff; border-radius:22px; padding:30px 24px; width:100%; max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,.35); }
+  .login-card h1{ font-size:28px; margin:0 0 6px; color:var(--green-deep); }
+  .login-card p{ font-size:14px; color:var(--text-muted); margin:0 0 16px; line-height:1.5; }
+  .login-input{ width:100%; padding:14px; border:2px solid var(--border); border-radius:12px; font-size:16px; font-family:inherit; margin-bottom:12px; outline:none; }
+  .login-input:focus{ border-color:var(--green); }
+  .login-btn{ width:100%; padding:15px; border:none; border-radius:12px; background:linear-gradient(135deg,#0284c7,#0369a1); color:#fff; font-size:16px; font-weight:800; font-family:inherit; cursor:pointer; }
+  .login-btn:disabled{ opacity:.6; }
+  #fieldMode{ display:none; position:fixed; inset:0; z-index:3000; background:linear-gradient(170deg,#0c1a28 0%,#12293e 45%,#0a2133 100%); color:#fff; flex-direction:column; overscroll-behavior:contain; }
+  #fieldMode.show{ display:flex; }
+  .fm-screen{ display:none; flex-direction:column; height:100%; }
+  .fm-screen.active{ display:flex; }
+  .fm-top{ display:flex; align-items:center; justify-content:space-between; padding:max(14px,env(safe-area-inset-top)) 16px 12px; gap:10px; flex-shrink:0; }
+  .fm-top-exit{ background:rgba(255,255,255,.12); color:#e0f2fe; border:none; border-radius:10px; padding:8px 12px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+  .fm-top-timer{ font-variant-numeric:tabular-nums; font-size:14px; font-weight:700; color:#7dd3fc; background:rgba(134,239,172,.14); padding:6px 11px; border-radius:999px; display:inline-flex; align-items:center; gap:6px; }
+  .fm-dot{ width:8px; height:8px; border-radius:50%; background:#0ea5e9; animation:fmPulse 1.6s infinite; }
+  @keyframes fmPulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  @keyframes slideInUp{ from{ transform:translateY(100%); } to{ transform:translateY(0); } }
+  .fm-body{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 16px 20px; }
+  .fm-progress-wrap{ padding:0 16px 10px; flex-shrink:0; }
+  .fm-progress-meta{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; font-size:13px; }
+  .fm-progress-meta b{ font-size:15px; color:#fff; font-weight:800; }
+  .fm-progress-meta span{ color:#9cc8e3; }
+  .fm-progress-bar{ height:8px; border-radius:999px; background:rgba(255,255,255,.14); overflow:hidden; }
+  .fm-progress-fill{ height:100%; border-radius:999px; background:linear-gradient(90deg,#4ade80,#0ea5e9); transition:width .4s ease; }
+  .fm-start-center,.fm-done-center{ flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:24px; }
+  .fm-start-greet{ font-size:30px; font-weight:800; margin-bottom:6px; }
+  .fm-start-date{ color:#9cc8e3; font-size:15px; margin-bottom:30px; }
+  .fm-start-stat{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius:18px; padding:26px 30px; margin-bottom:14px; min-width:240px; }
+  .fm-start-stat-num{ font-size:54px; font-weight:800; line-height:1; }
+  .fm-start-stat-lbl{ font-size:14px; color:#9cc8e3; margin-top:6px; text-transform:uppercase; letter-spacing:.08em; }
+  .fm-start-sub{ color:#9cc8e3; font-size:14px; margin-bottom:30px; }
+  .fm-section-title{ font-size:22px; font-weight:800; padding:4px 16px 2px; }
+  .fm-section-sub{ color:#9cc8e3; font-size:14px; padding:0 16px 14px; }
+  .fm-card{ background:#fff; color:#12293e; border-radius:22px; padding:22px 20px; box-shadow:0 12px 40px rgba(0,0,0,.3); margin-top:4px; }
+  .fm-card-stopno{ display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:10px; background:#12293e; color:#fff; font-weight:800; font-size:16px; margin-bottom:12px; }
+  .fm-card-name{ font-size:26px; font-weight:800; color:#12293e; line-height:1.15; margin-bottom:4px; }
+  .fm-card-addr{ font-size:16px; color:#3f6b4d; font-weight:600; margin-bottom:14px; }
+  .fm-pills{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:16px; }
+  .fm-pill{ font-size:13px; font-weight:700; padding:6px 11px; border-radius:999px; background:#f0fdf4; color:#0369a1; border:1px solid #bbf7d0; white-space:nowrap; }
+  .fm-pill.amt{ background:#12293e; color:#fff; border-color:#12293e; font-size:15px; }
+  .fm-pill.warn{ background:#fffbeb; color:#b45309; border-color:#fde68a; }
+  .fm-pill.muted{ background:#f1f5f9; color:#475569; border-color:#e2e8f0; }
+  .fm-note-box{ background:#fffbeb; border:1px solid #fde68a; border-radius:12px; padding:11px 13px; font-size:14px; color:#92400e; margin-bottom:16px; line-height:1.5; }
+  .fm-note-box b{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; color:#b45309; }
+  .fm-btn{ display:flex; align-items:center; justify-content:center; gap:9px; width:100%; border:none; border-radius:15px; font-family:inherit; font-weight:800; cursor:pointer; transition:transform .08s,opacity .15s; text-decoration:none; }
+  .fm-btn:active{ transform:scale(.98); }
+  .fm-btn-lg{ padding:18px; font-size:17px; }
+  .fm-btn-xl{ padding:20px; font-size:19px; }
+  .fm-btn-sm{ padding:13px; font-size:14px; }
+  .fm-btn-nav{ background:#1565c0; color:#fff; box-shadow:0 6px 20px rgba(21,101,192,.4); }
+  .fm-btn-done{ background:linear-gradient(135deg,#0284c7,#0369a1); color:#fff; box-shadow:0 6px 22px rgba(22,163,74,.45); }
+  .fm-btn-start{ background:linear-gradient(135deg,#0ea5e9,#0369a1); color:#fff; box-shadow:0 8px 28px rgba(14,165,233,.5); }
+  .fm-btn-ghost{ background:#fff; color:#12293e; border:2px solid #12293e; }
+  .fm-btn:disabled{ opacity:.5; cursor:not-allowed; box-shadow:none; }
+  .fm-card-actions{ display:flex; flex-direction:column; gap:10px; }
+  .fm-secondary-row{ display:flex; gap:10px; }
+  .fm-secondary-row .fm-btn{ flex:1; }
+  .fm-foot{ padding:12px 16px max(16px,env(safe-area-inset-bottom)); flex-shrink:0; background:linear-gradient(0deg,rgba(12,42,24,.95),rgba(12,42,24,0)); }
+  .fm-skip{ display:block; text-align:center; color:#9cc8e3; font-size:14px; margin-top:12px; cursor:pointer; background:none; border:none; width:100%; font-family:inherit; font-weight:600; }
+  .fm-jobnav{ display:flex; justify-content:space-between; align-items:center; margin:14px 2px 0; }
+  .fm-jobnav button{ background:rgba(255,255,255,.12); color:#e0f2fe; border:none; border-radius:10px; padding:8px 14px; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+  .fm-jobnav button:disabled{ opacity:.3; }
+  #fmCompleteSheet,#fmSkipSheet{ display:none; position:fixed; inset:0; z-index:3100; background:rgba(0,0,0,.55); align-items:flex-end; justify-content:center; }
+  .fm-sheet{ background:#fff; color:#12293e; border-radius:24px 24px 0 0; width:100%; max-width:520px; padding:24px 20px max(28px,env(safe-area-inset-bottom)); box-shadow:0 -10px 50px rgba(0,0,0,.3); max-height:92vh; overflow-y:auto; }
+  .fm-sheet-title{ font-size:22px; font-weight:800; margin-bottom:2px; }
+  .fm-sheet-sub{ color:#64748b; font-size:14px; margin-bottom:18px; }
+  .fm-block{ border:1.5px solid #e2e8f0; border-radius:14px; padding:14px; margin-bottom:14px; }
+  .fm-block-label{ font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:#94a3b8; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+  .fm-block-label .req{ color:#b45309; }
+  .fm-block-label .ok{ color:#0369a1; }
+  .fm-pay-amt{ font-size:30px; font-weight:800; color:#12293e; }
+  .fm-pay-method{ font-size:14px; color:#64748b; margin:2px 0 12px; }
+  .fm-toggle-btn{ width:100%; padding:15px; border-radius:13px; border:2px solid #e2e8f0; background:#fff; font-family:inherit; font-size:15px; font-weight:700; cursor:pointer; color:#12293e; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px; }
+  .fm-toggle-btn:first-child{ margin-top:0; }
+  .fm-toggle-btn.cash-on{ background:#fef3c7; border-color:#b45309; color:#92400e; }
+  .fm-toggle-btn.sent{ background:#e0f2fe; border-color:#0284c7; color:#0369a1; }
+  .fm-toggle-btn.invoice{ background:#1565c0; color:#fff; border-color:#1565c0; }
+  .fm-mini-link{ background:none; border:none; color:#64748b; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; margin-top:14px; text-decoration:underline; width:100%; text-align:center; }
+  .fm-err{ color:#dc2626; font-size:14px; margin-bottom:10px; display:none; font-weight:600; }
+  .fm-addon-row{ display:flex; flex-direction:column; gap:8px; }
+  .fm-addon-chip{ display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; padding:13px 14px; border:2px solid #e2e8f0; border-radius:12px; background:#fff; font-family:inherit; font-size:15px; font-weight:600; color:#12293e; cursor:pointer; text-align:left; }
+  .fm-addon-chip.on{ background:#e0f2fe; border-color:#0284c7; color:#0369a1; }
+  .fm-addon-price{ font-weight:800; white-space:nowrap; }
+  .fm-photo-grid{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .fm-photo-grid:empty{ display:none; }
+  .fm-photo-cell{ position:relative; width:76px; height:76px; border-radius:10px; overflow:hidden; border:1.5px solid #e2e8f0; }
+  .fm-photo-cell img{ width:100%; height:100%; object-fit:cover; }
+  .fm-photo-x{ position:absolute; top:2px; right:2px; background:rgba(0,0,0,.6); color:#fff; border:none; border-radius:50%; width:22px; height:22px; font-size:13px; cursor:pointer; line-height:20px; padding:0; }
+  .fm-textarea{ width:100%; min-height:64px; padding:12px; border:2px solid #e2e8f0; border-radius:12px; font-family:inherit; font-size:15px; resize:vertical; box-sizing:border-box; color:#12293e; }
+  /* checklists */
+  .fm-checklist{ display:flex; flex-direction:column; gap:8px; }
+  .fm-helper-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:6px; }
+  .fm-check{ display:flex; align-items:center; gap:12px; width:100%; padding:14px 15px; border:2px solid #e2e8f0; border-radius:13px; background:#fff; font-family:inherit; font-size:15px; font-weight:700; color:#12293e; cursor:pointer; text-align:left; }
+  .fm-check.on{ background:#e0f2fe; border-color:#0284c7; color:#0369a1; }
+  .fm-check .box{ width:24px; height:24px; border-radius:7px; border:2px solid #cbd5e1; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px; color:transparent; }
+  .fm-check.on .box{ background:#0284c7; border-color:#0284c7; color:#fff; }
+  .fm-skip-reasons{ display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+  .fm-sync{ font-size:12px; font-weight:700; padding:5px 10px; border-radius:999px; border:none; font-family:inherit; cursor:pointer; }
+  .fm-sync.pending{ background:rgba(251,191,36,.2); color:#fbbf24; }
+  .fm-sync.offline{ background:rgba(248,113,113,.2); color:#fca5a5; }
+  .fm-totals-chip{ margin-top:9px; font-size:13px; color:#9cc8e3; font-weight:600; text-align:center; }
+  .fm-totals-chip b{ color:#fff; }
+  .fm-done-emoji{ font-size:64px; margin-bottom:10px; }
+  .fm-done-title{ font-size:32px; font-weight:800; margin-bottom:8px; }
+  .fm-done-sub{ color:#9cc8e3; font-size:16px; margin-bottom:26px; line-height:1.5; }
+  .fm-done-stats{ display:flex; gap:12px; margin-bottom:28px; }
+  .fm-done-stat{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:18px 22px; min-width:100px; }
+  .fm-done-stat-num{ font-size:34px; font-weight:800; }
+  .fm-done-stat-lbl{ font-size:12px; color:#9cc8e3; margin-top:4px; text-transform:uppercase; letter-spacing:.06em; }
+  #toast{ position:fixed; left:50%; bottom:calc(24px + env(safe-area-inset-bottom)); transform:translateX(-50%); background:#12293e; color:#fff; padding:13px 20px; border-radius:12px; font-size:14px; font-weight:600; z-index:5000; opacity:0; transition:opacity .25s; pointer-events:none; max-width:90vw; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,.4); }
+  #toast.show{ opacity:1; }
+</style>
+</head>
+<body>
+<div id="netBanner"></div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <h1>🫧 Evergreen Cleaning</h1>
+    <div id="loginStep1">
+      <p>Crew access — enter your work email for a login code.</p>
+      <input type="email" id="emailInput" class="login-input" placeholder="Your work email" autocomplete="email" onkeydown="if(event.key==='Enter')requestCode()"/>
+      <button class="login-btn" id="requestCodeBtn" onclick="requestCode()">Send Login Code →</button>
+    </div>
+    <div id="loginStep2" style="display:none;">
+      <p id="loginMsg">Enter the 6-digit code we just emailed you.</p>
+      <input type="text" id="codeInput" class="login-input" placeholder="000000" maxlength="6" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')" onkeydown="if(event.key==='Enter')verifyCode()"/>
+      <button class="login-btn" id="verifyBtn" onclick="verifyCode()">Sign In →</button>
+      <button onclick="backToEmail()" style="background:none;border:none;color:var(--text-muted);font-size:13px;cursor:pointer;margin-top:10px;width:100%;">← Different email</button>
+    </div>
+    <div id="loginError" style="color:var(--red);font-size:13px;margin-top:10px;display:none;"></div>
+  </div>
+</div>
+
+<!-- FIELD MODE -->
+<div id="fieldMode">
+  <!-- START -->
+  <div class="fm-screen" id="fmScreenStart">
+    <div class="fm-top">
+      <button class="fm-top-exit" onclick="logout()">Sign out</button>
+      <div style="display:flex;align-items:center;gap:8px;"><button class="fm-sync" onclick="_fmFlushQueue()" style="display:none;"></button><div id="fmStartTimerSlot"></div></div>
+    </div>
+    <div class="fm-start-center">
+      <div class="fm-start-greet" id="fmGreet">Let's go</div>
+      <div class="fm-start-date" id="fmStartDate"></div>
+      <div class="fm-start-stat"><div class="fm-start-stat-num" id="fmStartCount">—</div><div class="fm-start-stat-lbl">stops today</div></div>
+      <div class="fm-start-sub" id="fmStartSub"></div>
+      <div class="fm-route-setup" style="width:100%;max-width:380px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:14px 14px 12px;margin:6px auto 16px;text-align:left;">
+        <div id="fmCrewChips" style="display:none;margin-bottom:12px;"></div>
+        <div style="font-size:12px;font-weight:800;color:#9cc8e3;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Route start point</div>
+        <div style="display:flex;gap:8px;">
+          <input id="fmStartAddr" class="login-input" placeholder="Type a start address…" style="margin-bottom:0;flex:1;padding:11px;font-size:14px;" onkeydown="if(event.key==='Enter'){event.preventDefault();fmApplyStartAddr();}">
+          <button onclick="fmUseMyLocation()" title="Use my current location" style="flex:0 0 auto;background:rgba(134,239,172,.16);color:#e0f2fe;border:1px solid rgba(134,239,172,.3);border-radius:12px;padding:0 13px;font-size:18px;cursor:pointer;">📍</button>
+        </div>
+        <button onclick="fmApplyStartAddr()" style="width:100%;margin-top:9px;background:rgba(255,255,255,.12);color:#e0f2fe;border:none;border-radius:12px;padding:11px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">Set start &amp; optimize route</button>
+        <div id="fmStartPtNote" style="font-size:12.5px;color:#9cc8e3;margin-top:9px;line-height:1.4;"></div>
+      </div>
+      <button class="fm-btn fm-btn-xl fm-btn-start" id="fmStartBtn" onclick="fmStartTapped()" style="min-width:260px;">🟢 Start My Route</button>
+      <button class="fm-skip" id="fmStartEndBtn" style="color:#fca5a5;display:none;margin-top:12px;" onclick="fmEmergencyEnd()">🏁 End route &amp; clock out</button>
+      <button class="fm-skip" onclick="qcOpen()" style="color:#9cc8e3;margin-top:18px;">🧮 Quote Calculator</button>
+      <button class="fm-skip" onclick="loadData(true)" style="color:#9cc8e3;margin-top:10px;">↻ Refresh jobs</button>
+    </div>
+  </div>
+  <!-- START-OF-ROUTE CHECKLIST -->
+  <div class="fm-screen" id="fmScreenChecklist">
+    <div class="fm-top"><button class="fm-top-exit" onclick="fmBackToStart()">‹ Back</button><div id="fmStartTimerSlot2"></div></div>
+    <div class="fm-section-title">Gear check</div>
+    <div class="fm-section-sub">Tap each item to confirm before you roll out.</div>
+    <div class="fm-body">
+      <div class="fm-block-label" style="color:#9cc8e3;">Who's with you today? (optional)</div>
+      <div id="fmHelperList" class="fm-helper-list"></div>
+      <button class="fm-check" style="justify-content:center;color:#0369a1;" onclick="fmAddHelper()"><span>＋ Add a helper</span></button>
+      <div class="fm-block-label" style="color:#9cc8e3;margin-top:18px;">Gear check</div>
+      <div class="fm-checklist" id="fmStartChecklist"></div>
+    </div>
+    <div class="fm-foot"><button class="fm-btn fm-btn-xl fm-btn-start" id="fmStartGoBtn" onclick="fmBeginRoute()" disabled>Confirm gear to start →</button></div>
+  </div>
+  <!-- JOB -->
+  <div class="fm-screen" id="fmScreenJob">
+    <div class="fm-top">
+      <button class="fm-top-exit" onclick="fmBackToStart()">‹ Route</button>
+      <div style="display:flex;align-items:center;gap:8px;"><button class="fm-top-exit" onclick="qcOpen()" title="Quote Calculator">🧮 Quote</button><button class="fm-sync" onclick="_fmFlushQueue()" style="display:none;"></button><div class="fm-top-timer" id="fmJobTimer" style="display:none;"><span class="fm-dot"></span><span id="fmJobTimerVal">0:00:00</span></div></div>
+    </div>
+    <div class="fm-progress-wrap">
+      <div class="fm-progress-meta"><span>Stop <b id="fmStopPos">1</b> of <span id="fmStopTotal">1</span></span><span id="fmDoneCount">0 done</span></div>
+      <div class="fm-progress-bar"><div class="fm-progress-fill" id="fmProgressFill" style="width:0%"></div></div>
+      <div id="fmPlanLine" style="font-size:12.5px;font-weight:700;color:#9cc8e3;margin-top:6px;display:none;"></div>
+      <div class="fm-totals-chip" id="fmTotalsChip"></div>
+      <div class="fm-totals-chip" id="fmSyncStatus" style="margin-top:2px;font-size:12px;"></div>
+    </div>
+    <div class="fm-body" id="fmJobBody"></div>
+    <div class="fm-foot">
+      <button class="fm-btn fm-btn-xl fm-btn-done" id="fmDoneBtn" onclick="fmOpenComplete()">✓ Done — Collect &amp; Next</button>
+      <div style="display:flex;gap:18px;justify-content:center;margin-top:12px;">
+        <button class="fm-skip" id="fmSkipHopBtn" style="margin-top:0;width:auto;" onclick="fmSkip()">Skip for now ›</button>
+        <button class="fm-skip" style="margin-top:0;width:auto;color:#fca5a5;" onclick="fmOpenSkip()">⚠ Couldn't service</button>
+      </div>
+      <button class="fm-skip" style="color:#fca5a5;margin-top:10px;" onclick="fmEmergencyEnd()">🚨 End my route now (emergency)</button>
+    </div>
+  </div>
+  <!-- DONE -->
+  <div class="fm-screen" id="fmScreenDone">
+    <div class="fm-top"><button class="fm-top-exit" onclick="fmBackToStart()">‹ Start</button><button class="fm-sync" onclick="_fmFlushQueue()" style="display:none;"></button></div>
+    <div class="fm-done-center">
+      <div class="fm-done-emoji">🎉</div>
+      <div class="fm-done-title">Route Complete!</div>
+      <div class="fm-done-sub" id="fmDoneSub">Nice work today.</div>
+      <div class="fm-done-stats">
+        <div class="fm-done-stat"><div class="fm-done-stat-num" id="fmDoneStops">0</div><div class="fm-done-stat-lbl">stops done</div></div>
+        <div class="fm-done-stat"><div class="fm-done-stat-num" id="fmDoneCash">$0</div><div class="fm-done-stat-lbl">cash collected</div></div>
+        <div class="fm-done-stat" id="fmDoneBilledBox"><div class="fm-done-stat-num" id="fmDoneBilled">$0</div><div class="fm-done-stat-lbl">total billed</div></div>
+      </div>
+      <div id="fmDoneSkipped" style="color:#fca5a5;font-size:14px;margin-bottom:14px;font-weight:600;min-height:18px;"></div>
+      <div id="fmClockSummary" style="color:#9cc8e3;font-size:14px;margin-bottom:20px;font-weight:600;"></div>
+      <button class="fm-btn fm-btn-xl fm-btn-start" onclick="fmEndOfDay()" style="min-width:260px;">🧽 End-of-Day &amp; Clock Out →</button>
+      <button class="fm-skip" onclick="fmReviewStops()" style="margin-top:18px;">← Review stops</button>
+    </div>
+  </div>
+
+  <!-- LAST YARD DONE → HEAD TO HOME BASE -->
+  <div class="fm-screen" id="fmScreenReturn">
+    <div class="fm-done-center">
+      <div class="fm-done-emoji">🏠</div>
+      <div class="fm-done-title">Last yard done!</div>
+      <div class="fm-done-sub" id="fmReturnSub">Head back to home base for drop-off.</div>
+      <div id="fmReturnAddr" style="color:#9cc8e3;font-size:16px;font-weight:700;margin:6px 0 22px;"></div>
+      <a class="fm-btn fm-btn-xl fm-btn-start" id="fmReturnNav" href="#" target="_blank" style="min-width:260px;display:inline-block;text-decoration:none;">🧭 Navigate to Home Base</a>
+      <button class="fm-btn fm-btn-xl" onclick="fmArrivedBase()" style="min-width:260px;margin-top:14px;background:#1d4ed8;color:#fff;">✅ I'm here — Start End-of-Day Checklist</button>
+      <div id="fmReturnGps" style="color:#6b8b7a;font-size:12.5px;margin-top:16px;">📡 I'll notice when you pull in and start it for you.</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETE SHEET -->
+<div id="fmCompleteSheet" onclick="if(event.target===this)fmCloseComplete()">
+  <div class="fm-sheet">
+    <div class="fm-sheet-title" id="fmcTitle">Finish job</div>
+    <div class="fm-sheet-sub">Take payment, snap a photo, run the checklist.</div>
+    <div class="fm-block" id="fmcAddonsBlock" style="display:none;">
+      <div class="fm-block-label">Extra services done today?</div>
+      <div id="fmcAddons" class="fm-addon-row"></div>
+    </div>
+    <div class="fm-block">
+      <div class="fm-block-label"><span>Payment</span><span id="fmcPayState" class="req">required</span></div>
+      <div class="fm-pay-amt" id="fmcAmt">$0</div>
+      <div class="fm-pay-method" id="fmcMethod"></div>
+      <div id="fmcPayControls"></div>
+    </div>
+    <div class="fm-block">
+      <div class="fm-block-label"><span>Photo</span><span style="color:#94a3b8;">optional</span></div>
+      <div id="fmcPhotoList" class="fm-photo-grid"></div>
+      <input type="file" id="fmcPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="fmPhotoSelected(this)">
+      <button class="fm-toggle-btn" id="fmcPhotoBtn" onclick="document.getElementById('fmcPhotoInput').click()" style="background:#7c3aed;color:#fff;border-color:#7c3aed;">📷 Take / Add Photo</button>
+    </div>
+    <div class="fm-block">
+      <div class="fm-block-label"><span>Notes for owner</span><span style="color:#94a3b8;">optional</span></div>
+      <textarea class="fm-textarea" id="fmcOwnerNote" placeholder="Anything Hunter should know about this yard…"></textarea>
+    </div>
+    <div class="fm-block">
+      <div class="fm-block-label"><span>Before you leave</span><span id="fmcCheckState" class="req">required</span></div>
+      <div class="fm-checklist" id="fmcChecklist"></div>
+    </div>
+    <div class="fm-err" id="fmcErr"></div>
+    <button class="fm-btn fm-btn-xl fm-btn-done" id="fmcSubmitBtn" onclick="fmSubmitComplete()" disabled>Take payment to finish</button>
+    <button class="fm-mini-link" onclick="fmCloseComplete()">Cancel</button>
+  </div>
+</div>
+
+<!-- SKIP SHEET -->
+<div id="fmSkipSheet" onclick="if(event.target===this)fmCloseSkip()">
+  <div class="fm-sheet">
+    <div class="fm-sheet-title" id="fmSkipTitle">Couldn't service this stop</div>
+    <div class="fm-sheet-sub">The job stays open for follow-up — a note is logged for the office.</div>
+    <div class="fm-skip-reasons">
+      <button class="fm-toggle-btn" onclick="fmRecordSkip('Not home')">🚪 Not home</button>
+      <button class="fm-toggle-btn" onclick="fmRecordSkip('Gate locked')">🔒 Gate locked</button>
+      <button class="fm-toggle-btn" onclick="fmRecordSkip('Dog in yard')">🐕 Dog in yard</button>
+      <button class="fm-toggle-btn" onclick="fmRecordSkip('Weather')">🌧 Weather</button>
+      <button class="fm-toggle-btn" onclick="fmRecordSkip('Yard not ready')">🌱 Yard not ready</button>
+      <button class="fm-toggle-btn" onclick="fmPromptSkipOther()">✏️ Other reason…</button>
+    </div>
+    <div class="fm-err" id="fmSkipErr"></div>
+    <button class="fm-mini-link" onclick="fmCloseSkip()">Cancel</button>
+  </div>
+</div>
+
+<!-- CREW / HELPER PICKER -->
+<div id="fmCrewPicker" style="display:none;position:fixed;inset:0;z-index:3200;background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center;" onclick="if(event.target===this)fmCrewCancel()">
+  <div class="fm-sheet">
+    <div class="fm-sheet-title">🟢 Who's working today?</div>
+    <div class="fm-sheet-sub">You're auto-included. Add any helpers riding along — tap a name to add.</div>
+    <div id="fmCrewChosen" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;"></div>
+    <input id="fmCrewSearch" class="login-input" placeholder="Search crew…" style="margin-bottom:10px;" oninput="_fmRenderCrewPicker()">
+    <div id="fmCrewResults" class="fm-checklist" style="max-height:44vh;overflow-y:auto;margin-bottom:10px;"></div>
+    <button class="fm-toggle-btn" onclick="fmCrewAddManual()">✏️ Add by name…</button>
+    <button class="fm-btn fm-btn-xl fm-btn-start" style="margin-top:12px;" onclick="fmCrewConfirm()">Continue →</button>
+    <button class="fm-mini-link" onclick="fmCrewCancel()">Cancel</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   Evergreen Field Mode — standalone PWA (Phase 2 hardening)
+   ════════════════════════════════════════════════════════════════════ */
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxkrw4S5fjdvID0RRownPZqh-kQdUQzaNY7Z4CVbGefkyT2ai0IdmQBYR45ooL5fCMl/exec';
+const SESSION_KEY = 'eg_staff_session';
+const STATE_KEY   = 'evg_field_state_v2';
+const START_CHECKLIST = ['🧴 Caddy stocked (sprays, cloths, gloves)','🧹 Vacuum, mop & bucket loaded','📋 Job list & phone charged'];
+const END_CHECKLIST   = ['Final walkthrough — every room checked','Trash out & liners replaced','Lights off · doors locked (or key returned)','All supplies & equipment packed up','Photos taken of finished rooms'];
+
+let adminToken='', adminName='', adminEmail='', adminRole='employee', adminCrews='';
+let allBookings=[], allCustomers=[], _savedOrderKeys=null, _optOrderKeys=null;
+let _startPoint=null, _crewSel=null;   // employee-chosen route origin + crew override
+let _clockInTime=null, _clockOutTime=null, _clockedOut=false, _fmTimerInt=null, _fmSyncInt=null, _fmPollInt=null, _geoWatch=null, _lastPos=null, _wakeLock=null;
+let _fmStarted=false, _fmViewIdx=null, _fmCashTotal=0, _fmBilledTotal=0, _fmSkipped={}, _startChkState=[], _jobTimers={}, _helpers=[]; let _lastSync={ok:null,ts:0,msg:''};
+let _fmAtBase=false, _homeBase='', _homeBaseGeo=null, _fmBasePoll=null;
+let _savedTimes={};   // key → planned HH:MM from the owner's push
+function _fmIsBoss(){ const r=String(adminRole||'').toLowerCase().trim(); return r==='owner'||r==='manager'; }
+let _fmBooted=false;   // false until the crew taps Start/Continue → land on the Start screen on every fresh app open (never auto-drop into a job)
+// complete-sheet state
+let _fmcStop=null, _fmcRowIdx=-1, _fmcPayType='invoice', _fmcCash=false, _fmcInvoiceSent=false, _fmcChargeChosen=false, _fmcBase=0, _fmcAddons=[], _fmcPhotos=[], _fmcEndChk={};
+
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  EVERGREEN SHARED ROUTE CORE — rc1                                          ║
+   ║  KEEP THIS BLOCK BYTE-IDENTICAL IN  field/index.html  AND  invoice.html.    ║
+   ║  A Node test (test/route-core.test.js) asserts the two copies match —       ║
+   ║  never edit one without the other.                                          ║
+   ╟────────────────────────────────────────────────────────────────────────────╢
+   ║  Tight geographic optimizer: nearest-neighbour + 2-opt + Or-opt from a      ║
+   ║  fixed start point, with an OPTIONAL OSRM real-road refinement that only     ║
+   ║  replaces the straight-line order when it is genuinely shorter. There is NO  ║
+   ║  time-window / jobTime "anchor" logic here on purpose — jobTime is a         ║
+   ║  synthetic sequence number, not a real appointment, so honouring it scatters ║
+   ║  the route. Stops flagged {pinned:true} hold their slot; everything else is  ║
+   ║  freely reordered into the shortest loop from the start point.               ║
+   ╚══════════════════════════════════════════════════════════════════════════════╝ */
+var RC_VERSION = 'rc1';
+function rcHaversineMiles(lat1,lon1,lat2,lon2){ var R=3958.8; var dLat=(lat2-lat1)*Math.PI/180; var dLon=(lon2-lon1)*Math.PI/180; var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2); return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
+function rcDD(a,b){ return (a&&b&&a.lat!=null&&b.lat!=null)?rcHaversineMiles(a.lat,a.lon,b.lat,b.lon):0; }
+function rcRouteLen(arr,origin){ var total=0; var prev=(origin&&origin.lat!=null)?origin:null; for(var i=0;i<arr.length;i++){ var s=arr[i]; if(s&&s.lat!=null){ if(prev) total+=rcDD(prev,s); prev=s; } } return total; }
+// 2-opt: reverse segments while doing so shortens the open path from `origin`.
+function rcTwoOpt(route,origin){
+  if(!route||route.length<4) return route;
+  var pts=route.slice(); var org=(origin&&origin.lat!=null)?origin:null;
+  var improved=true,guard=0;
+  while(improved&&guard++<40){ improved=false;
+    for(var i=0;i<pts.length-1;i++){ for(var j=i+1;j<pts.length;j++){
+      var A=i===0?org:pts[i-1]; var B=pts[i],C=pts[j],D=j+1<pts.length?pts[j+1]:null;
+      var before=rcDD(A,B)+rcDD(C,D); var after=rcDD(A,C)+rcDD(B,D);
+      if(after+1e-6<before){ for(var lo=i,hi=j;lo<hi;lo++,hi--){ var t=pts[lo]; pts[lo]=pts[hi]; pts[hi]=t; } improved=true; }
+    } } }
+  return pts;
+}
+// Or-opt: relocate runs of 1-3 stops to a cheaper position.
+function rcOrOpt(route,origin){
+  if(!route||route.length<3) return route;
+  var pts=route.slice(); var org=(origin&&origin.lat!=null)?origin:null;
+  var improved=true,guard=0;
+  while(improved&&guard++<60){ improved=false; var baseLen=rcRouteLen(pts,org);
+    outer: for(var segLen=1;segLen<=3&&segLen<pts.length;segLen++){
+      for(var i=0;i+segLen<=pts.length;i++){
+        var seg=pts.slice(i,i+segLen); var rest=pts.slice(0,i).concat(pts.slice(i+segLen));
+        for(var j=0;j<=rest.length;j++){
+          var cand=rest.slice(0,j).concat(seg,rest.slice(j)); var same=true;
+          for(var k=0;k<cand.length;k++){ if(cand[k]!==pts[k]){ same=false; break; } }
+          if(same) continue;
+          if(rcRouteLen(cand,org)+1e-6<baseLen){ pts=cand; improved=true; break outer; }
+        }
+      }
+    }
+  }
+  return pts;
+}
+function rcLocalSearch(route,origin){ var r=route; for(var pass=0;pass<8;pass++){ var before=rcRouteLen(r,origin); r=rcTwoOpt(r,origin); r=rcOrOpt(r,origin); if(rcRouteLen(r,origin)+1e-9>=before) break; } return r; }
+// Nearest-neighbour seed from startCoord, then local search. Returns COPIES with distFromPrev.
+function rcNearestNeighbour(startCoord,stops){
+  var unvisited=stops.slice(); var route=[]; var cur=(startCoord&&startCoord.lat!=null)?startCoord:(stops[0]||{});
+  while(unvisited.length){ var best=-1,bestDist=Infinity;
+    for(var i=0;i<unvisited.length;i++){ var d=rcDD(cur,unvisited[i]); if(d<bestDist){ bestDist=d; best=i; } }
+    var picked={}; for(var kk in unvisited[best]) picked[kk]=unvisited[best][kk]; picked.distFromPrev=bestDist;
+    route.push(picked); cur=unvisited[best]; unvisited.splice(best,1); }
+  return rcLocalSearch(route,startCoord);
+}
+// Recompute distFromPrev along an ordered array from startCoord (in place).
+function rcCalcDist(arr,startCoord){ var prev=(startCoord&&startCoord.lat!=null)?startCoord:null; for(var i=0;i<arr.length;i++){ var s=arr[i]; if(s&&s.lat!=null){ s.distFromPrev=prev?rcDD(prev,s):0; prev=s; } else if(s){ s.distFromPrev=s.distFromPrev||0; } } return arr; }
+// MAIN geographic optimizer. stops:[{bk,lat,lon,(pinned)}] (all geocoded). Pinned
+// stops keep their slot index; unpinned are tightly reordered into the gaps.
+// Shortest open route through `stops`. With a depot: nearest-neighbour from the depot
+// + local search. WITHOUT a depot: try every stop as the start (capped for cost) and
+// keep the shortest — a fixed arbitrary start (stops[0]) otherwise yields a looser loop.
+function rcBestOpenRoute(stops,startCoord){
+  if(!stops||stops.length<=1) return stops?stops.slice():[];
+  if(startCoord&&startCoord.lat!=null) return rcNearestNeighbour(startCoord,stops);
+  var starts = (stops.length<=24) ? stops : [stops[0]];
+  var best=null, bestLen=Infinity;
+  for(var i=0;i<starts.length;i++){
+    var un=stops.filter(function(s){ return s!==starts[i]; });
+    var route=[starts[i]]; var cur=starts[i];
+    while(un.length){ var bi=0,bd=Infinity; for(var k=0;k<un.length;k++){ var d=rcDD(cur,un[k]); if(d<bd){bd=d;bi=k;} } route.push(un[bi]); cur=un[bi]; un.splice(bi,1); }
+    route=rcLocalSearch(route,null);
+    var L=rcRouteLen(route,null);
+    if(L<bestLen){ bestLen=L; best=route; }
+  }
+  return best.map(function(s){ var c={}; for(var kk in s) c[kk]=s[kk]; return c; });
+}
+function rcOptimizeGeographic(stops,startCoord){
+  if(!stops||!stops.length) return [];
+  var pinnedIdx=[]; var unpinned=[];
+  for(var i=0;i<stops.length;i++){ if(stops[i]&&stops[i].pinned) pinnedIdx.push(i); else unpinned.push(stops[i]); }
+  if(!pinnedIdx.length){ return rcCalcDist(rcBestOpenRoute(stops,startCoord),startCoord); }
+  // Optimize the unpinned set, then weave it back around the fixed pinned slots.
+  var optUnpinned=rcBestOpenRoute(unpinned,startCoord); var u=0; var out=[];
+  for(var s=0;s<stops.length;s++){
+    if(stops[s]&&stops[s].pinned){ var p={}; for(var kk in stops[s]) p[kk]=stops[s][kk]; out.push(p); }
+    else { out.push(optUnpinned[u++]); }
+  }
+  return rcCalcDist(out,startCoord);
+}
+/* ── OSRM real-road refinement (free public server, no key) ─────────────────── */
+function rcFetch(){ return (typeof fetch==='function')?fetch:(typeof globalThis!=='undefined'&&globalThis.fetch)?globalThis.fetch:null; }
+async function rcOsrmTableMatrix(points){
+  var f=rcFetch(); if(!f||!Array.isArray(points)||points.length<2) return null;
+  var coords=points.map(function(p){ return p.lon+','+p.lat; }).join(';');
+  var url='https://router.project-osrm.org/table/v1/driving/'+coords+'?annotations=duration,distance';
+  var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+  var timer=ctrl?setTimeout(function(){ ctrl.abort(); },9000):null;
+  try{ var r=await f(url,ctrl?{signal:ctrl.signal}:{}); var d=await r.json(); if(!d||d.code!=='Ok'||!d.durations) return null; return { dur:d.durations, dist:d.distances||null }; }
+  catch(e){ return null; } finally{ if(timer) clearTimeout(timer); }
+}
+// 2-opt over a real-road duration matrix for an OPEN path (no forced return).
+function rcTwoOptMatrix(order,dur,stopPts,originPt){
+  var D=function(a,b){ return dur[a][b]; }; var improved=true,guard=0;
+  while(improved&&guard++<60){ improved=false;
+    for(var i=0;i<order.length-1;i++){ for(var j=i+1;j<order.length;j++){
+      var Apt=(i===0)?originPt:stopPts[order[i-1]]; var Bpt=stopPts[order[i]],Cpt=stopPts[order[j]];
+      var Ept=(j+1<order.length)?stopPts[order[j+1]]:null; var before=0,after=0;
+      if(Apt!=null){ before+=D(Apt,Bpt); after+=D(Apt,Cpt); }
+      if(Ept!=null){ before+=D(Cpt,Ept); after+=D(Bpt,Ept); }
+      if(Apt==null&&Ept==null) continue;
+      if(after+1e-6<before){ for(var lo=i,hi=j;lo<hi;lo++,hi--){ var t=order[lo]; order[lo]=order[hi]; order[hi]=t; } improved=true; }
+    } } }
+  return order;
+}
+function rcMatrixOrder(dur,stopPts,originPt){
+  var n=stopPts.length;
+  var nnFrom=function(startK){ var order=[startK]; var unv=stopPts.map(function(_,k){ return k; }).filter(function(k){ return k!==startK; }); var cur=stopPts[startK];
+    while(unv.length){ var best=-1,bestD=Infinity; for(var i=0;i<unv.length;i++){ var d=dur[cur][stopPts[unv[i]]]; if(d<bestD){ bestD=d; best=i; } } order.push(unv[best]); cur=stopPts[unv[best]]; unv.splice(best,1); } return order; };
+  var tourLen=function(order){ var s=0; if(originPt!=null) s+=dur[originPt][stopPts[order[0]]]; for(var i=0;i<order.length-1;i++) s+=dur[stopPts[order[i]]][stopPts[order[i+1]]]; return s; };
+  var starts;
+  if(originPt!=null){ var best=0,bd=Infinity; for(var k=0;k<n;k++){ var d=dur[originPt][stopPts[k]]; if(d<bd){ bd=d; best=k; } } starts=[best]; }
+  else { starts=stopPts.map(function(_,k){ return k; }); }
+  var bestOrder=null,bestLen=Infinity;
+  for(var si=0;si<starts.length;si++){ var o=rcTwoOptMatrix(nnFrom(starts[si]),dur,stopPts,originPt); var L=tourLen(o); if(L<bestLen){ bestLen=L; bestOrder=o; } }
+  return bestOrder||stopPts.map(function(_,k){ return k; });
+}
+// Refine an already geographic-ordered list with real driving times. Returns a NEW
+// ordered array only if OSRM is reachable AND the new order's straight-line length
+// is not worse; otherwise returns the input unchanged. Never reorders if any stop
+// is pinned (manual pins are sacred). Writes driveMinReal/distFromPrev when applied.
+async function rcRefineWithRoads(ordered,startCoord){
+  if(!ordered||ordered.length<3) return ordered;
+  if(ordered.some(function(s){ return s&&s.pinned; })) return ordered;
+  var geo=ordered.filter(function(s){ return s&&s.lat!=null&&s.lon!=null; });
+  if(geo.length<3) return ordered;
+  var hasOrigin=!!(startCoord&&startCoord.lat!=null);
+  var points=[]; if(hasOrigin) points.push({ lat:startCoord.lat, lon:startCoord.lon });
+  var baseIdx=points.length; for(var i=0;i<geo.length;i++) points.push({ lat:geo[i].lat, lon:geo[i].lon });
+  var M=await rcOsrmTableMatrix(points); if(!M) return ordered;        // OSRM down → keep straight-line
+  var stopPts=geo.map(function(_,k){ return baseIdx+k; }); var originPt=hasOrigin?0:null;
+  var idxOrder=rcMatrixOrder(M.dur,stopPts,originPt);
+  var refined=idxOrder.map(function(oi){ return geo[oi]; });
+  // Safety: only accept if it does not make the straight-line loop worse.
+  if(rcRouteLen(refined,startCoord)>rcRouteLen(geo,startCoord)+1e-6) return ordered;
+  var prevPt=hasOrigin?0:null;
+  for(var x=0;x<idxOrder.length;x++){ var pt=baseIdx+idxOrder[x]; var s=refined[x];
+    s.distFromPrev=(prevPt!=null&&M.dist)?(M.dist[prevPt][pt]||0)/1609.344:0; s.driveMinReal=(prevPt!=null)?(M.dur[prevPt][pt]||0)/60:0; prevPt=pt; }
+  // Re-attach any non-geocoded stops (no coords) at the end, preserving them.
+  var tail=ordered.filter(function(s){ return !(s&&s.lat!=null&&s.lon!=null); });
+  return refined.concat(tail);
+}
+if(typeof module!=='undefined'&&module.exports){ module.exports={ RC_VERSION:RC_VERSION, rcHaversineMiles:rcHaversineMiles, rcRouteLen:rcRouteLen, rcNearestNeighbour:rcNearestNeighbour, rcOptimizeGeographic:rcOptimizeGeographic, rcOsrmTableMatrix:rcOsrmTableMatrix, rcMatrixOrder:rcMatrixOrder, rcTwoOptMatrix:rcTwoOptMatrix, rcRefineWithRoads:rcRefineWithRoads }; }
+/* ╔═══════════════════ END EVERGREEN SHARED ROUTE CORE (rc1) ═══════════════════╗ */
+
+
+/* ───────── Helpers ───────── */
+function esc(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function todayISOStr(){ const t=new Date(); return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0'); }
+function dateOf(b){ const raw=b.serviceDate||b.serviceDateRaw||''; if(!raw) return ''; const s=String(raw).trim(); if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; const d=new Date(s); if(isNaN(d)) return s; return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function isDone(b){ if(b.rowCompleted) return true; const d=String(b.done||''); return d.includes('Done')||d.startsWith('✓'); }
+function _fmAmt(bk){ return parseFloat(String(bk.price||'0').replace(/[^0-9.]/g,''))||0; }
+// Payment type: 'cash' | 'autopay' (card on file, auto-bills) | 'invoice' (card pay-after, needs invoice)
+function _payType(bk){
+  const s=(String(bk.payMethod||'')+' '+String(bk.calendarEvent||'')).toLowerCase();
+  if(s.includes('cash')) return 'cash';
+  // Customer turned on autopay in the portal (card on file) — charge it on complete,
+  // even if the booking was originally created as pay-after / invoice. The backend
+  // attaches portalAutopay + cardLast4 to every booking from the Customers sheet.
+  if(bk.portalAutopay===true && String(bk.cardLast4||'').trim()) return 'autopay';
+  if((s.includes('auto')||s.includes('stripe')) && !s.includes('not paid') && !s.includes('pending')) return 'autopay';
+  return 'invoice';
+}
+function mowMinutes(bk){
+  // Cleaning-time model: custom override → quote visits → service type + beds/baths.
+  const custom=parseInt(String(bk.mowMinutes||bk.customMowMins||'')); if(custom>0) return custom;
+  const n=String(bk.notes||'').toLowerCase(), freq=String(bk.frequency||'').toLowerCase(), svc=String(bk.service||bk.serviceType||'').toLowerCase();
+  if(freq.includes('quote')||svc.includes('quote')) return 20;
+  const d=n.match(/duration[:\s]+(\d+)\s*(min|hr|hour)?/i);
+  if(d) return Math.round(parseFloat(d[1])*(/hr|hour/.test(d[0])?60:1));
+  const bed=(n.match(/(\d+)\s*bed/)||[])[1], bath=(n.match(/(\d+)\s*bath/)||[])[1];
+  let base=60+(bed?+bed*20:30)+(bath?+bath*15:15);
+  if(/deep/.test(svc+freq)) base=Math.round(base*1.7);
+  else if(/move/.test(svc+freq)) base=Math.round(base*2.1);
+  return Math.max(45,Math.min(360,base));
+}
+function parseServices(str){ return String(str||'').split(';').map(s=>s.trim()).filter(Boolean).map(s=>{ const m=s.match(/^(.*?):\s*\$?([\d.]+)\s*$/); return m?{name:m[1].trim(),price:parseFloat(m[2])||0}:null; }).filter(s=>s&&s.name&&s.price>0); }
+function customerServicesFor(email){ const em=String(email||'').toLowerCase().trim(); if(!em) return []; const c=(allCustomers||[]).find(x=>String(x.Email||'').toLowerCase().trim()===em); return parseServices(c?(c.Services||''):''); }
+function _fmMapsUrl(bk){ return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent((bk.address||'')+(bk.zip?', '+bk.zip:'')+', FL'); }
+let _toastT=null; function showToast(msg){ const t=document.getElementById('toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); clearTimeout(_toastT); _toastT=setTimeout(()=>t.classList.remove('show'),3200); }
+function authParam(){ return 'adminToken='+encodeURIComponent(adminToken); }
+// Money visibility: owners/managers always; employees only for cash jobs (they collect it).
+function _isMoneyRole(){ const r=String(adminRole||'').toLowerCase(); return r==='owner'||r==='manager'; }
+function _seeMoney(bk){ return _isMoneyRole() || (bk && _payType(bk)==='cash'); }
+function _uuid(){ try{ if(crypto&&crypto.randomUUID) return crypto.randomUUID(); }catch(e){} return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,10); }
+
+/* ───────── Crew assignment filter ───────── */
+function _assignedCrews(){ const set=new Set(String(adminCrews||'').toUpperCase().split(/[^A-Z0-9]+/).map(s=>s.trim()).filter(Boolean)); return set; }
+function _crewOk(bk){ const set=_assignedCrews(); if(set.size===0) return true; const c=String(bk.crew||'').toUpperCase().trim(); if(!c) return true; /* unassigned visible to all */ return set.has(c); }
+
+/* ───────── Session ───────── */
+function loadSavedSession(){ try{ const raw=localStorage.getItem(SESSION_KEY); if(!raw) return null; const s=JSON.parse(raw); const exp=s.expiry||s.exp; if(!s.token||!exp) return null; if(new Date()>new Date(exp)){ localStorage.removeItem(SESSION_KEY); return null; } return {...s,expiry:exp}; }catch(e){ return null; } }
+function saveSession(token,name,email,role,days){ try{ const expiry=new Date(Date.now()+(days||7)*864e5).toISOString(); localStorage.setItem(SESSION_KEY, JSON.stringify({token,name,email,role,crews:adminCrews,expiry})); }catch(e){} }
+function showLoginError(m){ const el=document.getElementById('loginError'); if(!el) return; el.textContent=m||''; el.style.display=m?'block':'none'; }
+
+/* ───────── Auth ───────── */
+async function requestCode(){
+  const email=document.getElementById('emailInput').value.trim().toLowerCase(); if(!email) return;
+  const btn=document.getElementById('requestCodeBtn'); btn.disabled=true; btn.textContent='Sending…'; showLoginError('');
+  try{ const res=await fetch(SCRIPT_URL+'?action=admin_request_code&email='+encodeURIComponent(email)); const data=await res.json();
+    if(data.success){ adminEmail=email; document.getElementById('loginStep1').style.display='none'; document.getElementById('loginStep2').style.display='block'; document.getElementById('loginMsg').textContent='Hey '+(data.firstName||'there')+'! Check your email for a 6-digit code.'; document.getElementById('codeInput').focus(); }
+    else showLoginError(data.error||'Not on the staff list. Contact Hunter.');
+  }catch(e){ showLoginError('Network error — try again.'); }
+  finally{ btn.disabled=false; btn.textContent='Send Login Code →'; }
+}
+async function verifyCode(){
+  const code=document.getElementById('codeInput').value.trim(); if(code.length!==6){ showLoginError('Enter the full 6-digit code.'); return; }
+  const btn=document.getElementById('verifyBtn'); btn.disabled=true; btn.textContent='Checking…'; showLoginError('');
+  try{ const res=await fetch(SCRIPT_URL+'?action=admin_verify_code&email='+encodeURIComponent(adminEmail)+'&code='+encodeURIComponent(code)); const data=await res.json();
+    if(data.success){ adminToken=data.token; adminName=data.name; adminRole=data.role||'employee'; adminCrews=data.crews||''; saveSession(adminToken,adminName,adminEmail,adminRole,adminRole==='owner'?30:7); showApp(); loadData(); }
+    else { showLoginError(data.error||'Invalid code. Try again.'); document.getElementById('codeInput').value=''; document.getElementById('codeInput').focus(); }
+  }catch(e){ showLoginError('Network error — try again.'); }
+  finally{ btn.disabled=false; btn.textContent='Sign In →'; }
+}
+function backToEmail(){ document.getElementById('loginStep2').style.display='none'; document.getElementById('loginStep1').style.display='block'; document.getElementById('codeInput').value=''; showLoginError(''); }
+function logout(){ try{ localStorage.removeItem(SESSION_KEY); localStorage.removeItem(STATE_KEY); }catch(e){} if(_fmPollInt) clearInterval(_fmPollInt); _stopGeo(); _releaseWake(); adminToken=''; _fmStarted=false; _clockInTime=null; _clockedOut=false; document.getElementById('fieldMode').classList.remove('show'); document.getElementById('loginScreen').style.display='flex'; }
+function showApp(){ document.getElementById('loginScreen').style.display='none'; document.getElementById('fieldMode').classList.add('show'); _startPoint=_loadStartPoint(); _crewSel=_loadCrewSel(); _startTimers(); _fmRender(); }
+
+/* ───────── State persistence (resume where left off) ───────── */
+function _persist(){
+  try{ localStorage.setItem(STATE_KEY, JSON.stringify({
+    dayISO: todayISOStr(), started:_fmStarted, viewIdx:_fmViewIdx,
+    clockInTime:_clockInTime?_clockInTime.toISOString():null, clockOutTime:_clockOutTime?_clockOutTime.toISOString():null, clockedOut:_clockedOut,
+    cashTotal:_fmCashTotal, billedTotal:_fmBilledTotal, skipped:_fmSkipped, startChk:_startChkState, jobTimers:_jobTimers, helpers:_helpers, atBase:_fmAtBase
+  })); }catch(e){}
+}
+function _restoreState(){
+  try{
+    const raw=localStorage.getItem(STATE_KEY); if(!raw) return;
+    const s=JSON.parse(raw);
+    if(s.dayISO!==todayISOStr()){ localStorage.removeItem(STATE_KEY); return; }  // new day → fresh start
+    _fmStarted=!!s.started; _fmViewIdx=(s.viewIdx==null?null:s.viewIdx);
+    _clockInTime=s.clockInTime?new Date(s.clockInTime):null; _clockOutTime=s.clockOutTime?new Date(s.clockOutTime):null; _clockedOut=!!s.clockedOut;
+    _fmCashTotal=+s.cashTotal||0; _fmBilledTotal=+s.billedTotal||0; _fmSkipped=s.skipped||{}; _startChkState=Array.isArray(s.startChk)?s.startChk:[]; _jobTimers=s.jobTimers||{}; _helpers=Array.isArray(s.helpers)?s.helpers:[]; _fmAtBase=!!s.atBase;
+  }catch(e){}
+}
+
+/* ───────── Data load ───────── */
+async function loadData(refreshToast){
+  if(navigator.onLine===false){ _hydrateFromCache(); if(refreshToast) showToast('📴 Offline — showing saved jobs'); _fmRender(); return; }
+  try{
+    const crewQ='';  // pull the whole day's saved order; we order our visible stops by it
+    const [bRes,cRes,rRes]=await Promise.all([
+      fetch(SCRIPT_URL+'?action=bookings&'+authParam()).then(r=>r.json()).catch(()=>null),
+      fetch(SCRIPT_URL+'?action=customers_list&'+authParam()).then(r=>r.json()).catch(()=>null),
+      fetch(SCRIPT_URL+'?action=get_route&date='+todayISOStr()+crewQ+'&'+authParam()).then(r=>r.json()).catch(()=>null)
+    ]);
+    if(bRes&&bRes.success&&Array.isArray(bRes.bookings)){ allBookings=bRes.bookings; try{ localStorage.setItem('evg_field_bookings', JSON.stringify(allBookings)); }catch(e){} }
+    else if(Array.isArray(bRes)){ allBookings=bRes; }
+    // Refresh role + crew assignment LIVE from the server (the booking fetch returns them),
+    // so editing the Crews column in the sheet takes effect on next refresh — no re-login needed.
+    if(bRes&&bRes.success){
+      const prevRole=adminRole;
+      if(typeof bRes.role==='string' && bRes.role) adminRole=String(bRes.role).toLowerCase().trim();
+      if(typeof bRes.crews==='string') adminCrews=bRes.crews;
+      if(prevRole&&adminRole!==prevRole) showToast('👤 Role updated: '+adminRole.replace(/_/g,' ')+' — view adjusted');
+      saveSession(adminToken,adminName,adminEmail,adminRole, adminRole==='owner'?30:7);
+    }
+    if(cRes&&cRes.success&&Array.isArray(cRes.customers)){ allCustomers=cRes.customers; try{ localStorage.setItem('evg_field_customers', JSON.stringify(allCustomers)); }catch(e){} }
+    _savedOrderKeys=_extractRouteKeys(rRes);
+    // home base (owner-set, shared via schedule config) — cached for offline
+    fetch(SCRIPT_URL+'?action=get_schedule_config&'+authParam()).then(r=>r.json()).then(function(d){
+      if(d&&d.success&&d.config&&typeof d.config.homeBase==='string'){
+        _homeBase=d.config.homeBase.trim();
+        try{ localStorage.setItem('evg_homebase',_homeBase); }catch(e){}
+      }
+    }).catch(function(){ try{ _homeBase=localStorage.getItem('evg_homebase')||''; }catch(e){} });
+    try{ if(!_homeBase) _homeBase=localStorage.getItem('evg_homebase')||''; }catch(e){}
+    if(!allBookings.length) _hydrateFromCache();
+    if(_savedOrderKeys&&_savedOrderKeys.length){ _optOrderKeys=null; }   // (a) canonical route from backend wins; drop any stale self-optimized order
+    else { _optOrderKeys=_loadOptOrderCache();                           // (b) no canonical route → self-optimize (show cached order instantly, refine in background)
+      if(navigator.onLine!==false){ _fmComputeOptimizedOrder().then(function(res){ if(res&&res.changed&&!_fmStarted) _fmRender(); }).catch(function(){}); } }
+    if(refreshToast) showToast('↻ Jobs updated');
+  }catch(e){ _hydrateFromCache(); }
+  _fmRender();
+}
+function _hydrateFromCache(){ try{ const b=localStorage.getItem('evg_field_bookings'); if(b) allBookings=JSON.parse(b); const c=localStorage.getItem('evg_field_customers'); if(c) allCustomers=JSON.parse(c); if(!(_savedOrderKeys&&_savedOrderKeys.length)) _optOrderKeys=_loadOptOrderCache(); }catch(e){} }
+// Build an ordered list of stop keys (email|serviceDate) from a get_route response, if present.
+function _extractRouteKeys(rRes){
+  try{
+    if(!rRes||!rRes.success||!Array.isArray(rRes.routes)||!rRes.routes.length) return null;
+    // The Routes sheet can hold MULTIPLE rows for one date (per crew, plus stale
+    // ''/unassigned rows from older pushes). Sort by updatedAt so the NEWEST push
+    // owns every stop it contains — old rows can no longer hijack the order.
+    const routes=rRes.routes.slice().sort(function(a,b){
+      const ta=new Date(a.updatedAt||0).getTime()||0, tb=new Date(b.updatedAt||0).getTime()||0;
+      return ta-tb;
+    });
+    const seq={}; let base=0;
+    _savedTimes={};
+    routes.forEach(function(rt){
+      (rt.stops||[]).forEach(function(st,idx){
+        const em=String(st.email||st.Email||'').toLowerCase().trim();
+        const d=String(st.serviceDate||st.date||'').trim();
+        if(!em) return;
+        seq[em+'|'+d]=base+idx;                     // later (newer) rows overwrite duplicates
+        const t=String(st.jobTime||'').trim();
+        if(/^\d{1,2}:\d{2}$/.test(t)) _savedTimes[em+'|'+d]=t;
+      });
+      base+=1000;
+    });
+    const keys=Object.keys(seq).sort(function(a,b){ return seq[a]-seq[b]; });
+    return keys.length?keys:null;
+  }catch(e){ return null; }
+}
+
+/* ───────── Self-optimize fallback (Phase-2 safety net) ─────────
+   When get_route returns no canonical route (backend handler not deployed yet,
+   or the owner hasn't optimized today), the phone optimizes the day ITSELF with
+   the SAME algorithm /invoice uses — geocode (cached) → nearest-neighbour →
+   2-opt → Or-opt — so stops are driven in a sensible order instead of by raw
+   job time. Preference: (a) saved canonical route > (b) self-optimized > (c) job time.
+   Geocoding needs a signal; with none we fall back gracefully to the cached
+   optimized order, then to job time — never breaking the route view. */
+const _GEO_CACHE_KEY='evg_geocache_v5';   // v5: Census-first accurate geocoder      // v3: POI-rejecting geocoder — shared with /invoice (free cache hits)
+const _OPT_ORDER_KEY='evg_field_optorder_v1';
+// Approximate town centroids for the service area — a graceful fallback when a street
+// address will not geocode (provider down / rate-limited), so a route still clusters and
+// optimizes by town instead of failing with "Could not optimize". Precise geocodes are
+// always preferred; these are only a safety net.
+const CITY_LATLON = {
+  'Crystal River':{lat:28.902,lon:-82.592}, 'Inverness':{lat:28.836,lon:-82.330},
+  'Lecanto':{lat:28.855,lon:-82.487}, 'Dunnellon':{lat:29.049,lon:-82.459},
+  'Citrus Springs':{lat:28.997,lon:-82.459}, 'Floral City':{lat:28.750,lon:-82.298},
+  'Hernando':{lat:28.899,lon:-82.375}, 'Beverly Hills':{lat:28.917,lon:-82.457},
+  'Inglis':{lat:29.028,lon:-82.662}, 'Yankeetown':{lat:29.030,lon:-82.712},
+  'Ocala':{lat:29.187,lon:-82.140}, 'Summerfield':{lat:28.998,lon:-81.985},
+  'Silver Springs':{lat:29.192,lon:-82.052}, 'Chiefland':{lat:29.475,lon:-82.860},
+  'Morriston':{lat:29.290,lon:-82.451}, 'Brooksville':{lat:28.555,lon:-82.388}
+};
+const ZIP_CITY={ '34428':'Crystal River','34429':'Crystal River','34450':'Inverness','34451':'Inverness','34452':'Inverness','34453':'Inverness','34460':'Lecanto','34461':'Lecanto','34431':'Dunnellon','34432':'Dunnellon','34433':'Dunnellon','34434':'Citrus Springs','34436':'Floral City','34442':'Hernando','34423':'Crystal River','34464':'Beverly Hills','34465':'Beverly Hills','34449':'Inglis','34498':'Yankeetown','34480':'Ocala','34481':'Ocala','34482':'Ocala','34476':'Ocala','34474':'Ocala','34472':'Ocala','34470':'Ocala','34471':'Ocala','34479':'Ocala','34475':'Ocala','34478':'Ocala','34491':'Summerfield','34488':'Silver Springs','32626':'Chiefland','32668':'Morriston','34601':'Brooksville','34602':'Brooksville','34604':'Brooksville' };
+function _geoCacheLoad(){ try{ return JSON.parse(localStorage.getItem(_GEO_CACHE_KEY)||'{}'); }catch(e){ return {}; } }
+function _geoCacheSave(c){ try{ localStorage.setItem(_GEO_CACHE_KEY, JSON.stringify(c)); }catch(e){} }
+function _loadOptOrderCache(){ try{ const o=JSON.parse(localStorage.getItem(_OPT_ORDER_KEY)||'null'); if(o&&o.date===todayISOStr()&&Array.isArray(o.keys)&&o.keys.length) return o.keys; }catch(e){} return null; }
+function _saveOptOrderCache(keys){ try{ localStorage.setItem(_OPT_ORDER_KEY, JSON.stringify({date:todayISOStr(), keys:keys})); }catch(e){} }
+
+function haversineMiles(lat1,lon1,lat2,lon2){ const R=3958.8; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
+function _routeLen(arr,origin){ const dd=(a,b)=>(a&&b&&a.lat!=null&&b.lat!=null)?haversineMiles(a.lat,a.lon,b.lat,b.lon):0; let total=0; let prev=(origin&&origin.lat!=null)?origin:null; for(const s of arr){ if(s&&s.lat!=null){ if(prev) total+=dd(prev,s); prev=s; } } return total; }
+function _twoOptImprove(route,origin){ if(!route||route.length<4) return route; const pts=route.slice(); const dd=(a,b)=>(a&&b&&a.lat!=null&&b.lat!=null)?haversineMiles(a.lat,a.lon,b.lat,b.lon):0; const org=(origin&&origin.lat!=null)?origin:null; let improved=true,guard=0; while(improved&&guard++<40){ improved=false; for(let i=0;i<pts.length-1;i++){ for(let j=i+1;j<pts.length;j++){ const A=i===0?org:pts[i-1]; const B=pts[i],C=pts[j],D=j+1<pts.length?pts[j+1]:null; const before=dd(A,B)+dd(C,D); const after=dd(A,C)+dd(B,D); if(after+1e-6<before){ for(let lo=i,hi=j;lo<hi;lo++,hi--){ const t=pts[lo]; pts[lo]=pts[hi]; pts[hi]=t; } improved=true; } } } } return pts; }
+function _orOptImprove(route,origin){ if(!route||route.length<3) return route; let pts=route.slice(); const org=(origin&&origin.lat!=null)?origin:null; let improved=true,guard=0; while(improved&&guard++<60){ improved=false; const baseLen=_routeLen(pts,org); outer: for(let segLen=1;segLen<=3&&segLen<pts.length;segLen++){ for(let i=0;i+segLen<=pts.length;i++){ const seg=pts.slice(i,i+segLen); const rest=pts.slice(0,i).concat(pts.slice(i+segLen)); for(let j=0;j<=rest.length;j++){ const cand=rest.slice(0,j).concat(seg,rest.slice(j)); let same=true; for(let k=0;k<cand.length;k++){ if(cand[k]!==pts[k]){ same=false; break; } } if(same) continue; if(_routeLen(cand,org)+1e-6<baseLen){ pts=cand; improved=true; break outer; } } } } } return pts; }
+function _localSearchRoute(route,origin){ let r=route; for(let pass=0;pass<8;pass++){ const before=_routeLen(r,origin); r=_twoOptImprove(r,origin); r=_orOptImprove(r,origin); if(_routeLen(r,origin)+1e-9>=before) break; } return r; }
+function _nearestNeighbour(startCoord,stops){ const unvisited=[...stops]; const route=[]; let cur=startCoord; while(unvisited.length){ let best=-1,bestDist=Infinity; for(let i=0;i<unvisited.length;i++){ const d=haversineMiles(cur.lat,cur.lon,unvisited[i].lat,unvisited[i].lon); if(d<bestDist){ bestDist=d; best=i; } } route.push(Object.assign({},unvisited[best],{distFromPrev:bestDist})); cur=unvisited[best]; unvisited.splice(best,1); } return _localSearchRoute(route,startCoord); }
+
+// Multi-provider geocoder. Order matters for a browser PWA:
+//   1) US Census — CORS-open, no key, no rate limit, excellent on US street
+//      addresses (our whole service area). This is the reliable primary.
+//   2) Photon (komoot) — CORS-friendly, good for partial / city / POI queries.
+//   3) Nominatim — LAST resort only; it 403s / rate-limits from browsers, so it
+//      must never be the sole path (that's what broke the live route).
+// Every hit is bounds-checked to Florida so a bad match can't scatter the route.
+// US Census geocoder via JSONP — the authoritative US street-address database
+// (house-level accuracy), free and keyless. JSONP (a <script> tag) sidesteps the CORS
+// block that stops a normal fetch, and it correctly resolves rural streets that the
+// OpenStreetMap-based providers miss or snap to the wrong road.
+function _censusGeocode(addr){
+  return new Promise(function(resolve){
+    if(typeof document==='undefined'){ resolve(null); return; }
+    var cb='__evgCensus_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+    var s=document.createElement('script'); var done=false;
+    function cleanup(){ try{ delete window[cb]; }catch(e){} try{ if(s&&s.parentNode) s.parentNode.removeChild(s); }catch(e){} }
+    window[cb]=function(data){ done=true; cleanup(); try{ var m=data&&data.result&&data.result.addressMatches&&data.result.addressMatches[0]; if(m&&m.coordinates){ resolve({ lat:+m.coordinates.y, lon:+m.coordinates.x }); return; } }catch(e){} resolve(null); };
+    s.onerror=function(){ if(!done){ cleanup(); resolve(null); } };
+    s.src='https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?benchmark=Public_AR_Current&format=jsonp&callback='+cb+'&address='+encodeURIComponent(addr);
+    (document.head||document.documentElement).appendChild(s);
+    setTimeout(function(){ if(!done){ cleanup(); resolve(null); } }, 7000);
+  });
+}
+async function _geocodeAddr(addr){
+  // Geocoders (Photon/Nominatim) miss abbreviated US addresses — "123 W Oak Ct" returns
+  // nothing, but "123 West Oak Court" matches. So expand directionals + street-type
+  // suffixes and query the expanded form first. (US Census would be ideal but it is
+  // CORS-blocked from browsers, so it can't be used client-side.)
+  const _GEO_EXP={ N:'North',S:'South',E:'East',W:'West',NE:'Northeast',NW:'Northwest',SE:'Southeast',SW:'Southwest',St:'Street',Ave:'Avenue',Av:'Avenue',Blvd:'Boulevard',Dr:'Drive',Ct:'Court',Ln:'Lane',Rd:'Road',Ter:'Terrace',Terr:'Terrace',Pl:'Place',Cir:'Circle',Hwy:'Highway',Pkwy:'Parkway',Trl:'Trail',Pt:'Point',Sq:'Square',Xing:'Crossing',Cv:'Cove',Trce:'Trace' };
+  function _expandAbbr(s){ let x=' '+String(s||'')+' '; for(const k in _GEO_EXP){ x=x.replace(new RegExp('(^|[\\s,])'+k+'\\.?(?=[\\s,])','gi'), '$1'+_GEO_EXP[k]); } return x.replace(/\s+/g,' ').trim(); }
+  // Service-area bounds (Citrus + neighbouring counties). Rejects a same-named street
+  // elsewhere in Florida that would otherwise fling the route 100+ miles off.
+  const inFL=function(c){ return c&&c.lat>=28.3&&c.lat<=29.75&&c.lon>=-83.05&&c.lon<=-81.7; };
+  const _GEO_BAD_KEY=new Set(['leisure','amenity','tourism','natural','historic','shop','boundary','landuse','waterway','railway','aeroway','man_made','military','office']);
+  const _GEO_BAD_TYPE=new Set(['city','town','village','hamlet','suburb','neighbourhood','locality','district','region','county','state','island','islet','administrative']);
+  const wantHouseNum=(String(addr).match(/^\s*\d+\b/)||[''])[0].trim();
+  function fetchWithTimeout(url,opts,ms){ ms=ms||6000; const ctrl=new AbortController(); const timer=setTimeout(function(){ctrl.abort();},ms); return fetch(url,Object.assign({},opts,{signal:ctrl.signal})).finally(function(){clearTimeout(timer);}); }
+  async function tryPhoton(q){
+    const r=await fetchWithTimeout('https://photon.komoot.io/api/?q='+encodeURIComponent(q)+'&limit=8&lang=en&countrycode=us',{},6000);
+    const d=await r.json(); const feats=(d&&d.features)||[];
+    for(const f of feats){ const p=f.properties||{}; const k=String(p.osm_key||'').toLowerCase(); const t=String(p.type||'').toLowerCase();
+      if(_GEO_BAD_KEY.has(k)||_GEO_BAD_TYPE.has(t)) continue;                  // reject parks/communities/areas
+      if(wantHouseNum && !p.street && t!=='house' && t!=='street') continue;  // need a real street, not an area centroid
+      const c={ lat:f.geometry.coordinates[1], lon:f.geometry.coordinates[0] }; if(inFL(c)) return c; }
+    return null;
+  }
+  async function tryNominatim(q,structured){
+    const url='https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=8&countrycodes=us&'+(structured?q:'q='+encodeURIComponent(q));
+    const r=await fetchWithTimeout(url,{headers:{'Accept-Language':'en'}},6000);
+    const d=await r.json(); if(!Array.isArray(d)) return null;
+    for(const h of d){ const c=String(h.class||'').toLowerCase(); const t=String(h.type||'').toLowerCase(); const a=h.address||{};
+      if(_GEO_BAD_KEY.has(c)) continue;                       // reject leisure/amenity/tourism POIs
+      if(c==='place' && _GEO_BAD_TYPE.has(t)) continue;       // reject suburb/locality/district centroids
+      const hasRoad=!!(a.road||a.pedestrian||a.residential);
+      if(wantHouseNum && !hasRoad) continue;                  // a house-numbered input must hit a real road
+      const co={ lat:parseFloat(h.lat), lon:parseFloat(h.lon) }; if(inFL(co)) return co; }
+    return null;
+  }
+  function _geoParts(a){ const zm=a.match(/,\s*(\d{5})/); const zip=zm?zm[1]:''; const city=ZIP_CITY[zip]||''; const streetOnly=a.replace(/,\s*\d{5}/,''); let sn=streetOnly.replace(/,\s*FL\s*$/i,'').replace(/,\s*Florida\s*$/i,'').trim(); if(city&&sn.toLowerCase().endsWith(', '+city.toLowerCase())) sn=sn.slice(0,sn.length-city.length-2).trim(); return {zip,city,streetOnly,streetNoState:sn,addrByCity:city?sn+', '+city+', FL':'',streetFL:sn+', Florida'}; }
+  // 0. US Census first — authoritative, house-level, handles abbreviations/case/punctuation.
+  //    Trusted broadly within Florida (it only returns exact address-string matches).
+  const _inFLwide=function(c){ return c&&c.lat>=24&&c.lat<=31.6&&c.lon>=-88&&c.lon<=-79.4; };
+  try{ const _cc=await _censusGeocode(addr); if(_cc&&_inFLwide(_cc)) return _cc; }catch(e){}
+  const P=_geoParts(_expandAbbr(addr));
+  // 0. Structured Nominatim on the expanded street — most precise, least POI bleed
+  if(P.streetNoState){ const _qs='street='+encodeURIComponent(P.streetNoState)+(P.city?'&city='+encodeURIComponent(P.city):'')+'&state=FL&country=US'+(P.zip?'&postalcode='+encodeURIComponent(P.zip):''); try{ const r=await tryNominatim(_qs,true); if(r) return r; }catch(e){} }
+  // 1. Photon then Nominatim over expanded address, raw address, city-only, street+FL.
+  const variants=[_expandAbbr(addr), addr]; if(P.addrByCity) variants.push(P.addrByCity); variants.push(P.streetFL);
+  if(P.zip&&!P.city) variants.push(P.streetOnly.replace(/, FL$/i,'').trim()+', Citrus County, FL');
+  for(const q of variants){ try{ const r=await tryPhoton(q); if(r) return r; }catch(e){} }
+  for(const q of variants){ try{ const r=await tryNominatim(q); if(r) return r; }catch(e){} }
+  return null;
+}
+
+// Geocode today's stops (cached) and compute an optimized visiting order.
+// Returns true if it produced/updated an order; false if it couldn't (offline,
+// <2 stops, or geocoding failed) so the caller keeps the existing fallback.
+async function _fmComputeOptimizedOrder(){
+  try{
+    if(navigator.onLine===false) return false;             // no signal → keep cached order / job time
+    const jobs=_fmTodayRawJobs(); if(jobs.length<2) return false;
+    const cache=_geoCacheLoad(); let dirty=false; const geo=[];
+    for(const bk of jobs){
+      const city=ZIP_CITY[bk.zip]||'';
+      const fullAddr=(bk.address||'')+(bk.zip?', '+bk.zip:'')+(city?', '+city:'')+', FL';
+      let coord=cache[fullAddr];
+      if(coord===undefined){ coord=await _geocodeAddr(fullAddr); if(coord){ cache[fullAddr]=coord; dirty=true; } }
+      if(!coord){ const _cc=CITY_LATLON[ZIP_CITY[bk.zip]]; if(_cc) coord=_cc; }   // town-centroid fallback so the route still optimizes when a street won't geocode
+      geo.push({ bk:bk, lat:coord?coord.lat:undefined, lon:coord?coord.lon:undefined, failed:!coord });
+    }
+    if(dirty) _geoCacheSave(cache);
+    const valid=geo.filter(s=>!s.failed&&s.lat!=null); const failed=geo.filter(s=>s.failed||s.lat==null);
+    if(valid.length<2) return false;                       // not enough geocoded → keep job-time fallback
+    const origin=(_startPoint&&_startPoint.lat!=null&&_startPoint.lon!=null)?_startPoint:valid[0]; // employee's chosen start point is the route depot
+    let ordered=rcOptimizeGeographic(valid, origin);       // tight geographic loop from the start point (shared with /invoice)
+    try{ ordered=await rcRefineWithRoads(ordered, origin); }catch(e){}  // OSRM real-road refine — only ever improves, falls back to straight-line
+    const all=ordered.concat(failed);                      // geocode-failed stops trail at the end
+    const keys=all.filter(s=>s&&s.bk&&s.bk.email).map(s=>_stopKey(s.bk));
+    if(!keys.length) return false;
+    const changed=!_optOrderKeys||_optOrderKeys.join('~')!==keys.join('~');
+    _optOrderKeys=keys; _saveOptOrderCache(keys);
+    return { ok:true, changed:changed };   // SUCCESS. (Previously returned only "changed",
+                                           // so an already-optimal route reported a false
+                                           // "Could not optimize" every time after the first.)
+  }catch(e){ return false; }
+}
+
+/* ───────── Start point + crew picker (drive route from where the crew is) ───────── */
+const _START_PT_KEY='evg_field_startpt_v1';
+const _CREW_SEL_KEY='evg_field_crew_v1';
+function _loadStartPoint(){ try{ const o=JSON.parse(localStorage.getItem(_START_PT_KEY)||'null'); if(o&&o.lat!=null&&o.lon!=null) return o; }catch(e){} return null; }
+function _saveStartPoint(sp){ try{ if(sp) localStorage.setItem(_START_PT_KEY, JSON.stringify(sp)); else localStorage.removeItem(_START_PT_KEY); }catch(e){} }
+function _loadCrewSel(){ try{ const v=localStorage.getItem(_CREW_SEL_KEY); return v||null; }catch(e){ return null; } }
+function _saveCrewSel(c){ try{ if(c) localStorage.setItem(_CREW_SEL_KEY, c); else localStorage.removeItem(_CREW_SEL_KEY); }catch(e){} }
+
+// Distinct crews present in today's jobs (before crew filtering), e.g. ['A','B'] (+UNASSIGNED flag).
+function _availableCrews(){
+  const ds=todayISOStr(); const set=new Set(); let hasUnassigned=false;
+  (allBookings||[]).forEach(b=>{ if(b.rowCancelled||dateOf(b)!==ds) return; const c=String(b.crew||'').toUpperCase().trim(); if(c) set.add(c); else hasUnassigned=true; });
+  String(adminCrews||'').toUpperCase().split(/[^A-Z0-9]+/).forEach(c=>{ if(c) set.add(c); });
+  return { crews:[...set].sort(), hasUnassigned };
+}
+
+// Re-run optimization right away when the start point or crew changes.
+async function _reoptimizeNow(){
+  showToast('🧭 Optimizing route…');
+  const res=await _fmComputeOptimizedOrder();
+  const ok=!!(res && res.ok);
+  _fmRender();
+  if(!ok){ if(navigator.onLine===false) showToast('📴 Offline — using last saved order'); else showToast('Could not optimize — check addresses/signal'); }
+  else showToast('✅ Route optimized from your start point');
+}
+
+// Employee taps 📍 — use device GPS as the route origin (works offline; geocoding of stops may not).
+function fmUseMyLocation(){
+  if(!navigator.geolocation){ showToast('Location not supported on this device'); return; }
+  showToast('📍 Getting your location…');
+  try{ _startGeo(); }catch(e){}   // warm the live-GPS watch so the fallbacks below actually have a fix to use
+  const apply=function(lat,lon){ _startPoint={ lat:lat, lon:lon, label:'My current location', src:'gps' }; _saveStartPoint(_startPoint); const i=document.getElementById('fmStartAddr'); if(i) i.value=''; showToast('📍 Start point set'); _fmRenderRouteSetup(); _reoptimizeNow(); };
+  const tryGeo=function(hi, ms, onFail){ navigator.geolocation.getCurrentPosition(
+    function(pos){ apply(pos.coords.latitude, pos.coords.longitude); },
+    function(err){ onFail(err); },
+    { enableHighAccuracy:hi, maximumAge:60000, timeout:ms }
+  ); };
+  // 1) quick high-accuracy try
+  tryGeo(true, 10000, function(err){
+    if(err && err.code===1){ showToast('Location blocked — allow location for this site in your browser settings, then tap 📍 again'); return; }
+    // 2) fall back to the live GPS the app already tracks while driving
+    if(_lastPos && _lastPos.lat!=null){ apply(_lastPos.lat, _lastPos.lon); return; }
+    // 3) slower low-accuracy retry (cell/wifi based) with a longer window
+    showToast('📍 Still locating…');
+    tryGeo(false, 25000, function(err2){
+      if(_lastPos && _lastPos.lat!=null){ apply(_lastPos.lat, _lastPos.lon); return; }
+      // last chance: the warm watch may have landed a fix in the meantime
+      setTimeout(function(){
+        if(_lastPos && _lastPos.lat!=null){ apply(_lastPos.lat, _lastPos.lon); return; }
+        showToast(err2&&err2.code===1
+          ? '📍 Location is blocked for this app. Turn it on in Settings ▸ Privacy ▸ Location, or just type your start address in the box.'
+          : '📍 Couldn\'t get a GPS fix (common indoors / on home-screen apps). Type your start address in the box instead — it works the same.');
+      }, 2500);
+    });
+  });
+}
+
+// Employee typed a start address — geocode it (same pipeline as /invoice) and use as origin.
+async function fmApplyStartAddr(){
+  const i=document.getElementById('fmStartAddr'); const raw=i?i.value.trim():'';
+  if(!raw){ showToast('Type a start address or tap 📍'); return; }
+  if(navigator.onLine===false){ showToast('📴 Offline — can\'t look up an address. Tap 📍 to use GPS.'); return; }
+  showToast('🔎 Looking up address…');
+  const q=/,\s*(FL|Florida)\b/i.test(raw)?raw:(raw+', FL');
+  const coord=await _geocodeAddr(q);
+  if(!coord){ showToast('Couldn\'t find that address — try adding city/zip'); return; }
+  _startPoint={ lat:coord.lat, lon:coord.lon, label:raw, src:'address' }; _saveStartPoint(_startPoint);
+  _fmRenderRouteSetup(); _reoptimizeNow();
+}
+
+function fmSelectCrew(c){
+  if(!_fmIsBoss()){
+    const mine=String(adminCrews||'').toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean);
+    if(mine.length&&mine.indexOf(c)<0){ showToast('🔒 You\'re assigned to Crew '+mine.join(' & ')+' — ask the owner to switch you'); return; }
+  }
+  _crewSel=c; _saveCrewSel(c); _fmRenderStart(); _reoptimizeNow();
+}
+
+// Render the start-point note + crew chips on the start screen.
+function _fmRenderRouteSetup(){
+  const note=document.getElementById('fmStartPtNote');
+  if(note){
+    if(_savedOrderKeys&&_savedOrderKeys.length){ note.innerHTML='✅ Following the route your owner set. Start point only matters if no owner route exists.'; }
+    else if(_startPoint){ note.innerHTML='Starting from: <strong>'+esc(_startPoint.label||'set point')+'</strong>'+(_startPoint.src==='gps'?' (GPS)':'')+'. Stops are optimized from here.'; }
+    else { note.innerHTML='Set a start point to optimize your driving order. Until then, stops show in a sensible default order.'; }
+  }
+  const addr=document.getElementById('fmStartAddr');
+  if(addr && _startPoint && _startPoint.src==='address' && !addr.value) addr.value=_startPoint.label||'';
+  // crew chips: only when there's a real choice (multiple crews today, or no staff assignment)
+  const wrap=document.getElementById('fmCrewChips'); if(!wrap) return;
+  const av=_availableCrews(); let opts=[];
+  av.crews.forEach(c=>opts.push({v:c,label:'Crew '+c}));
+  if(av.hasUnassigned) opts.push({v:'UNASSIGNED',label:'Unassigned'});
+  opts.push({v:'ALL',label:'All'});
+  // employees only ever see their OWN crew(s) — no running someone else's route
+  if(!_fmIsBoss()){
+    const mine=String(adminCrews||'').toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean);
+    if(mine.length){
+      opts=opts.filter(function(o){ return mine.indexOf(o.v)>=0; });
+      if(_crewSel&&mine.indexOf(_crewSel)<0){ _crewSel=null; try{ _saveCrewSel(''); }catch(e){} }   // clear a stale/foreign override
+    }
+  }
+  const meaningful = _fmIsBoss() ? (opts.length>2 || !adminCrews) : opts.length>1;
+  if(!meaningful){ wrap.style.display='none'; return; }
+  wrap.style.display='';
+  const eff=_crewSel||(String(adminCrews||'').toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean)[0])||'ALL';
+  const chip=(o)=>'<button onclick="fmSelectCrew(\''+o.v+'\')" style="border:1px solid '+(o.v===eff?'#0ea5e9':'rgba(255,255,255,.2)')+';background:'+(o.v===eff?'rgba(14,165,233,.22)':'rgba(255,255,255,.06)')+';color:#e0f2fe;border-radius:999px;padding:7px 13px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;margin:0 6px 6px 0;">'+esc(o.label)+'</button>';
+  wrap.innerHTML='<div style="font-size:12px;font-weight:800;color:#9cc8e3;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Your crew</div>'+opts.map(chip).join('');
+}
+
+/* ───────── Offline queue + idempotency ───────── */
+const FM_QUEUE_KEY='evg_fm_sync_queue_v2', FM_DONEKEYS_KEY='evg_fm_done_keys_v1';
+let _fmFlushing=false;
+function _fmQueueLoad(){ try{ return JSON.parse(localStorage.getItem(FM_QUEUE_KEY)||'[]'); }catch(e){ return []; } }
+function _fmQueueSave(q){ try{ localStorage.setItem(FM_QUEUE_KEY, JSON.stringify(q)); }catch(e){} }
+function _fmDoneKeys(){ try{ return new Set(JSON.parse(localStorage.getItem(FM_DONEKEYS_KEY)||'[]')); }catch(e){ return new Set(); } }
+function _fmMarkKeyDone(k){ try{ const s=_fmDoneKeys(); s.add(k); localStorage.setItem(FM_DONEKEYS_KEY, JSON.stringify([...s].slice(-500))); }catch(e){} }
+function _fmEnqueue(item){
+  if(!item.idemKey) item.idemKey=item.kind+':'+_uuid();
+  if(_fmDoneKeys().has(item.idemKey)) return false;
+  const q=_fmQueueLoad();
+  if(q.some(x=>x.idemKey===item.idemKey)) return false;
+  if(item.method==='POST'){ item.body=item.body||{}; item.body.idemKey=item.idemKey; }
+  else { item.params=item.params||{}; item.params.idemKey=item.idemKey; }
+  item.tries=0; q.push(item); _fmQueueSave(q); _fmUpdateSyncBadge();
+  return true;
+}
+async function _fmFlushQueue(){
+  if(_fmFlushing) return;
+  if(navigator.onLine===false){ _fmUpdateSyncBadge(); return; }
+  _fmFlushing=true;
+  try{
+    let q=_fmQueueLoad();
+    while(q.length){
+      const item=q[0];
+      try{
+        let res;
+        if(item.method==='POST') res=await fetch(SCRIPT_URL,{ method:'POST', body:JSON.stringify(item.body) });
+        else res=await fetch(SCRIPT_URL+'?'+new URLSearchParams(item.params).toString());
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        _fmMarkKeyDone(item.idemKey); q.shift(); _fmQueueSave(q);
+      }catch(netErr){
+        item.tries=(item.tries||0)+1;
+        // photos are irreplaceable — NEVER drop them; other items give up after 12 tries
+        if(item.tries>12&&item.kind!=='photo') q.shift();
+        _fmQueueSave(q); break;
+      }
+    }
+  } finally { _fmFlushing=false; _fmUpdateSyncBadge(); }
+}
+function _fmUpdateSyncBadge(){
+  const _q=_fmQueueLoad(); const n=_q.length, online=navigator.onLine!==false;
+  const stuck=_q.some(function(it){ return (it.tries||0)>5; });
+  document.querySelectorAll('.fm-sync').forEach(el=>{ if(n===0){ el.style.display='none'; return; } el.style.display=''; if(!online){ el.className='fm-sync offline'; el.textContent='📴 '+n+' to sync'; } else if(stuck){ el.className='fm-sync offline'; el.textContent='⚠ '+n+' stuck — stay on wifi & keep app open'; } else { el.className='fm-sync pending'; el.textContent='⏳ Syncing '+n+'…'; } });
+  const b=document.getElementById('netBanner'); if(b){ if(navigator.onLine===false){ b.className='show'; b.textContent='📴 Offline — work is saved, syncs when you reconnect'+(n?(' · '+n+' pending'):''); } else b.className=''; }
+}
+
+/* ───────── Timers + clock ───────── */
+function _fmTimerStr(){ if(!_clockInTime) return '0:00:00'; const end=_clockOutTime||new Date(); const s=Math.max(0,Math.floor((end.getTime()-_clockInTime.getTime())/1000)); const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60; return h+':'+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0'); }
+function _fmSyncTimerSlots(){ const on=!!_clockInTime&&!_clockedOut; const jt=document.getElementById('fmJobTimer'); if(jt) jt.style.display=on?'':'none'; ['fmStartTimerSlot','fmStartTimerSlot2'].forEach(id=>{ const slot=document.getElementById(id); if(slot) slot.innerHTML=on?'<div class="fm-top-timer"><span class="fm-dot"></span><span class="fmTimerVal">'+_fmTimerStr()+'</span></div>':''; }); }
+// Live heartbeat → owner dashboard. Best-effort: posts position + progress while
+// clocked in and online. Geolocation is cached (maximumAge) to spare battery; if the
+// crew denies location we still report progress (just no pin).
+// Continuous location: watchPosition keeps _lastPos fresh as the crew drives,
+// so each heartbeat carries their latest fix (no stale one-shot caching).
+function _startGeo(){
+  if(_geoWatch!=null || !navigator.geolocation) return;
+  try{
+    _geoWatch=navigator.geolocation.watchPosition(
+      function(pos){ _lastPos={ lat:pos.coords.latitude, lon:pos.coords.longitude }; },
+      function(){},
+      { enableHighAccuracy:true, maximumAge:10000, timeout:25000 }
+    );
+  }catch(e){}
+}
+function _stopGeo(){ try{ if(_geoWatch!=null && navigator.geolocation){ navigator.geolocation.clearWatch(_geoWatch); } }catch(e){} _geoWatch=null; }
+// Keep the screen awake during a route so timers/GPS don't get suspended mid-route.
+async function _requestWake(){ if(_wakeLock||!_fmStarted||_clockedOut) return; try{ if('wakeLock' in navigator){ _wakeLock=await navigator.wakeLock.request('screen'); _wakeLock.addEventListener('release',function(){ _wakeLock=null; }); } }catch(e){} }
+function _releaseWake(){ try{ if(_wakeLock) _wakeLock.release(); }catch(e){} _wakeLock=null; }
+function _fmSendClockedOut(){
+  if(!adminToken || navigator.onLine===false) return;
+  try{
+    const stops=_fmStops(); const total=stops.length; const done=stops.filter(function(x){return isDone(x.bk);}).length;
+    const params=new URLSearchParams({ action:'update_field_status', adminToken:adminToken, ts:String(Date.now()), active:'0',
+      clockIn:_clockInTime?_clockInTime.toISOString():'', crew:adminCrews||'', totalStops:total, doneCount:done, helpers:String((_helpers||[]).length) });
+    fetch(SCRIPT_URL+'?'+params.toString()).catch(function(){});
+  }catch(e){}
+}
+function _fmHeartbeat(){
+  if(!_fmStarted) return;
+  if(_clockedOut){ _lastSync={ok:false,ts:Date.now(),msg:'clocked out'}; _renderSyncStatus(); return; }
+  if(!adminToken){ _lastSync={ok:false,ts:Date.now(),msg:'not signed in'}; _renderSyncStatus(); return; }
+  if(navigator.onLine===false){ _lastSync={ok:false,ts:Date.now(),msg:'offline'}; _renderSyncStatus(); return; }
+  try{
+    _startGeo(); _requestWake();
+    const stops=_fmStops(); const total=stops.length;
+    const done=stops.filter(function(x){return isDone(x.bk);}).length;
+    const cur=stops[_fmViewIdx]||stops.find(function(x){return !_fmResolved(x);});
+    const bk=cur&&cur.bk;
+    const params=new URLSearchParams({ action:'update_field_status', adminToken:adminToken, ts:String(Date.now()), active:'1',
+      clockIn:_clockInTime?_clockInTime.toISOString():'', crew:adminCrews||'',
+      stopName: bk?(bk.name||''):'', stopAddr: bk?((bk.address||'')+(bk.zip?', '+bk.zip:'')):'',
+      stopIndex: cur?(stops.indexOf(cur)+1):0, totalStops: total, doneCount: done,
+      helpers: String((_helpers||[]).length) });
+    if(_lastPos){ params.set('lat', String(_lastPos.lat)); params.set('lon', String(_lastPos.lon)); }
+    if(_lastSync.ts===0){ _lastSync={ok:null,ts:Date.now(),msg:'sending'}; _renderSyncStatus(); }
+    fetch(SCRIPT_URL+'?'+params.toString())
+      .then(function(r){ return r.json(); })
+      .then(function(d){ _lastSync={ ok:!!(d&&d.success===true), ts:Date.now(), msg:(d&&d.success===true)?'':((d&&d.error)||'unexpected response') }; _renderSyncStatus(); })
+      .catch(function(e){ _lastSync={ ok:false, ts:Date.now(), msg:'network: '+((e&&e.message)||'fail') }; _renderSyncStatus(); });
+  }catch(err){ _lastSync={ok:false,ts:Date.now(),msg:'err: '+((err&&err.message)||err)}; _renderSyncStatus(); }
+}
+function _renderSyncStatus(){
+  const el=document.getElementById('fmSyncStatus'); if(!el) return;
+  if(!_fmStarted){ el.textContent=''; return; }
+  if(_lastSync.ts===0){ el.textContent='📡 Live tracking: starting…'; el.style.color='#9cc8e3'; return; }
+  const m=_lastSync.msg||'';
+  const secs=Math.max(0,Math.round((Date.now()-_lastSync.ts)/1000));
+  const ago=secs<60?(secs+'s ago'):(Math.floor(secs/60)+'m ago');
+  if(_lastSync.ok){ el.textContent='📡 Live tracking on · synced '+ago; el.style.color='#7dd3fc'; }
+  else if(m==='sending'){ el.textContent='📡 sending…'; el.style.color='#9cc8e3'; }
+  else if(/missing required|unknown|not a function|no function|unexpected response/i.test(m)){ el.textContent='⚠ Live tracking OFF — redeploy the backend (Apps Script)'; el.style.color='#fca5a5'; }
+  else { el.textContent='📡 sync issue: '+m+' · '+ago; el.style.color='#fbbf24'; }
+}
+function _startTimers(){
+  if(_fmTimerInt) clearInterval(_fmTimerInt);
+  _fmTimerInt=setInterval(()=>{ _renderSyncStatus(); if(!_clockInTime||_clockedOut) return; const v=_fmTimerStr(); const a=document.getElementById('fmJobTimerVal'); if(a)a.textContent=v; document.querySelectorAll('.fmTimerVal').forEach(e=>e.textContent=v); },1000);
+  if(_fmSyncInt) clearInterval(_fmSyncInt);
+  _fmSyncInt=setInterval(_fmFlushQueue,20000);
+  // Live route sync: pull owner's reorder/cancel/move changes while on the clock
+  if(_fmPollInt) clearInterval(_fmPollInt);
+  _fmPollInt=setInterval(function(){ if(_fmStarted && navigator.onLine!==false){ _fmHeartbeat(); if(!_anySheetOpen()) loadData(); } },20000);
+}
+function _autoClockOut(){
+  if(!_clockInTime||_clockedOut) return;
+  _clockOutTime=new Date(); _clockedOut=true;
+  const hours=Math.max(0,(_clockOutTime.getTime()-_clockInTime.getTime())/3600000);
+  const _coKey='clockout:'+(_clockInTime?_clockInTime.toISOString():todayISOStr());
+  _fmEnqueue({ kind:'clockout', idemKey:_coKey, method:'GET', params:{ action:'employee_clock_out', hours:hours.toFixed(2), date:todayISOStr(), markedBy:adminName||'Crew', helpers:JSON.stringify((_helpers||[]).map(function(h){return (typeof h==='string')?{name:h}:{name:h&&h.name,hourlyRate:(h&&h.hourlyRate)||0};})), adminToken } });
+  _fmSendClockedOut(); _fmFlushQueue(); _persist(); _stopGeo(); _releaseWake();
+}
+
+/* ───────── Stops / ordering ───────── */
+function _stopKey(bk){ return String(bk.email||'').toLowerCase().trim()+'|'+dateOf(bk); }
+function _crewMatch(bk){ if(_crewSel){ if(_crewSel==='ALL') return true; const c=String(bk.crew||'').toUpperCase().trim(); if(_crewSel==='UNASSIGNED') return !c; return c===_crewSel||!c; } return _crewOk(bk); } // explicit override else staff assignment
+function _fmTodayRawJobs(){ const ds=todayISOStr(); return (allBookings||[]).filter(b=>!b.rowCancelled&&dateOf(b)===ds&&_crewMatch(b)); } // completed jobs stay so progress counts them as done
+function _fmStops(){
+  const jobs=_fmTodayRawJobs().map(bk=>({bk}));
+  const order=(_savedOrderKeys&&_savedOrderKeys.length)?_savedOrderKeys           // owner's pushed route is LAW
+             :(_startPoint&&_optOrderKeys&&_optOrderKeys.length)?_optOrderKeys   // no pushed route → start-point optimization
+             :(_optOrderKeys&&_optOrderKeys.length)?_optOrderKeys:null;
+  if(order){
+    const pos=k=>{ const i=order.indexOf(k); return i<0?9999:i; };   // (a) saved canonical route, else (b) self-optimized order
+    jobs.sort((a,b)=>pos(_stopKey(a.bk))-pos(_stopKey(b.bk)));
+  } else {
+    jobs.sort((a,b)=>{ const ta=a.bk.jobTime||'99:99', tb=b.bk.jobTime||'99:99'; return ta<tb?-1:ta>tb?1:0; }); // (c) job time last resort
+  }
+  return jobs;
+}
+function _fmIsSkipped(bk){ return !!_fmSkipped[_stopKey(bk)]; }
+function _fmResolved(s){ return isDone(s.bk)||_fmIsSkipped(s.bk); }
+function _fmOpenStops(){ return _fmStops().filter(s=>!_fmResolved(s)); }
+// True only when the stop being completed is the LAST open stop. A "Skip for now"
+// stop is still open, so being on the last stop by position is NOT the finish.
+function _fmIsFinalOpenStop(){ return _fmOpenStops().length<=1; }
+function _fmShow(screen){ document.querySelectorAll('#fieldMode .fm-screen').forEach(s=>s.classList.remove('active')); const el=document.getElementById(screen); if(el) el.classList.add('active'); }
+function fmBackToStart(){ _fmShow('fmScreenStart'); _fmRenderStart(); }
+
+/* ───────── Render router ───────── */
+function _fmRender(){
+  if(!document.getElementById('fieldMode').classList.contains('show')) return;
+  const stops=_fmStops();
+  if(!_fmBooted||!_fmStarted||!stops.length){ _fmRenderStart(stops); return; }
+  const total=stops.length, resolved=stops.filter(_fmResolved).length;
+  if(resolved>=total){
+    if(_homeBase&&!_fmAtBase&&!_clockedOut){ _fmRenderReturn(); return; }   // last yard → drive to home base first
+    _fmRenderDone(stops); return;                                           // then drop-off PMCS + clock out
+  }
+  let idx=_fmViewIdx;
+  if(idx==null||idx<0||idx>=total||_fmResolved(stops[idx])) idx=stops.findIndex(s=>!_fmResolved(s));
+  _fmViewIdx=idx; _persist(); _fmRenderJob(stops,idx);
+}
+function _fmRenderStart(){
+  _fmShow('fmScreenStart');
+  const hr=new Date().getHours(); const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+  document.getElementById('fmGreet').textContent=greet+', '+((adminName||'').split(' ')[0]||'crew');
+  document.getElementById('fmStartDate').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+' · 👤 '+String(adminRole||'employee').replace(/_/g,' ');
+  const raw=_fmTodayRawJobs(), n=raw.length;
+  document.getElementById('fmStartCount').textContent=n;
+  const total=raw.reduce((s,b)=>s+_fmAmt(b),0), cashN=raw.filter(b=>_payType(b)==='cash').length;
+  const moneyPart=_isMoneyRole()?('~$'+total.toFixed(0)+' on the books'):(n+' stop'+(n!==1?'s':''));
+  document.getElementById('fmStartSub').textContent=n?(moneyPart+(cashN?' · '+cashN+' cash stop'+(cashN!==1?'s':''):'')):'No jobs scheduled'+(adminCrews?(' for crew '+adminCrews):'')+' today.';
+  const btn=document.getElementById('fmStartBtn'); if(btn){ btn.style.display=n?'':'none'; btn.textContent=_clockInTime&&!_clockedOut?'▶ Continue Route':'🟢 Start My Route'; }
+  const _eb=document.getElementById('fmStartEndBtn'); if(_eb) _eb.style.display=(_clockInTime&&!_clockedOut)?'':'none';
+  _fmRenderRouteSetup();
+  _fmSyncTimerSlots();
+}
+
+/* ───────── Start-of-route checklist ───────── */
+async function fmStartTapped(){
+  // Resume: already clocked in & rolling today → jump straight back into the route.
+  if(_clockInTime&&!_clockedOut&&_fmStarted){ _fmBooted=true; _fmRender(); return; }
+  // 1) Who's working today (prefilled roster picker; cancel aborts the start).
+  const who = await fmOpenCrewPicker();
+  if(who===false) return;
+  // 2) supplies load-out checklist (no PMCS for cleaning crews).
+  try{ if(typeof loadoutGate==='function') await loadoutGate(); }catch(e){}
+  // 4) Clock in + roll.
+  fmBeginRoute();
+}
+function _renderStartChecklist(){
+  const wrap=document.getElementById('fmStartChecklist');
+  wrap.innerHTML=START_CHECKLIST.map((label,i)=>'<button class="fm-check'+(_startChkState[i]?' on':'')+'" onclick="_toggleStartChk('+i+')"><span class="box">✓</span><span>'+esc(label)+'</span></button>').join('');
+  const all=_startChkState.length===START_CHECKLIST.length&&_startChkState.every(Boolean);
+  const btn=document.getElementById('fmStartGoBtn'); btn.disabled=!all; btn.textContent=all?'Start Working →':'Confirm all gear to start →';
+}
+function _toggleStartChk(i){ _startChkState[i]=!_startChkState[i]; _persist(); _renderStartChecklist(); }
+function _hName(h){ return (typeof h==='string')?h:((h&&h.name)||''); }
+function _renderHelpers(){ const w=document.getElementById('fmHelperList'); if(!w) return; w.innerHTML=_helpers.map((h,i)=>'<button class="fm-check on" onclick="fmRemoveHelper('+i+')"><span class="box">✓</span><span>'+esc(_hName(h))+'  ✕</span></button>').join(''); }
+function fmAddHelper(){ const n=prompt('Helper name (someone riding along today):'); if(n&&n.trim()&&!_fmHelperHas(n.trim())){ _helpers.push({name:n.trim(),hourlyRate:0}); _persist(); _renderHelpers(); if(typeof _fmRenderCrewPicker==='function') _fmRenderCrewPicker(); } }
+function fmRemoveHelper(i){ _helpers.splice(i,1); _persist(); _renderHelpers(); if(typeof _fmRenderCrewPicker==='function') _fmRenderCrewPicker(); }
+function _anySheetOpen(){ const c=document.getElementById('fmCompleteSheet'), k=document.getElementById('fmSkipSheet'); return (c&&c.style.display==='flex')||(k&&k.style.display==='flex'); }
+/* ───────── Crew / helper picker (prefilled from the staff roster) ───────── */
+let _crewListAll=[], _crewPickerResolve=null, _crewPickerView=[];
+const _CREW_CACHE_KEY='evg_field_crewlist_v1';
+function _fmHelperHas(name){ return (_helpers||[]).some(h=>_hName(h)===name); }
+async function _fmLoadCrewList(){
+  // cache-first (instant + offline), then refresh from the server roster when online.
+  try{ const c=JSON.parse(localStorage.getItem(_CREW_CACHE_KEY)||'null'); if(Array.isArray(c)) _crewListAll=c; }catch(e){}
+  if(navigator.onLine!==false && adminToken){
+    try{
+      const r=await fetch(SCRIPT_URL+'?action=get_crew_list&adminToken='+encodeURIComponent(adminToken));
+      const d=await r.json();
+      if(d&&Array.isArray(d.crew)){
+        _crewListAll=d.crew.filter(c=>String(c.email||'').toLowerCase()!==String(adminEmail||'').toLowerCase());
+        try{ localStorage.setItem(_CREW_CACHE_KEY, JSON.stringify(_crewListAll)); }catch(e){}
+      }
+    }catch(e){}
+  }
+}
+function fmOpenCrewPicker(){
+  return new Promise(async (resolve)=>{
+    _crewPickerResolve=resolve;
+    const ov=document.getElementById('fmCrewPicker'); if(ov) ov.style.display='flex';
+    const sb=document.getElementById('fmCrewSearch'); if(sb) sb.value='';
+    _fmRenderCrewPicker();        // show cached roster + current helpers immediately
+    await _fmLoadCrewList();
+    _fmRenderCrewPicker();        // refresh with the latest roster
+  });
+}
+function _fmRenderCrewPicker(){
+  const chips=document.getElementById('fmCrewChosen');
+  if(chips) chips.innerHTML=(_helpers||[]).map((h,i)=>'<button class="fm-pill" style="background:#e0f2fe;color:#0369a1;border-color:#0284c7;cursor:pointer;" onclick="fmRemoveHelper('+i+')">'+esc(_hName(h))+' ✕</button>').join('')||'<span style="color:#9cc8e3;font-size:13px;">Just you so far.</span>';
+  const list=document.getElementById('fmCrewResults'); if(!list) return;
+  const q=((document.getElementById('fmCrewSearch')||{}).value||'').toLowerCase();
+  _crewPickerView=_crewListAll.filter(c=>!_fmHelperHas(c.name) && (!q||String(c.name||'').toLowerCase().includes(q)));
+  if(!_crewListAll.length){ list.innerHTML='<div style="padding:12px;color:#9cc8e3;font-size:13px;">No saved crew list'+(navigator.onLine===false?' (offline)':'')+'. Tap "Add by name" below.</div>'; return; }
+  if(!_crewPickerView.length){ list.innerHTML='<div style="padding:12px;color:#9cc8e3;font-size:13px;">Everyone added — or no match.</div>'; return; }
+  list.innerHTML=_crewPickerView.map((c,idx)=>{ const role=({helper:'Helper',crew_leader:'Crew Leader',manager:'Manager'})[c.role]||c.role||''; const rate=c.hourlyRate?(' · $'+c.hourlyRate+'/hr'):''; return '<button class="fm-check" onclick="fmCrewPick('+idx+')"><span class="box" style="color:#0369a1;">＋</span><span>'+esc(c.name)+' <span style="color:#94a3b8;font-size:12px;font-weight:600;">'+esc(role)+esc(rate)+'</span></span></button>'; }).join('');
+}
+function fmCrewPick(idx){ const c=_crewPickerView[idx]; if(!c) return; if(!_fmHelperHas(c.name)){ _helpers.push({name:c.name,hourlyRate:c.hourlyRate||0}); _persist(); } _fmRenderCrewPicker(); _renderHelpers(); }
+function fmCrewAddManual(){ const n=prompt('Helper name:'); if(n&&n.trim()&&!_fmHelperHas(n.trim())){ _helpers.push({name:n.trim(),hourlyRate:0}); _persist(); _fmRenderCrewPicker(); _renderHelpers(); } }
+function fmCrewConfirm(){ const ov=document.getElementById('fmCrewPicker'); if(ov) ov.style.display='none'; const r=_crewPickerResolve; _crewPickerResolve=null; if(r) r(true); }
+function fmCrewCancel(){ const ov=document.getElementById('fmCrewPicker'); if(ov) ov.style.display='none'; const r=_crewPickerResolve; _crewPickerResolve=null; if(r) r(false); }
+function fmEmergencyEnd(){
+  _fmAtBase=true;   // emergency: don't force the drive-to-base leg
+  if(!confirm('End your route now? You\'ll be clocked out and your hours logged. Any stops left stay open for follow-up.')) return;
+  _autoClockOut();
+  showToast('🚨 Route ended — clocked out');
+  _fmStarted=false; _fmViewIdx=null; _persist(); _stopGeo(); _releaseWake();
+  _fmRenderDone(_fmStops());
+}
+function fmBeginRoute(){
+  // PMCS + load-out already ran and logged their own checklists; just clock in and roll.
+  if(!_clockInTime || _clockedOut){ _clockInTime=new Date(); _clockedOut=false; _clockOutTime=null; }
+  _fmStarted=true; _fmViewIdx=null; _fmBooted=true; _persist(); _fmRender();
+}
+
+/* ───────── Job card ───────── */
+function _fmRenderJob(stops,idx){
+  _fmShow('fmScreenJob');
+  const total=stops.length, doneCount=stops.filter(s=>isDone(s.bk)).length, skippedCount=stops.filter(s=>!isDone(s.bk)&&_fmIsSkipped(s.bk)).length;
+  const stop=stops[idx]; if(!stop){ _fmRender(); return; }
+  const bk=stop.bk;
+  document.getElementById('fmStopPos').textContent=idx+1;
+  document.getElementById('fmStopTotal').textContent=total;
+  document.getElementById('fmDoneCount').textContent=doneCount+' done'+(skippedCount?' · '+skippedCount+' skipped':'');
+  document.getElementById('fmProgressFill').style.width=Math.round(((doneCount+skippedCount)/total)*100)+'%';
+  _fmUpdateTotalsChip();
+  const amt=_fmAmt(bk), pt=_payType(bk), done=isDone(bk), skipped=_fmIsSkipped(bk), mow=mowMinutes(bk);
+  // Working an unresolved stop means you're clocked IN — clear any stale "clocked out"
+  // flag left over from a previously finished route (this was blocking live tracking).
+  if(!done && !skipped && (!_clockInTime || _clockedOut)){ _clockInTime=new Date(); _clockedOut=false; _clockOutTime=null; _persist(); }
+  if(!done && !skipped && !_jobTimers[_stopKey(bk)]){ _jobTimers[_stopKey(bk)]=new Date().toISOString(); _persist(); }
+  const lotM=String(bk.notes||'').match(/lot:\s*([\d.]+)ac/i);
+  let pills='';
+  if(amt){ if(_seeMoney(bk)) pills+='<span class="fm-pill amt">$'+amt.toFixed(0)+' '+(pt==='cash'?'cash':pt==='autopay'?'autopay':'invoice')+'</span>'; else pills+='<span class="fm-pill muted">'+(pt==='autopay'?'Autopay':'Invoice')+'</span>'; }
+  if(bk.frequency) pills+='<span class="fm-pill muted">'+esc(bk.frequency)+'</span>';
+  if(bk.crew) pills+='<span class="fm-pill muted">Crew '+esc(bk.crew)+'</span>';
+  if(lotM) pills+='<span class="fm-pill">📐 '+lotM[1]+' ac</span>';
+  pills+='<span class="fm-pill muted">⏱ ~'+mow+'m</span>';
+  if(done) pills+='<span class="fm-pill">✓ Done</span>'; else if(skipped) pills+='<span class="fm-pill warn">⤼ Skipped</span>';
+  const em=String(bk.email||'').toLowerCase().trim();
+  const cust=(allCustomers||[]).find(c=>String(c.Email||'').toLowerCase().trim()===em);
+  const notes=(cust&&String(cust.Notes||'').trim())||String(bk.notes||'').replace(/\blot:\s*[\d.]+ac\b/gi,'').replace(/\s*\|\s*$/,'').trim();
+  const noteHtml=notes?'<div class="fm-note-box"><b>Notes</b>'+esc(notes)+'</div>':'';
+  const phone=String(bk.phone||'').trim();
+  const phoneRow=phone?'<a class="fm-btn fm-btn-sm fm-btn-ghost" href="tel:'+esc(phone.replace(/[^0-9+]/g,''))+'">📞 Call '+esc(bk.name?bk.name.split(' ')[0]:'customer')+'</a>':'';
+  document.getElementById('fmJobBody').innerHTML=
+    '<div class="fm-card"><div class="fm-card-stopno">'+(idx+1)+'</div><div class="fm-card-name">'+esc(bk.name||'Customer')+'</div>'+
+    '<div class="fm-card-addr">📍 '+esc(bk.address||'—')+(bk.zip?', '+esc(bk.zip):'')+'</div><div class="fm-pills">'+pills+'</div>'+noteHtml+
+    '<div class="fm-card-actions"><button class="fm-btn fm-btn-lg fm-btn-nav" onclick="fmNavigate('+idx+')">🧭 Navigate Here</button>'+
+    '<div class="fm-secondary-row">'+phoneRow+(_fmIsBoss()?'<button class="fm-btn fm-btn-sm fm-btn-ghost" onclick="fmRemainingMap()">🗺 Remaining</button>':'')+'</div></div></div>'+
+    (_fmIsBoss()
+      ?'<div class="fm-jobnav"><button onclick="fmPrevStop()" '+(idx===0?'disabled':'')+'>‹ Prev</button><button onclick="fmNextStop()" '+(idx>=total-1?'disabled':'')+'>Next ›</button></div>'
+      :'<div class="fm-jobnav"><button onclick="fmPrevStop()" '+(idx===0?'disabled':'')+'>‹ Prev</button></div>');
+  // plan line: done-by time from the owner's push + on-track status
+  (function(){
+    const el=document.getElementById('fmPlanLine'); if(!el) return;
+    let doneBy=null;
+    stops.forEach(function(st2){
+      const t=_savedTimes[_stopKey(st2.bk)];
+      if(!t) return;
+      const hm=t.split(':'); const end=(+hm[0])*60+(+hm[1]||0)+mowMinutes(st2.bk);
+      if(doneBy==null||end>doneBy) doneBy=end;
+    });
+    if(doneBy==null){ el.style.display='none'; return; }
+    const h=Math.floor(doneBy/60)%24, m=doneBy%60;
+    let line='🏁 Done by ~'+((h%12)||12)+':'+String(m).padStart(2,'0')+(h<12?' AM':' PM');
+    const curT=_savedTimes[_stopKey(bk)];
+    if(curT&&!done&&!skipped){
+      const hm2=curT.split(':'); const plan=(+hm2[0])*60+(+hm2[1]||0);
+      const now=new Date(); const nowM=now.getHours()*60+now.getMinutes();
+      const diff=nowM-plan;
+      if(diff>15) line+=' · <span style="color:#fbbf24;">⏰ ~'+diff+'m behind</span>';
+      else line+=' · <span style="color:#7dd3fc;">✅ on track</span>';
+    }
+    el.innerHTML=line; el.style.display='';
+  })();
+  const hop=document.getElementById('fmSkipHopBtn'); if(hop) hop.style.display=_fmIsBoss()?'':'none';
+  const doneBtn=document.getElementById('fmDoneBtn'); if(doneBtn){ doneBtn.style.display=(done||skipped)?'none':''; doneBtn.textContent=_fmIsFinalOpenStop()?'✓ Done — Finish Route':'✓ Done — Next Stop'; }
+  _fmSyncTimerSlots(); _fmHeartbeat();
+}
+function _fmUpdateTotalsChip(){ const el=document.getElementById('fmTotalsChip'); if(!el) return; el.innerHTML='Collected <b>$'+(_fmCashTotal||0).toFixed(0)+'</b> cash'+(_isMoneyRole()?(' · Billed <b>$'+(_fmBilledTotal||0).toFixed(0)+'</b> today'):''); }
+// Reliable external-link open for installed PWAs — window.open can be blocked or open a
+// dead blank tab in standalone mode; a transient anchor click hands off to the Maps app.
+function _fmOpenUrl(url){ try{ const a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove(); }catch(e){ try{ window.open(url,'_blank'); }catch(_e){ location.href=url; } } }
+function fmNavigate(idx){ const s=_fmStops(), bk=s[idx]&&s[idx].bk; if(!bk) return; _fmOpenUrl(_fmMapsUrl(bk)); }
+function fmRemainingMap(){ const left=_fmStops().filter(s=>!_fmResolved(s)).map(s=>s.bk); if(!left.length){ showToast('No stops left.'); return; } const addrs=left.map(bk=>encodeURIComponent((bk.address||'')+(bk.zip?', '+bk.zip:'')+', FL')); let url='https://www.google.com/maps/dir/?api=1&travelmode=driving&destination='+addrs[addrs.length-1]; const mids=addrs.slice(0,-1).slice(0,9); if(mids.length) url+='&waypoints='+mids.join('|'); _fmOpenUrl(url); }
+function fmPrevStop(){ const s=_fmStops(); if(_fmViewIdx>0){ _fmViewIdx--; _persist(); _fmRenderJob(s,_fmViewIdx); } }
+function fmNextStop(){ const s=_fmStops(); if(_fmViewIdx<s.length-1){ _fmViewIdx++; _persist(); _fmRenderJob(s,_fmViewIdx); } }
+function fmSkip(){
+  const s=_fmStops(); if(!s.length) return;
+  for(let k=1;k<=s.length;k++){ const j=(_fmViewIdx+k)%s.length; if(!_fmResolved(s[j])){ _fmViewIdx=j; _persist(); _fmRenderJob(s,j); return; } }
+  showToast('No other open stops — this is the last one.');
+}
+
+/* ───────── Skip ───────── */
+function fmOpenSkip(){ const stop=_fmStops()[_fmViewIdx]; if(!stop) return; document.getElementById('fmSkipErr').style.display='none'; document.getElementById('fmSkipTitle').textContent="Couldn't service "+(stop.bk.name||'this stop'); document.getElementById('fmSkipSheet').style.display='flex'; }
+function fmCloseSkip(){ document.getElementById('fmSkipSheet').style.display='none'; }
+function fmPromptSkipOther(){ const r=prompt("Reason you couldn't service this stop:"); if(r&&r.trim()) fmRecordSkip(r.trim()); }
+function fmRecordSkip(reason){
+  const stop=_fmStops()[_fmViewIdx]; if(!stop){ fmCloseSkip(); return; }
+  const bk=stop.bk, rowIndex=bk._rowIndex||((allBookings||[]).indexOf(bk)+2), svcDate=dateOf(bk);
+  const today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const note=(String(bk.employeeNotes||'').trim()?bk.employeeNotes+' | ':'')+"⚠️ Couldn't service ("+reason+') — '+today+' by '+(adminName||'crew');
+  _fmEnqueue({ kind:'skip', idemKey:'skip:'+rowIndex+':'+svcDate+':'+_uuid(), method:'GET', params:{ action:'set_employee_note', rowIndex, note, adminToken } });
+  _fmFlushQueue(); bk.employeeNotes=note; _fmSkipped[_stopKey(bk)]=reason; _persist();
+  fmCloseSkip(); showToast('⤼ Skipped: '+reason); _fmViewIdx=null; _fmRender();
+}
+
+/* ───────── Complete sheet ───────── */
+function fmOpenComplete(){
+  const stop=_fmStops()[_fmViewIdx]; if(!stop) return;
+  const bk=stop.bk;
+  _fmcStop=stop; _fmcRowIdx=(allBookings||[]).indexOf(bk); _fmcPayType=_payType(bk);
+  _fmcCash=false; _fmcInvoiceSent=false; _fmcChargeChosen=false; _fmcBase=_fmAmt(bk); _fmcPhotos=[];
+  _fmcAddons=(customerServicesFor(bk.email)||[]).map(s=>({name:s.name,price:+s.price||0,on:false}));
+  _fmcEndChk={}; END_CHECKLIST.forEach(l=>_fmcEndChk[l]=false);
+  if(_fmcPayType==='cash') _fmcEndChk['Collected cash']=false;
+  document.getElementById('fmcTitle').textContent='Finish '+(bk.name||'job');
+  document.getElementById('fmcErr').style.display='none';
+  document.getElementById('fmcOwnerNote').value='';
+  _fmcRenderAddons(); _fmcRenderPhotos(); _fmcRenderAmount(); _fmcRenderPay(); _fmcRenderEndChk();
+  document.getElementById('fmCompleteSheet').style.display='flex';
+}
+function fmCloseComplete(){ document.getElementById('fmCompleteSheet').style.display='none'; }
+function _fmcAddonTotal(){ return (_fmcAddons||[]).filter(a=>a.on).reduce((s,a)=>s+(+a.price||0),0); }
+function _fmcGrand(){ return (_fmcBase||0)+_fmcAddonTotal(); }
+function _fmcRenderAddons(){
+  const block=document.getElementById('fmcAddonsBlock'), wrap=document.getElementById('fmcAddons');
+  if(!_fmcAddons.length){ block.style.display='none'; wrap.innerHTML=''; return; }
+  block.style.display='';
+  const seeP=_isMoneyRole()||_fmcPayType==='cash';
+  wrap.innerHTML=_fmcAddons.map((a,i)=>'<button class="fm-addon-chip'+(a.on?' on':'')+'" onclick="fmToggleAddon('+i+')"><span>'+(a.on?'✓ ':'＋ ')+esc(a.name)+'</span>'+(seeP?'<span class="fm-addon-price">$'+(+a.price||0).toFixed(0)+'</span>':'')+'</button>').join('');
+}
+function fmToggleAddon(i){ if(!_fmcAddons[i]) return; _fmcAddons[i].on=!_fmcAddons[i].on; _fmcRenderAddons(); _fmcRenderAmount(); _fmcRenderPay(); }
+function _fmcRenderAmount(){
+  const see=_isMoneyRole()||_fmcPayType==='cash';
+  const amtEl=document.getElementById('fmcAmt');
+  amtEl.style.display=see?'':'none';
+  if(see) amtEl.textContent='$'+_fmcGrand().toFixed(0);
+  const addTot=_fmcAddonTotal();
+  const m={ cash:'💵 Cash — collect from the customer.', autopay:'💳 On autopay — completing charges the card on file automatically.', invoice:'🧾 Card / pay-after — send an invoice to collect.' }[_fmcPayType];
+  document.getElementById('fmcMethod').textContent=m+(see&&addTot?' (incl. $'+addTot.toFixed(0)+' add-ons)':'');
+}
+// Whether payment is satisfied for this customer type
+function _fmcPayResolved(){ if(_fmcPayType==='autopay') return _fmcChargeChosen; if(_fmcPayType==='cash') return _fmcCash; return _fmcInvoiceSent; }
+function _fmcRenderPay(){
+  const wrap=document.getElementById('fmcPayControls'); const grand=_fmcGrand();
+  const state=document.getElementById('fmcPayState');
+  const see=_isMoneyRole();
+  if(_fmcPayType==='autopay'){
+    wrap.innerHTML='<button class="fm-toggle-btn'+(_fmcChargeChosen?' cash-on':'')+'" onclick="fmToggleCharge()">'+(_fmcChargeChosen?('✓ Will charge'+(see?(' $'+grand.toFixed(0)):'')+' to card on complete — tap to undo'):('💳 Charge'+(see?(' $'+grand.toFixed(0)):'')+' to card on file'))+'</button>';
+  } else if(_fmcPayType==='cash'){
+    wrap.innerHTML='<button class="fm-toggle-btn'+(_fmcCash?' cash-on':'')+'" onclick="fmToggleCash()">'+(_fmcCash?'✓ Collected $'+grand.toFixed(0)+' cash — tap to undo':'💵 Collect $'+grand.toFixed(0)+' cash')+'</button>';
+  } else {
+    wrap.innerHTML='<button class="fm-toggle-btn '+(_fmcInvoiceSent?'sent':'invoice')+'" onclick="fmToggleInvoice()">'+(_fmcInvoiceSent?('✓ Will invoice'+(see?(' $'+grand.toFixed(0)):'')+' on complete — tap to undo'):('🧾 Invoice'+(see?(' $'+grand.toFixed(0)):'')+' on complete →'))+'</button>';
+  }
+  if(state){ const ok=_fmcPayResolved(); state.textContent=ok?'✓ done':'required'; state.className=ok?'ok':'req'; }
+  _fmcUpdateSubmit();
+}
+function fmToggleCash(){ _fmcCash=!_fmcCash; if('Collected cash' in _fmcEndChk) _fmcEndChk['Collected cash']=_fmcCash; _fmcRenderPay(); _fmcRenderEndChk(); }
+// Payment is only CHOSEN here — the charge/invoice is executed exactly once on
+// completion submit (fmSubmitComplete), guarded by an idempotency key + backend.
+function fmToggleCharge(){ _fmcChargeChosen=!_fmcChargeChosen; _fmcRenderPay(); }
+function fmToggleInvoice(){ _fmcInvoiceSent=!_fmcInvoiceSent; _fmcRenderPay(); }
+function _fmcRenderEndChk(){
+  const wrap=document.getElementById('fmcChecklist'); const items=Object.keys(_fmcEndChk);
+  wrap.innerHTML=items.map(l=>'<button class="fm-check'+(_fmcEndChk[l]?' on':'')+'" onclick="fmToggleEndChk(\''+l.replace(/'/g,"\\'")+'\')"><span class="box">✓</span><span>'+esc(l)+'</span></button>').join('');
+  const allChecked=items.every(l=>_fmcEndChk[l]);
+  const st=document.getElementById('fmcCheckState'); if(st){ st.textContent=allChecked?'✓ done':'required'; st.className=allChecked?'ok':'req'; }
+  _fmcUpdateSubmit();
+}
+function fmToggleEndChk(label){ _fmcEndChk[label]=!_fmcEndChk[label]; if(label==='Collected cash') _fmcCash=_fmcEndChk[label], _fmcRenderPay(); _fmcRenderEndChk(); }
+function _fmcEndChkDone(){ return Object.keys(_fmcEndChk).every(l=>_fmcEndChk[l]); }
+function _fmcCanFinish(){ return _fmcPayResolved()&&_fmcEndChkDone(); }
+function _fmcUpdateSubmit(){
+  const btn=document.getElementById('fmcSubmitBtn'); if(!btn) return;
+  const ok=_fmcCanFinish(); btn.disabled=!ok;
+  const last=_fmIsFinalOpenStop(); // last OPEN stop, not last by position (skipped stops stay open)
+  btn.textContent=ok?(last?'✓ Complete & Finish Route':'✓ Complete & Go to Next House'):(!_fmcPayResolved()?'Take payment to finish':'Finish the checklist');
+}
+function fmPhotoSelected(input){ const file=input.files[0]; if(!file) return; const reader=new FileReader(); reader.onload=e=>{ _fmcPhotos.push({ b64:e.target.result.split(',')[1], fileName:file.name, mimeType:file.type, dataUrl:e.target.result }); _fmcRenderPhotos(); }; reader.readAsDataURL(file); input.value=''; }
+function fmRemovePhoto(i){ _fmcPhotos.splice(i,1); _fmcRenderPhotos(); }
+function _fmcRenderPhotos(){ const list=document.getElementById('fmcPhotoList'); if(!list) return; list.innerHTML=_fmcPhotos.map((p,i)=>'<div class="fm-photo-cell"><img src="'+p.dataUrl+'"><button class="fm-photo-x" onclick="fmRemovePhoto('+i+')">×</button></div>').join(''); const btn=document.getElementById('fmcPhotoBtn'); if(btn) btn.textContent=_fmcPhotos.length?'📷 Add another photo':'📷 Take / Add Photo'; }
+
+async function fmSubmitComplete(){
+  const bk=_fmcStop&&_fmcStop.bk; const errEl=document.getElementById('fmcErr'); const submitBtn=document.getElementById('fmcSubmitBtn');
+  if(!bk){ fmCloseComplete(); return; }
+  if(!_fmcCanFinish()){ errEl.textContent='Take payment and finish the checklist first.'; errEl.style.display='block'; return; }
+  submitBtn.disabled=true; submitBtn.textContent='Saving…'; errEl.style.display='none';
+  const rowIndex=bk._rowIndex||((_fmcRowIdx>=0?_fmcRowIdx:0)+2), email=bk.email||'', svcDate=dateOf(bk), base=rowIndex+':'+svcDate;
+  const selAddons=(_fmcAddons||[]).filter(a=>a.on&&a.price>0).map(a=>({name:a.name,price:a.price}));
+  const grand=_fmcGrand(), ownerNote=String(document.getElementById('fmcOwnerNote').value||'').trim();
+  // Done action: autopay uses field_complete (marks done + charges + emails owner on fail); others mark_done.
+  const doneAction=_fmcPayType==='autopay'?'field_complete':'mark_done';
+  const doneItem={ kind:'done', idemKey:'done:'+base, method:'GET', params:{ action:doneAction, rowIndex, email, serviceDate:svcDate, amount:grand.toFixed(2), addons:(selAddons.length?JSON.stringify(selAddons):''), markedBy:adminName||adminEmail||'Staff', adminToken } };
+  const extra=[];
+  if(selAddons.length && _fmcPayType!=='autopay'){ const tag=selAddons.map(a=>a.name+'='+a.price).join(','); extra.push({ kind:'addons', idemKey:'addons:'+base+':'+tag, method:'GET', params:{ action:'apply_job_addons', rowIndex, email, serviceDate:svcDate, addons:JSON.stringify(selAddons), adminToken } }); } // autopay applies extras inside field_complete so the charge includes them
+  if(_fmcPayType==='cash') extra.push({ kind:'cash', idemKey:'cash:'+base, method:'GET', params:{ action:'mark_cash_paid', rowIndex, email, serviceDate:svcDate, adminToken, markedBy:adminName||'Crew' } });
+  if(_fmcPayType==='invoice' && _fmcInvoiceSent) extra.push({ kind:'invoice', idemKey:'invoice:'+base, method:'GET', params:{ action:'send_invoice', rowIndex, email, serviceDate:svcDate, amount:grand.toFixed(2), adminToken } });
+  if(ownerNote){ const noteLine='📝 '+ownerNote+' — '+(adminName||'crew'); extra.push({ kind:'note', idemKey:'note:'+base, method:'GET', params:{ action:'set_employee_note', rowIndex, note:(String(bk.employeeNotes||'').trim()?bk.employeeNotes+' | ':'')+noteLine, adminToken } }); }
+  const _jk=_stopKey(bk); const _jStart=_jobTimers[_jk]; const _jEnd=new Date().toISOString();
+  const _jMin=_jStart?Math.max(0,Math.round((Date.now()-new Date(_jStart).getTime())/60000)):null;
+  extra.push({ kind:'endchk', idemKey:'endck:'+base, method:'GET', params:{ action:'log_checklist', type:'job_complete', date:svcDate, rowIndex, by:adminName||'Crew', items:JSON.stringify({checklist:Object.keys(_fmcEndChk), jobMinutes:_jMin, startedAt:_jStart||null, completedAt:_jEnd}), adminToken } });
+  delete _jobTimers[_jk];
+  _fmcPhotos.forEach((p,i)=>extra.push({ kind:'photo', idemKey:'photo:'+base+':'+_uuid(), method:'POST', body:{ action:'upload_job_photo', base64Data:p.b64, fileName:p.fileName, mimeType:p.mimeType, rowIndex, email, serviceDate:svcDate, jobLabel:(bk.name||'')+' - '+svcDate+(_fmcPhotos.length>1?' ('+(i+1)+')':''), markedBy:adminName||'Crew', adminToken } }));
+
+  const finish=(offline)=>{
+    const lbl=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    if(_fmcRowIdx>=0){ allBookings[_fmcRowIdx].done='✓ Done — '+lbl; allBookings[_fmcRowIdx].markedBy=adminName; if(selAddons.length) allBookings[_fmcRowIdx].price='$'+grand.toFixed(0); } else bk.done='✓ Done — '+lbl;
+    if(_fmcPayType==='cash') _fmCashTotal+=grand;
+    _fmBilledTotal+=grand;
+    try{ localStorage.setItem('evg_field_bookings', JSON.stringify(allBookings)); }catch(e){}
+    fmCloseComplete(); showToast(offline?'📴 Saved — will sync when back online':'✅ '+(bk.name||'Job')+' done!');
+    _fmViewIdx=null; _persist(); _fmRender();
+  };
+  const online=navigator.onLine!==false;
+  if(online){
+    try{
+      const res=await fetch(SCRIPT_URL+'?'+new URLSearchParams(Object.assign({}, doneItem.params, { idemKey: doneItem.idemKey })).toString());
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      let data=null; try{ data=await res.json(); }catch(_p){}
+      if(data&&data.success===false){ errEl.textContent='❌ '+(data.error||'Mark done failed'); errEl.style.display='block'; submitBtn.disabled=false; _fmcUpdateSubmit(); return; }
+      _fmMarkKeyDone(doneItem.idemKey); extra.forEach(_fmEnqueue); _fmFlushQueue(); finish(false); return;
+    }catch(netErr){ /* offline fallback */ }
+  }
+  _fmEnqueue(doneItem); extra.forEach(_fmEnqueue); _fmFlushQueue(); finish(true);
+}
+
+/* ───────── Done ───────── */
+function _fmRenderDone(stops){
+  _fmShow('fmScreenDone');
+  const total=stops.length, doneN=stops.filter(s=>isDone(s.bk)).length, skipN=stops.filter(s=>!isDone(s.bk)&&_fmIsSkipped(s.bk)).length;
+  document.getElementById('fmDoneStops').textContent=doneN;
+  document.getElementById('fmDoneCash').textContent='$'+(_fmCashTotal||0).toFixed(0);
+  document.getElementById('fmDoneBilled').textContent='$'+(_fmBilledTotal||0).toFixed(0);
+  const _bb=document.getElementById('fmDoneBilledBox'); if(_bb) _bb.style.display=_isMoneyRole()?'':'none';
+  document.getElementById('fmDoneSkipped').textContent=skipN?('⤼ '+skipN+' stop'+(skipN!==1?'s':'')+' skipped — flagged for follow-up'):'';
+  document.getElementById('fmDoneSub').textContent=doneN+' of '+total+' stop'+(total!==1?'s':'')+' done. Head back to the shop for drop-off, '+((adminName||'').split(' ')[0]||'crew')+'.';
+  document.getElementById('fmClockSummary').textContent=(_clockInTime?('🕒 On the clock '+_fmTimerStr()+(_clockedOut?' — clocked out':'')):'');
+  _fmUpdateSyncBadge(); _fmSyncTimerSlots();
+}
+function fmReviewStops(){ const s=_fmStops(); _fmStarted=true; _fmBooted=true; _fmViewIdx=0; _persist(); _fmRenderJob(s,0); }
+function _fmRenderReturn(){
+  _fmShow('fmScreenReturn');
+  document.getElementById('fmReturnAddr').textContent='📍 '+_homeBase;
+  document.getElementById('fmReturnNav').href='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(_homeBase);
+  // auto-arrival: geocode base once, then watch the GPS we already track
+  if(!_homeBaseGeo){ _geocodeAddr(_homeBase).then(function(g){ _homeBaseGeo=g||false; }).catch(function(){ _homeBaseGeo=false; }); }
+  if(_fmBasePoll) clearInterval(_fmBasePoll);
+  _fmBasePoll=setInterval(function(){
+    if(!_homeBaseGeo||_homeBaseGeo===false||!_lastPos||_lastPos.lat==null) return;
+    const mi=haversineMiles(_lastPos.lat,_lastPos.lon,_homeBaseGeo.lat,_homeBaseGeo.lon);
+    if(mi<=0.15){ showToast('🏠 Welcome back — starting End-of-Day Checklist'); fmArrivedBase(); }
+  },15000);
+}
+function fmArrivedBase(){
+  if(_fmBasePoll){ clearInterval(_fmBasePoll); _fmBasePoll=null; }
+  _fmAtBase=true; _persist();
+  _fmRenderDone(_fmStops());
+  fmEndOfDay();                                   // straight into drop-off PMCS → clock out
+}
+async function fmEndOfDay(){
+  let ok=true;
+  try{ if(typeof endOfDayGate==='function') ok=await endOfDayGate(); }catch(e){}
+  if(ok===false) return;                 // crew backed out — stay clocked in
+  fmFinishRoute();                        // logs clock-out + resets the day
+}
+function fmFinishRoute(){
+  _autoClockOut(); _fmFlushQueue();
+  showToast('🏁 Logged out — great work!');
+  // reset the day's session so a fresh start is clean
+  _fmStarted=false; _fmViewIdx=null; _clockInTime=null; _clockOutTime=null; _clockedOut=false; _fmCashTotal=0; _fmBilledTotal=0; _startChkState=[]; _jobTimers={}; _helpers=[]; _fmAtBase=false; if(_fmBasePoll){ clearInterval(_fmBasePoll); _fmBasePoll=null; }
+  try{ localStorage.removeItem(STATE_KEY); }catch(e){}
+  _fmShow('fmScreenStart'); _fmRenderStart();
+}
+
+/* ───────── Init ───────── */
+window.addEventListener('online', ()=>{ _fmUpdateSyncBadge(); _fmFlushQueue(); });
+window.addEventListener('offline', _fmUpdateSyncBadge);
+// When the app is reopened/foregrounded, force a fresh update right away.
+// iOS fires this through several events depending on cold/warm resume, so cover them all.
+function _fmResume(){
+  // Always pull the freshest jobs when the app is brought forward — even on the Start
+  // screen — so a reschedule / added / removed job shows without a manual refresh. This
+  // was the "showing jobs that aren't there / missing jobs" bug: a warm foreground on the
+  // start screen never re-fetched, so the app sat on stale cached bookings.
+  if(navigator.onLine!==false && !_anySheetOpen()) loadData();
+  if(!_fmStarted) return;
+  _startTimers();                       // re-arm the ~20s heartbeat loop in case iOS suspended it
+  _requestWake(); _startGeo();
+  _fmHeartbeat();                       // immediate: progress + last-known position
+  if(navigator.geolocation){            // then a fresh GPS fix → second ping (newer ts wins)
+    navigator.geolocation.getCurrentPosition(
+      function(pos){ _lastPos={ lat:pos.coords.latitude, lon:pos.coords.longitude }; _fmHeartbeat(); },
+      function(){}, { enableHighAccuracy:true, timeout:8000, maximumAge:0 });
+  }
+  _fmFlushQueue();
+}
+document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='visible') _fmResume(); });
+window.addEventListener('pageshow', function(){ _fmResume(); });
+window.addEventListener('focus', function(){ _fmResume(); });
+/* iOS visual-viewport drift: after the keyboard closes (or Safari nudges the
+   page), a scroll offset can linger and shift all future taps upward. Snap
+   back to 0,0 whenever focus leaves an input or the visual viewport resizes. */
+(function(){
+  function snap(){
+    const ae=document.activeElement;
+    if(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName)) return;   // keyboard still up
+    if(window.scrollY!==0||window.scrollX!==0) window.scrollTo(0,0);
+    try{ if(document.scrollingElement&&document.scrollingElement.scrollTop!==0) document.scrollingElement.scrollTop=0; }catch(e){}
+  }
+  document.addEventListener('focusout',function(){ setTimeout(snap,120); });
+  if(window.visualViewport) window.visualViewport.addEventListener('resize',function(){ setTimeout(snap,120); });
+  window.addEventListener('orientationchange',function(){ setTimeout(snap,300); });
+})();
+
+
+/* ═══════════ QUOTE CALCULATOR — same math as the website builder ═══════════ */
+const QC_RATES={ standard:{base:40,bed:28,bath:18,room:15}, deep:{base:105,bed:38,bath:26,room:20}, move:{base:155,bed:48,bath:32,room:24} };
+const QC_SQFT={ 'Under 1,000 sq ft':0, '1,000–2,000 sq ft':12, '2,000–3,000 sq ft':34, '3,000+ sq ft':60 };
+const QC_FLOOR=80;
+const QC_ADDONS=[
+  {id:'windows',name:'Interior windows',price:40},{id:'fridge',name:'Inside refrigerator',price:35},
+  {id:'oven',name:'Inside oven',price:35},{id:'cabinets',name:'Inside cabinets',price:40},
+  {id:'sofa',name:'Sofa steam clean',price:50},{id:'carpet',name:'Carpet steam clean',price:45},
+  {id:'laundry',name:'Laundry (wash & fold)',price:20},{id:'fans',name:'Ceiling fans & vents',price:25},
+  {id:'pets',name:'Pets in the home',price:15}
+];
+let _qc={service:'standard',bed:2,bath:1,extra:0,sqft:'1,000–2,000 sq ft',addons:{}};
+function qcPrice(svc){
+  const r=QC_RATES[svc||_qc.service];
+  let t=r.base+_qc.bed*r.bed+_qc.bath*r.bath+_qc.extra*r.room+(QC_SQFT[_qc.sqft]||0);
+  t=Math.max(QC_FLOOR,t);
+  QC_ADDONS.forEach(a=>{ if(_qc.addons[a.id]) t+=a.price; });
+  return t;
+}
+function qcOpen(){
+  if(!document.getElementById('qcOverlay')){
+    const o=document.createElement('div');
+    o.id='qcOverlay';
+    o.style.cssText='display:none;position:fixed;inset:0;z-index:3400;background:rgba(0,0,0,.6);align-items:flex-end;justify-content:center;';
+    o.onclick=function(e){ if(e.target===o) qcClose(); };
+    o.innerHTML='<div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:calc(100dvh - max(20px, env(safe-area-inset-top)) - 8px);display:flex;flex-direction:column;color:#0f2740;">'
+      +'<div style="padding:16px 18px 12px;border-bottom:1.5px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;">'
+      +'<div style="font-size:18px;font-weight:800;">🧮 Quote Calculator</div>'
+      +'<button onclick="qcClose()" style="background:#f3f4f6;border:none;font-size:22px;color:#374151;cursor:pointer;line-height:1;padding:8px 14px;border-radius:12px;">×</button></div>'
+      +'<div id="qcBody" style="overflow-y:auto;padding:14px 16px 10px;flex:1;"></div>'
+      +'<div style="padding:12px 16px calc(14px + env(safe-area-inset-bottom));border-top:1.5px solid #e2e8f0;">'
+      +'<div style="display:flex;align-items:baseline;justify-content:space-between;"><span style="font-size:13px;font-weight:700;color:#64748b;" id="qcSvcName"></span>'
+      +'<span style="font-size:34px;font-weight:800;color:#0369a1;" id="qcTotal">$0</span></div>'
+      +'<div id="qcCompare" style="font-size:12px;color:#64748b;margin-top:2px;"></div>'
+      +'<button onclick="qcText()" style="width:100%;margin-top:10px;padding:13px;border:none;border-radius:12px;background:#0284c7;color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;">💬 Text this quote</button>'
+      +'</div></div>';
+    document.body.appendChild(o);
+  }
+  qcRender();
+  document.getElementById('qcOverlay').style.display='flex';
+}
+function qcClose(){ const o=document.getElementById('qcOverlay'); if(o) o.style.display='none'; }
+function qcSet(k,v){ _qc[k]=v; qcRender(); }
+function qcStep(k,d){ const lim={bed:[0,8],bath:[0,6],extra:[0,6]}[k]; _qc[k]=Math.max(lim[0],Math.min(lim[1],_qc[k]+d)); qcRender(); }
+function qcAddon(id){ _qc.addons[id]=!_qc.addons[id]; qcRender(); }
+function qcRender(){
+  const b=document.getElementById('qcBody'); if(!b) return;
+  const seg=(v,l)=>'<button onclick="qcSet(\'service\',\''+v+'\')" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid '+(_qc.service===v?'#0284c7':'#e2e8f0')+';background:'+(_qc.service===v?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12.5px;font-weight:800;color:#0f2740;cursor:pointer;">'+l+'</button>';
+  const stepper=(k,l,val)=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f1f5f9;">'
+    +'<span style="font-size:14px;font-weight:700;">'+l+'</span>'
+    +'<span style="display:flex;align-items:center;gap:14px;">'
+    +'<button onclick="qcStep(\''+k+'\',-1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:18px;cursor:pointer;">−</button>'
+    +'<b style="min-width:44px;text-align:center;font-size:16px;">'+val+'</b>'
+    +'<button onclick="qcStep(\''+k+'\',1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:18px;cursor:pointer;">＋</button></span></div>';
+  b.innerHTML='<div style="display:flex;gap:7px;margin-bottom:12px;">'+seg('standard','Standard')+seg('deep','Deep')+seg('move','Move In/Out')+'</div>'
+    +stepper('bed','Bedrooms',_qc.bed===0?'Studio':_qc.bed)
+    +stepper('bath','Bathrooms',_qc.bath)
+    +stepper('extra','Extra rooms',_qc.extra)
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 7px;">Square footage</div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+Object.keys(QC_SQFT).map(k2=>'<button onclick="qcSet(\'sqft\',\''+k2+'\')" style="padding:8px 11px;border-radius:999px;border:1.5px solid '+(_qc.sqft===k2?'#0284c7':'#e2e8f0')+';background:'+(_qc.sqft===k2?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">'+k2.replace(' sq ft','')+'</button>').join('')+'</div>'
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px;">Add-ons</div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+QC_ADDONS.map(a=>'<button onclick="qcAddon(\''+a.id+'\')" style="padding:8px 11px;border-radius:999px;border:1.5px solid '+(_qc.addons[a.id]?'#0284c7':'#e2e8f0')+';background:'+(_qc.addons[a.id]?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">'+a.name+' +$'+a.price+'</button>').join('')+'</div>';
+  const names={standard:'Standard Clean',deep:'Deep Clean',move:'Move In/Out Clean'};
+  document.getElementById('qcSvcName').textContent=names[_qc.service]+' · '+(_qc.bed===0?'Studio':_qc.bed+' bed')+' / '+_qc.bath+' bath';
+  document.getElementById('qcTotal').textContent='$'+qcPrice();
+  document.getElementById('qcCompare').textContent='Standard $'+qcPrice('standard')+' · Deep $'+qcPrice('deep')+' · Move $'+qcPrice('move');
+}
+function qcText(){
+  const names={standard:'Standard Clean',deep:'Deep Clean',move:'Move In/Out Clean'};
+  const adds=QC_ADDONS.filter(a=>_qc.addons[a.id]).map(a=>a.name).join(', ');
+  const msg='Evergreen Cleaning quote — '+names[_qc.service]+', '+(_qc.bed===0?'Studio':_qc.bed+' bed')+'/'+_qc.bath+' bath, '+_qc.sqft+(adds?(', add-ons: '+adds):'')+' = $'+qcPrice()+'. Book: evergreencleaningservicesflorida.com';
+  location.href='sms:?&body='+encodeURIComponent(msg);
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').then(function(reg){ try{ reg.update(); }catch(e){} }).catch(()=>{}); }
+  const saved=loadSavedSession();
+  if(saved){ adminToken=saved.token; adminName=saved.name; adminEmail=saved.email; adminRole=saved.role||'employee'; adminCrews=saved.crews||''; _hydrateFromCache(); _restoreState(); showApp(); loadData(); }
+  else { document.getElementById('loginScreen').style.display='flex'; }
+  _fmUpdateSyncBadge();
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PMCS + load-out — ported VERBATIM from invoice.html so the crew app shows the
+   exact same Preventive-Maintenance flow (daily/weekly/monthly, owner-editable).
+   Only two field-specific adaptations: _pmcsCrewLabel reads _helpers, and the
+   test-mode guard is typeof-safe. Keep in sync with invoice.html.
+   ═══════════════════════════════════════════════════════════════════════════ */
+let PMCS_EQUIPMENT = [
+  { key:'truck', name:'Work Truck', icon:'🛻', items:[
+    // ── daily: one lap + hood up. Under a minute. ──
+    { id:'t_walk',    label:'Walk-around: tires look right, lights work, nothing leaking underneath', cad:'daily', crit:true },
+    { id:'t_fluid',   label:'Hood up: oil & coolant on the marks', cad:'daily', crit:false },
+    { id:'t_brake',   label:'Brakes feel firm · seatbelts click', cad:'daily', crit:true },
+    { id:'t_fuel',    label:'Fuel ≥ ½ tank', cad:'daily', crit:false },
+    { id:'t_wash',    label:'Windshield, wipers, washer fluid, horn & mirrors', cad:'weekly', crit:false },
+    { id:'t_docs',    label:'Registration & insurance in glovebox', cad:'weekly', crit:false },
+    { id:'t_tread',   label:'Tire tread depth & even wear', cad:'weekly', crit:false },
+    { id:'t_batt',    label:'Battery terminals clean & tight', cad:'weekly', crit:false },
+    { id:'t_pwrfl',   label:'Power-steering & brake fluid', cad:'weekly', crit:false },
+    { id:'t_belts',   label:'Belts & hoses — no cracks/glaze', cad:'weekly', crit:false },
+    { id:'t_tiedwn',  label:'Bed/cargo tie-downs secure', cad:'weekly', crit:false },
+    { id:'t_air',     label:'Engine air filter', cad:'monthly', crit:false },
+    { id:'t_cabin',   label:'Cabin air filter', cad:'monthly', crit:false },
+    { id:'t_spare',   label:'Spare tire pressure, jack & tools present', cad:'monthly', crit:false },
+    { id:'t_lug',     label:'Wheel lug-nut torque', cad:'monthly', crit:false },
+    { id:'t_oilint',  label:'Oil-change interval check (mileage)', cad:'monthly', crit:false },
+  ]},
+  { key:'trailer', name:'Trailer', icon:'🚚', items:[
+    // ── daily: hitch, lights, load. Three checks. ──
+    { id:'r_hitch',   label:'Hitched right: coupler locked, chains crossed, breakaway clipped', cad:'daily', crit:true },
+    { id:'r_lights',  label:'Lights plugged in & working (brake/turn/marker)', cad:'daily', crit:true },
+    { id:'r_load',    label:'Tires look right · gate latched · everything strapped', cad:'daily', crit:true },
+    { id:'r_tread',   label:'Tire tread & sidewall condition', cad:'weekly', crit:false },
+    { id:'r_bear',    label:'Wheel bearings/hubs — no play, not hot', cad:'weekly', crit:false },
+    { id:'r_floor',   label:'Floor & ramp boards solid', cad:'weekly', crit:false },
+    { id:'r_frame',   label:'Fenders & frame — no cracks/rust', cad:'weekly', crit:false },
+    { id:'r_grease',  label:'Grease wheel bearings', cad:'monthly', crit:false },
+    { id:'r_brakes',  label:'Trailer brakes adjust/test (if equipped)', cad:'monthly', crit:false },
+    { id:'r_sparet',  label:'Spare tire condition & mount', cad:'monthly', crit:false },
+    { id:'r_lug',     label:'Lug-nut torque', cad:'monthly', crit:false },
+    { id:'r_jack',    label:'Coupler & jack lubricated', cad:'monthly', crit:false },
+  ]},
+  { key:'mower', name:'Mower', icon:'🚜', items:[
+    // ── daily: fluids, blades, kill-switch, once-over. ──
+    { id:'m_fluid',   label:'Oil & fuel good — no leaks', cad:'daily', crit:true },
+    { id:'m_blade',   label:'Blades tight & sharp · deck clear', cad:'daily', crit:true },
+    { id:'m_safe',    label:'Safety switches kill the blades (seat / handles)', cad:'daily', crit:true },
+    { id:'m_once',    label:'30-sec once-over: tires, belts, controls feel right', cad:'daily', crit:false },
+    { id:'m_grease',  label:'Hit the grease points', cad:'weekly', crit:false },
+    { id:'m_air',     label:'Air filter clean', cad:'weekly', crit:false },
+    { id:'m_sharp',   label:'Sharpen / rotate blades', cad:'weekly', crit:false },
+    { id:'m_spindle', label:'Spindle play check', cad:'weekly', crit:false },
+    { id:'m_batt',    label:'Battery charge & terminals', cad:'weekly', crit:false },
+    { id:'m_fins',    label:'Cooling fins / screen clean', cad:'weekly', crit:false },
+    { id:'m_hydro',   label:'Hydro fluid level (if hydro)', cad:'weekly', crit:false },
+    { id:'m_airm',    label:'Replace / deep-clean air filter', cad:'monthly', crit:false },
+    { id:'m_plug',    label:'Spark plug condition', cad:'monthly', crit:false },
+    { id:'m_oilch',   label:'Change engine oil (per hours)', cad:'monthly', crit:false },
+    { id:'m_hydf',    label:'Hydro / gearbox fluid', cad:'monthly', crit:false },
+    { id:'m_level',   label:'Deck level & pitch', cad:'monthly', crit:false },
+  ]},
+  { key:'edger', name:'Edger', icon:'🔪', items:[
+    // ── daily: gas, blade, throttle. ──
+    { id:'e_fuel',    label:'Mix topped off — no leaks', cad:'daily', crit:true },
+    { id:'e_blade',   label:'Blade sharp & tight · guard on', cad:'daily', crit:true },
+    { id:'e_idle',    label:'Throttle snaps back to idle', cad:'daily', crit:true },
+    { id:'e_air',     label:'Air filter clean', cad:'weekly', crit:false },
+    { id:'e_shaft',   label:'Handle / shaft tight', cad:'weekly', crit:false },
+    { id:'e_rot',     label:'Rotate / replace blade', cad:'weekly', crit:false },
+    { id:'e_gear',    label:'Grease gearhead', cad:'weekly', crit:false },
+    { id:'e_spark',   label:'Spark-arrestor screen', cad:'weekly', crit:false },
+    { id:'e_fast',    label:'Fasteners tight', cad:'weekly', crit:false },
+    { id:'e_plug',    label:'Spark plug', cad:'monthly', crit:false },
+    { id:'e_lines',   label:'Fuel lines & filter', cad:'monthly', crit:false },
+    { id:'e_gbx',     label:'Gearbox grease', cad:'monthly', crit:false },
+    { id:'e_carb',    label:'Carb / idle adjust', cad:'monthly', crit:false },
+  ]},
+  { key:'whacker', name:'Weed Whacker', icon:'🫧', items:[
+    // ── daily: gas, line & guard, throttle. ──
+    { id:'w_fuel',    label:'Mix topped off — no leaks', cad:'daily', crit:true },
+    { id:'w_line',    label:'Line loaded · head tight · guard on', cad:'daily', crit:true },
+    { id:'w_idle',    label:'Throttle snaps back to idle', cad:'daily', crit:true },
+    { id:'w_harn',    label:'Harness / strap good', cad:'weekly', crit:false },
+    { id:'w_spool',   label:'Replace line spool / check head', cad:'weekly', crit:false },
+    { id:'w_airw',    label:'Clean air filter', cad:'weekly', crit:false },
+    { id:'w_spark',   label:'Spark-arrestor screen', cad:'weekly', crit:false },
+    { id:'w_coup',    label:'Fasteners & shaft coupler', cad:'weekly', crit:false },
+    { id:'w_plug',    label:'Spark plug', cad:'monthly', crit:false },
+    { id:'w_lines',   label:'Fuel lines & filter', cad:'monthly', crit:false },
+    { id:'w_gear',    label:'Gearhead grease (if equipped)', cad:'monthly', crit:false },
+    { id:'w_drive',   label:'Drive shaft inspect / grease', cad:'monthly', crit:false },
+  ]},
+];
+
+// ── Editable checklists (shared across all crews via the sheet) ─────────────
+// The list above is the built-in default. An owner can edit it on the PMCS tab;
+// edits are saved to the sheet (pmcs_config) so every crew's phone gets the same
+// checklists, with a localStorage fallback for instant local use.
+const PMCS_DEFAULT_EQUIPMENT = JSON.parse(JSON.stringify(PMCS_EQUIPMENT));
+const _PMCS_CFG_KEY = 'evg_pmcs_config_v2';
+let _pmcsConfigLoaded = false;
+
+function _pmcsApplyConfig(list){
+  if (!Array.isArray(list) || !list.length) return false;
+  // sanity: each machine needs key/name/items[]
+  const ok = list.every(e => e && e.key && e.name && Array.isArray(e.items));
+  if (!ok) return false;
+  // 2026-07 cleanup: a saved config still carrying the old 40+ item daily grind is
+  // the pre-cleanup default, not an owner customization — ignore it so the new
+  // streamlined dailies apply. (Re-saving on the PMCS tab writes the new set.)
+  const dailyN = list.reduce((s, e) => s + e.items.filter(i => i.cad === 'daily').length, 0);
+  if (dailyN > 30) return false;
+  PMCS_EQUIPMENT = list;
+  return true;
+}
+async function pmcsLoadConfig(force){
+  if (_pmcsConfigLoaded && !force) return;
+  // try the server (shared, authoritative)
+  try {
+    const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort(), 6000);
+    const r = await fetch(SCRIPT_URL + '?action=get_pmcs_config&adminToken=' + encodeURIComponent(adminToken), { signal: ctrl.signal });
+    clearTimeout(t);
+    const d = await r.json();
+    if (d && d.success && d.config){
+      const parsed = (typeof d.config === 'string') ? JSON.parse(d.config) : d.config;
+      if (_pmcsApplyConfig(parsed)){
+        try { localStorage.setItem(_PMCS_CFG_KEY, JSON.stringify(parsed)); } catch(e){}
+        _pmcsConfigLoaded = true; return;
+      }
+    }
+  } catch(e){ /* offline / not deployed → fall back to local */ }
+  // fallback: last-known local copy
+  try {
+    const local = JSON.parse(localStorage.getItem(_PMCS_CFG_KEY) || 'null');
+    if (local) _pmcsApplyConfig(local);
+  } catch(e){}
+  _pmcsConfigLoaded = true;
+}
+function pmcsSaveConfig(){
+  const json = JSON.stringify(PMCS_EQUIPMENT);
+  try { localStorage.setItem(_PMCS_CFG_KEY, json); } catch(e){}
+  // POST the whole checklist to the sheet so all crews get it (too big for a GET URL).
+  const body = { action:'set_pmcs_config', config: json, by: adminName || adminEmail || '', adminToken };
+  try {
+    if (typeof _fmEnqueue === 'function'){ _fmEnqueue({ kind:'pmcs_config', method:'POST', body }); if (typeof _fmFlushQueue==='function') _fmFlushQueue(); }
+    else fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(body) }).catch(()=>{});
+  } catch(e){ try { fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(body) }).catch(()=>{}); } catch(_e){} }
+}
+
+// Weekly PMCS lands every Monday; monthly PMCS every 4 weeks (28 days) on a Monday,
+// counted from this anchor Monday. A check stays "due" every day until it's actually
+// completed — skipping or missing it does NOT clear it (skips aren't counted as done).
+const PMCS_MONTHLY_ANCHOR = '2026-06-29';   // a Monday — start of the 4-week monthly cycle
+const _pmcsState = { status:{}, loaded:false };
+// Device-local PMCS completion memory (per crew). The backend status is global and may
+// not be deployed, so we ALSO remember completions on THIS device and merge them in —
+// this is what stops the gate re-asking for a daily/weekly/monthly you already did.
+const _PMCS_STATUS_KEY = 'evg_pmcs_status_v1';
+function _pmcsStatusStoreKey(){ return _PMCS_STATUS_KEY + ':' + (String(typeof adminCrews!=='undefined'?adminCrews:'').toUpperCase().replace(/[^A-Z0-9]+/g,'') || 'ALL'); }
+function _pmcsLoadLocalStatus(){ try{ return JSON.parse(localStorage.getItem(_pmcsStatusStoreKey())||'{}') || {}; }catch(e){ return {}; } }
+function _pmcsSaveLocalStatus(){ try{ localStorage.setItem(_pmcsStatusStoreKey(), JSON.stringify(_pmcsState.status||{})); }catch(e){} }
+function _pmcsMergeLocalStatus(){
+  var local=_pmcsLoadLocalStatus();
+  for(var eq in local){
+    _pmcsState.status[eq]=_pmcsState.status[eq]||{};
+    ['daily','weekly','monthly'].forEach(function(cad){
+      var l=local[eq][cad], s=_pmcsState.status[eq][cad];
+      if(l && (!s || l>s)) _pmcsState.status[eq][cad]=l;   // keep the most recent completion date
+    });
+  }
+}
+let _pmcsMode = 'single';     // 'single' | 'gate'
+let _pmcsQueue = [];          // equipment keys to run
+let _pmcsIdx = 0;
+let _pmcsCads = [];           // cadences being checked for current equipment
+let _pmcsItemState = {};      // id -> 'pass' | 'fault'
+let _pmcsNotes = {};          // id -> note text
+let _pmcsResolveGate = null;
+
+function _pmcsUuid(){
+  return 'pmcs-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,9);
+}
+function _pmcsEq(key){ return PMCS_EQUIPMENT.find(e => e.key === key); }
+function _pmcsToday(){ return (typeof todayISOStr === 'function') ? todayISOStr() : new Date().toISOString().slice(0,10); }
+function _pmcsIso(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+// Monday (inclusive) of the week containing `iso`.
+function _pmcsWeeklyWindowStart(iso){
+  const d = new Date(iso + 'T00:00:00');
+  const back = (d.getDay() + 6) % 7;        // 0=Sun..6=Sat → days since Monday
+  d.setDate(d.getDate() - back);
+  return _pmcsIso(d);
+}
+// Start of the current 4-week monthly window (a Monday), or null before the anchor.
+function _pmcsMonthlyWindowStart(iso){
+  const today  = new Date(iso + 'T00:00:00');
+  const anchor = new Date(PMCS_MONTHLY_ANCHOR + 'T00:00:00');
+  const diff = Math.floor((today - anchor) / 86400000);
+  if (diff < 0) return null;
+  const k = Math.floor(diff / 28);
+  return _pmcsIso(new Date(anchor.getTime() + k * 28 * 86400000));
+}
+// Which cadences are currently OUTSTANDING for a machine. A cadence is "done" only
+// if it was completed on/after the start of its current window; otherwise it's due
+// and re-appears every day until completed (skips never count as done).
+function _pmcsDue(eqKey){
+  const st = _pmcsState.status[eqKey] || {};
+  const today = _pmcsToday();
+  const due = {};
+  due.daily  = !(st.daily  && st.daily  >= today);
+  const wk = _pmcsWeeklyWindowStart(today);
+  due.weekly = !(st.weekly && st.weekly >= wk);
+  const mo = _pmcsMonthlyWindowStart(today);
+  due.monthly = mo ? !(st.monthly && st.monthly >= mo) : false;
+  return due;
+}
+function _pmcsDueCads(eqKey){
+  const d = _pmcsDue(eqKey);
+  return ['daily','weekly','monthly'].filter(c => d[c]);
+}
+function _pmcsCrewLabel(){
+  try {
+    if (Array.isArray(_helpers) && _helpers.length){
+      return [adminName].concat(_helpers.map(c=>(typeof c==='string'?c:(c&&c.name)))).filter(Boolean).join(', ');
+    }
+  } catch(e){}
+  return adminName || adminEmail || '';
+}
+
+function _pmcsInjectStyle(){
+  if (document.getElementById('pmcsStyle')) return;
+  const s = document.createElement('style');
+  s.id = 'pmcsStyle';
+  s.textContent = `
+  .pmcs-card { background:#fff; border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,.04); }
+  .pmcs-card-top { display:flex; align-items:center; gap:12px; }
+  .pmcs-card-icon { font-size:30px; line-height:1; }
+  .pmcs-card-name { font-size:17px; font-weight:800; color:var(--green-deep); }
+  .pmcs-card-sub { font-size:12px; color:var(--text-muted); margin-top:2px; }
+  .pmcs-badges { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 4px; }
+  .pmcs-badge { font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; }
+  .pmcs-badge.due  { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+  .pmcs-badge.ok   { background:#f0fdf4; color:#0369a1; border:1px solid #bbf7d0; }
+  .pmcs-start-btn { margin-top:12px; width:100%; padding:12px; border:none; border-radius:10px; font-family:inherit; font-size:14px; font-weight:700; color:#fff; cursor:pointer; background:linear-gradient(135deg,#0369a1,#166534); transition:opacity .15s,transform .15s; }
+  .pmcs-start-btn:hover { opacity:.9; transform:translateY(-1px); }
+  .pmcs-start-btn.allok { background:#fff; color:#0369a1; border:1.5px solid #bbf7d0; }
+  .pmcs-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:3300; align-items:flex-end; justify-content:center; }
+  .pmcs-overlay.open { display:flex; }
+  .pmcs-panel { background:#fff; border-radius:20px 20px 0 0; width:100%; max-width:640px; max-height:calc(100dvh - max(20px, env(safe-area-inset-top)) - 8px); display:flex; flex-direction:column; box-shadow:0 -8px 40px rgba(0,0,0,.22); animation:slideInUp .22s ease; }
+  .pmcs-head { padding:16px 18px 12px; border-bottom:1.5px solid var(--border); position:sticky; top:0; background:#fff; border-radius:20px 20px 0 0; }
+  .pmcs-head-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .pmcs-head-title { font-size:18px; font-weight:800; color:var(--green-deep); display:flex; align-items:center; gap:9px; }
+  .pmcs-head-close { background:#f3f4f6; border:none; font-size:22px; color:#374151; cursor:pointer; line-height:1; padding:8px 14px; border-radius:12px; flex-shrink:0; }
+  .pmcs-progress { font-size:12px; font-weight:700; color:#92400e; background:#fef3c7; border:1px solid #fde68a; padding:3px 10px; border-radius:20px; }
+  .pmcs-head-sub { font-size:12px; color:var(--text-muted); margin-top:6px; }
+  .pmcs-body { overflow-y:auto; padding:8px 14px 12px; flex:1; }
+  .pmcs-section-title { font-size:11px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:#64748b; margin:14px 4px 6px; }
+  .pmcs-item { display:flex; align-items:center; gap:10px; padding:11px 6px; border-bottom:1px solid #f1f5f9; }
+  .pmcs-item.unset { background:#fffdf3; }
+  .pmcs-item-toggle { flex:0 0 auto; width:30px; height:30px; border-radius:8px; border:1.5px solid #cbd5e1; background:#fff; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .12s; margin-top:1px; }
+  .pmcs-item.pass  .pmcs-item-toggle { background:#0284c7; border-color:#0284c7; color:#fff; }
+  .pmcs-item.fault .pmcs-item-toggle { background:#dc2626; border-color:#dc2626; color:#fff; }
+  .pmcs-item-main { flex:1; min-width:0; }
+  .pmcs-item-label { font-size:14px; color:var(--text); line-height:1.4; font-weight:600; }
+  .pmcs-item-label .crit { color:#dc2626; font-weight:700; font-size:10px; margin-left:5px; vertical-align:middle; }
+  .pmcs-item-note { display:none; width:100%; margin-top:8px; padding:9px 10px; border:1.5px solid #fca5a5; border-radius:9px; font-family:inherit; font-size:13.5px; outline:none; box-sizing:border-box; }
+  .pmcs-item-note.need { border-color:#dc2626; background:#fff5f5; }
+  .pmcs-item.fault .pmcs-item-note { display:block; }
+  /* check / X buttons — nothing is pre-selected; crew must choose for every item */
+  .pmcs-item-btns { display:flex; gap:7px; flex-shrink:0; }
+  .pmcs-pf { width:42px; height:42px; border-radius:11px; border:1.5px solid #d8e0db; background:#fff; font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#b6c0b9; transition:all .12s; -webkit-tap-highlight-color:transparent; }
+  .pmcs-pf:active { transform:scale(.92); }
+  .pmcs-pf.pass.on  { background:#0284c7; border-color:#0284c7; color:#fff; }
+  .pmcs-pf.fault.on { background:#dc2626; border-color:#dc2626; color:#fff; }
+  .pmcs-foot { border-top:1.5px solid var(--border); padding:12px 16px calc(12px + env(safe-area-inset-bottom)); background:#fff; }
+  .pmcs-status-banner { font-size:13px; font-weight:700; text-align:center; padding:8px; border-radius:9px; margin-bottom:10px; }
+  .pmcs-status-banner.go    { background:#f0fdf4; color:#0369a1; border:1px solid #bbf7d0; }
+  .pmcs-status-banner.nogo  { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+  .pmcs-status-banner.pending { background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
+  .pmcs-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .pmcs-foot-btns { display:flex; gap:10px; }
+  .pmcs-btn { flex:1; padding:13px; border-radius:11px; font-family:inherit; font-size:15px; font-weight:700; cursor:pointer; border:none; }
+  .pmcs-btn-submit { background:linear-gradient(135deg,#0369a1,#166534); color:#fff; }
+  .pmcs-btn-submit:hover { opacity:.92; }
+  .pmcs-btn-skip { background:#fff; color:#b45309; border:1.5px solid #fcd34d; flex:0 0 auto; padding:13px 16px; }
+  .pmcs-btn-skip:hover { background:#fffbeb; }
+  .pmcs-quick { display:flex; gap:8px; margin:6px 4px 2px; }
+  .pmcs-quick button { flex:1; font-size:12px; font-weight:600; padding:7px; border-radius:8px; border:1.5px solid var(--border); background:#fff; color:var(--text-muted); cursor:pointer; }
+  .pmcs-quick button:hover { border-color:var(--green-mid); color:var(--green-mid); }
+  `;
+  document.head.appendChild(s);
+}
+function _pmcsInjectOverlay(){
+  if (document.getElementById('pmcsOverlay')) return;
+  const o = document.createElement('div');
+  o.className = 'pmcs-overlay'; o.id = 'pmcsOverlay';
+  o.innerHTML = `
+    <div class="pmcs-panel">
+      <div class="pmcs-head">
+        <div class="pmcs-head-row">
+          <div class="pmcs-head-title" id="pmcsRunTitle">🔧 PMCS</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="pmcs-progress" id="pmcsRunProgress" style="display:none;"></span>
+            <button class="pmcs-head-close" id="pmcsRunClose" onclick="pmcsCloseRunner()">×</button>
+          </div>
+        </div>
+        <div class="pmcs-head-sub" id="pmcsRunSub"></div>
+      </div>
+      <div class="pmcs-body" id="pmcsRunBody"></div>
+      <div class="pmcs-foot">
+        <div class="pmcs-status-banner go" id="pmcsRunBanner"></div>
+        <div class="pmcs-foot-btns">
+          <button class="pmcs-btn pmcs-btn-skip" id="pmcsRunSkip" onclick="pmcsSkipCurrent()">Skip</button>
+          <button class="pmcs-btn pmcs-btn-submit" id="pmcsRunSubmit" onclick="pmcsSubmitCurrent()">Submit ✓</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(o);
+}
+
+let _pmcsStatusPromise = null;
+async function pmcsLoadStatus(force){
+  if (_pmcsState.loaded && !force) return _pmcsState.status;
+  if (_pmcsStatusPromise) return _pmcsStatusPromise;   // dedupe: share an in-flight fetch
+  // Hard 6s timeout so a slow/weak connection can NEVER hang the gate — if the
+  // status can't load we just treat everything as due and let the crew proceed.
+  _pmcsStatusPromise = (async () => {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 6000);
+      const r = await fetch(SCRIPT_URL + '?action=get_pmcs_status&adminToken=' + encodeURIComponent(adminToken), { signal: ctrl.signal });
+      clearTimeout(timer);
+      const d = await r.json();
+      if (d && d.success && d.status) _pmcsState.status = d.status;
+    } catch(e){ /* offline / slow / not deployed: keep whatever we have */ }
+    _pmcsMergeLocalStatus();   // device-local completions persist even when the backend doesn't return them
+    _pmcsState.loaded = true;
+    _pmcsStatusPromise = null;
+    return _pmcsState.status;
+  })();
+  return _pmcsStatusPromise;
+}
+
+async function initPmcsTab(){
+  _pmcsInjectStyle(); _pmcsInjectOverlay();
+  const body = document.getElementById('pmcsTabBody');
+  if (!body) return;
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);">Loading PMCS…</div>';
+  await pmcsLoadConfig(true);
+  await pmcsLoadStatus(true);
+  pmcsRenderTab();
+}
+function pmcsRenderTab(){
+  const body = document.getElementById('pmcsTabBody');
+  if (!body) return;
+  const dueCount = PMCS_EQUIPMENT.reduce((n,e)=> n + (_pmcsDueCads(e.key).length ? 1 : 0), 0);
+  let html = `
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;">
+      <div style="font-size:22px;font-weight:800;color:var(--green-deep);">🔧 PMCS</div>
+      <div style="font-size:12px;color:var(--text-muted);">${_pmcsToday()}</div>
+    </div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">
+      Preventive Maintenance Checks & Services. ${dueCount ? `<strong style="color:#b91c1c;">${dueCount} machine${dueCount!==1?'s':''} need${dueCount===1?'s':''} a check.</strong>` : '<strong style="color:#0369a1;">All checks up to date. 👍</strong>'}
+    </div>
+    ${(window._isAtLeast && window._isAtLeast('owner')) ? `
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button onclick="pmcsOpenEditor()" style="flex:1;padding:11px;border:1.5px solid var(--border);border-radius:11px;background:#fff;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;color:var(--green-deep);">✏️ Edit checklists</button>
+      <button onclick="pmcsOpenFaults()" style="flex:1;padding:11px;border:1.5px solid #fecaca;border-radius:11px;background:#fff5f5;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;color:#b91c1c;">⚠️ Faults log</button>
+    </div>` : ''}`;
+  for (const eq of PMCS_EQUIPMENT){
+    const due = _pmcsDue(eq.key);
+    const st  = _pmcsState.status[eq.key] || {};
+    const badge = (cad,lbl) => due[cad]
+      ? `<span class="pmcs-badge due">${lbl} due</span>`
+      : `<span class="pmcs-badge ok">${lbl} ✓</span>`;
+    const lastTxt = st.daily ? `Last daily: ${st.daily}` : 'No daily logged yet';
+    const anyDue = due.daily || due.weekly || due.monthly;
+    html += `
+      <div class="pmcs-card">
+        <div class="pmcs-card-top">
+          <div class="pmcs-card-icon">${eq.icon}</div>
+          <div style="flex:1;">
+            <div class="pmcs-card-name">${esc(eq.name)}</div>
+            <div class="pmcs-card-sub">${esc(lastTxt)}</div>
+          </div>
+        </div>
+        <div class="pmcs-badges">
+          ${badge('daily','Daily')}${badge('weekly','Weekly')}${badge('monthly','Monthly')}
+        </div>
+        <button class="pmcs-start-btn ${anyDue?'':'allok'}" onclick="pmcsOpenSingle('${eq.key}')">
+          ${anyDue ? '▶ Start '+esc(eq.name)+' PMCS' : '↻ Re-run '+esc(eq.name)+' PMCS'}
+        </button>
+      </div>`;
+  }
+  body.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PMCS CHECKLIST EDITOR (owner) — edits the shared checklist for ALL crews
+// ═══════════════════════════════════════════════════════════════════════════
+let _pmcsEdit = null, _pmcsEditKey = null;
+function _pmcsInjectEditorOverlay(){
+  if (document.getElementById('pmcsEditOverlay')) return;
+  _pmcsInjectStyle();
+  const o = document.createElement('div');
+  o.className='pmcs-overlay'; o.id='pmcsEditOverlay';
+  o.innerHTML = `
+    <div class="pmcs-panel">
+      <div class="pmcs-head">
+        <div class="pmcs-head-row">
+          <div class="pmcs-head-title">✏️ Edit checklists</div>
+          <button class="pmcs-head-close" onclick="pmcsCloseEditor()">×</button>
+        </div>
+        <div class="pmcs-head-sub">Changes apply to <b>every crew</b> · saved to your sheet</div>
+        <div id="pmcsEditMachines" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:11px;"></div>
+      </div>
+      <div class="pmcs-body" id="pmcsEditBody"></div>
+      <div class="pmcs-foot">
+        <div class="pmcs-foot-btns">
+          <button class="pmcs-btn pmcs-btn-skip" onclick="pmcsEditReset()">↺ Reset</button>
+          <button class="pmcs-btn pmcs-btn-submit" onclick="pmcsEditSave()">Save for all crews ✓</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(o);
+}
+function pmcsOpenEditor(){
+  _pmcsInjectEditorOverlay();
+  _pmcsEdit = JSON.parse(JSON.stringify(PMCS_EQUIPMENT));
+  _pmcsEditKey = _pmcsEdit[0] && _pmcsEdit[0].key;
+  pmcsRenderEditor();
+  document.getElementById('pmcsEditOverlay').classList.add('open');
+}
+function pmcsCloseEditor(){ const o=document.getElementById('pmcsEditOverlay'); if(o)o.classList.remove('open'); }
+function _pmcsEditEq(){ return _pmcsEdit.find(e=>e.key===_pmcsEditKey); }
+function pmcsEditSelect(key){ _pmcsEditKey=key; pmcsRenderEditor(); }
+function pmcsRenderEditor(){
+  const chips = document.getElementById('pmcsEditMachines');
+  chips.innerHTML = _pmcsEdit.map(e=>`<button onclick="pmcsEditSelect('${e.key}')" style="padding:6px 11px;border-radius:20px;border:1.5px solid ${e.key===_pmcsEditKey?'var(--green-mid)':'var(--border)'};background:${e.key===_pmcsEditKey?'var(--green-pale)':'#fff'};font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;color:${e.key===_pmcsEditKey?'var(--green-deep)':'var(--text-muted)'};white-space:nowrap;">${e.icon} ${esc(e.name)}</button>`).join('');
+  const eq=_pmcsEditEq(); const body=document.getElementById('pmcsEditBody'); if(!eq){ body.innerHTML=''; return; }
+  let html = `<div style="margin:8px 2px 16px;"><label style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;">Machine name</label><input value="${esc(eq.name)}" oninput="pmcsEditName(this.value)" style="width:100%;margin-top:5px;padding:10px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:15px;font-weight:700;box-sizing:border-box;"></div>`;
+  for (const cad of ['daily','weekly','monthly']){
+    const items = eq.items.filter(it=>it.cad===cad);
+    html += `<div class="pmcs-section-title">${cad} — ${items.length} item${items.length!==1?'s':''}</div>`;
+    for (const it of items){
+      html += `
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid #f1f5f9;">
+          <input value="${esc(it.label)}" oninput="pmcsEditItemText('${it.id}',this.value)" placeholder="Check item…" style="flex:1;min-width:0;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;box-sizing:border-box;">
+          <label title="Failing this is a NO-GO (don't operate)" style="display:flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;color:${it.crit?'#dc2626':'#b6c0b9'};white-space:nowrap;cursor:pointer;"><input type="checkbox" ${it.crit?'checked':''} onchange="pmcsEditItemCrit('${it.id}',this.checked)" style="accent-color:#dc2626;">NO-GO</label>
+          <button onclick="pmcsEditDelItem('${it.id}')" title="Remove" style="flex-shrink:0;width:32px;height:32px;border:1.5px solid #fecaca;border-radius:8px;background:#fff5f5;color:#dc2626;font-size:16px;cursor:pointer;line-height:1;">×</button>
+        </div>`;
+    }
+    html += `<button onclick="pmcsEditAdd('${cad}')" style="margin:9px 2px 6px;padding:10px;width:100%;border:1.5px dashed var(--border);border-radius:9px;background:#fff;color:var(--green-deep);font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;">+ Add ${cad} item</button>`;
+  }
+  body.innerHTML = html;
+}
+function pmcsEditName(v){ const eq=_pmcsEditEq(); if(eq) eq.name=v; }
+function pmcsEditItemText(id,v){ const eq=_pmcsEditEq(); const it=eq&&eq.items.find(x=>x.id===id); if(it) it.label=v; }
+function pmcsEditItemCrit(id,c){ const eq=_pmcsEditEq(); const it=eq&&eq.items.find(x=>x.id===id); if(it){ it.crit=!!c; pmcsRenderEditor(); } }
+function pmcsEditDelItem(id){ const eq=_pmcsEditEq(); if(eq){ eq.items=eq.items.filter(x=>x.id!==id); pmcsRenderEditor(); } }
+function pmcsEditAdd(cad){ const eq=_pmcsEditEq(); if(eq){ eq.items.push({ id:(eq.key[0]||'x')+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), label:'', cad, crit:false }); pmcsRenderEditor(); } }
+function pmcsEditReset(){ if(!confirm('Reset ALL checklists back to the built-in defaults? This replaces your edits for everyone.')) return; _pmcsEdit=JSON.parse(JSON.stringify(PMCS_DEFAULT_EQUIPMENT)); _pmcsEditKey=_pmcsEdit[0].key; pmcsRenderEditor(); }
+function pmcsEditSave(){
+  for (const e of _pmcsEdit){ e.items = e.items.filter(it=>(it.label||'').trim()); }
+  if (!_pmcsApplyConfig(_pmcsEdit)){ alert('Each machine needs a name and at least one item.'); return; }
+  pmcsSaveConfig();
+  pmcsCloseEditor();
+  try { pmcsRenderTab(); } catch(e){}
+  if (typeof showToast==='function') showToast('✏️ Checklists saved — syncing to all crews');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PMCS FAULTS LOG (owner) — every fault / NO-GO the crews have flagged
+// ═══════════════════════════════════════════════════════════════════════════
+function _pmcsInjectFaultsOverlay(){
+  if (document.getElementById('pmcsFaultsOverlay')) return; _pmcsInjectStyle();
+  const o=document.createElement('div'); o.className='pmcs-overlay'; o.id='pmcsFaultsOverlay';
+  o.innerHTML=`<div class="pmcs-panel"><div class="pmcs-head"><div class="pmcs-head-row"><div class="pmcs-head-title">⚠️ Faults log</div><button class="pmcs-head-close" onclick="pmcsCloseFaults()">×</button></div><div class="pmcs-head-sub">Every fault & NO-GO the crews have flagged</div></div><div class="pmcs-body" id="pmcsFaultsBody"></div></div>`;
+  document.body.appendChild(o);
+}
+function pmcsCloseFaults(){ const o=document.getElementById('pmcsFaultsOverlay'); if(o)o.classList.remove('open'); }
+async function pmcsOpenFaults(){
+  _pmcsInjectFaultsOverlay();
+  const body=document.getElementById('pmcsFaultsBody');
+  body.innerHTML='<div style="text-align:center;padding:34px;color:#64748b;">Loading faults…</div>';
+  document.getElementById('pmcsFaultsOverlay').classList.add('open');
+  let faults=[];
+  try {
+    const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),7000);
+    const r=await fetch(SCRIPT_URL+'?action=get_pmcs_faults&adminToken='+encodeURIComponent(adminToken),{signal:ctrl.signal});
+    clearTimeout(t); const d=await r.json();
+    if (d && d.success && Array.isArray(d.faults)) faults=d.faults;
+  } catch(e){}
+  pmcsRenderFaults(faults);
+}
+function pmcsRenderFaults(faults){
+  const body=document.getElementById('pmcsFaultsBody'); if(!body)return;
+  if (!faults.length){ body.innerHTML='<div style="text-align:center;padding:40px 24px;color:#64748b;line-height:1.6;">✅ No open faults logged.<br><span style="font-size:12px;color:#94a3b8;">Faults crews flag during PMCS show up here once the PMCS backend is deployed.</span></div>'; return; }
+  const byEq={};
+  for (const f of faults){ const k=f.equipment||f.equipKey||'Equipment'; (byEq[k]=byEq[k]||[]).push(f); }
+  let html='';
+  for (const k of Object.keys(byEq)){
+    html += `<div class="pmcs-section-title">${esc(k)} — ${byEq[k].length} fault${byEq[k].length!==1?'s':''}</div>`;
+    for (const f of byEq[k]){
+      const crit = f.critical || /NO-GO/i.test(String(f.result||''));
+      html += `<div style="padding:11px 8px;border-bottom:1px solid #f1f5f9;">
+        <div style="font-size:14px;font-weight:700;color:${crit?'#b91c1c':'#92400e'};">${crit?'⛔':'⚠️'} ${esc(f.label||f.result||'Fault')}</div>
+        ${f.note?`<div style="font-size:13px;color:#475569;margin-top:3px;">"${esc(f.note)}"</div>`:''}
+        <div style="font-size:11px;color:#94a3b8;margin-top:4px;">${esc(f.date||'')}${f.by?(' · '+esc(f.by)):''}${f.crew?(' · '+esc(f.crew)):''}</div>
+      </div>`;
+    }
+  }
+  body.innerHTML=html;
+}
+
+// ── On-demand PMCS menu (used inside Field Mode, where there's no tab) ───────
+// Lets a crew pull up the machine list and run any check anytime, not just at
+// route start. Reuses the same per-machine runner as the tab/gate.
+function _pmcsInjectMenuOverlay(){
+  if (document.getElementById('pmcsMenuOverlay')) return;
+  _pmcsInjectStyle();
+  const o = document.createElement('div');
+  o.className = 'pmcs-overlay'; o.id = 'pmcsMenuOverlay';
+  o.innerHTML = `
+    <div class="pmcs-panel">
+      <div class="pmcs-head">
+        <div class="pmcs-head-row">
+          <div class="pmcs-head-title">🔧 PMCS</div>
+          <button class="pmcs-head-close" onclick="pmcsCloseMenu()">×</button>
+        </div>
+        <div class="pmcs-head-sub">Run a maintenance check on any machine.</div>
+      </div>
+      <div class="pmcs-body" id="pmcsMenuBody"></div>
+    </div>`;
+  document.body.appendChild(o);
+}
+async function pmcsOpenMenu(){
+  _pmcsInjectStyle(); _pmcsInjectOverlay(); _pmcsInjectMenuOverlay();
+  const body = document.getElementById('pmcsMenuBody');
+  if (body) body.innerHTML = '<div style="text-align:center;padding:34px;color:#64748b;">Loading PMCS status…</div>';
+  const ov = document.getElementById('pmcsMenuOverlay');
+  if (ov) ov.classList.add('open');
+  await pmcsLoadStatus(true);
+  pmcsRenderMenu();
+}
+function pmcsCloseMenu(){
+  const ov = document.getElementById('pmcsMenuOverlay');
+  if (ov) ov.classList.remove('open');
+}
+function pmcsRenderMenu(){
+  const body = document.getElementById('pmcsMenuBody');
+  if (!body) return;
+  let html = '';
+  for (const eq of PMCS_EQUIPMENT){
+    const due = _pmcsDue(eq.key);
+    const st  = _pmcsState.status[eq.key] || {};
+    const badge = (cad,lbl) => due[cad]
+      ? `<span class="pmcs-badge due">${lbl} due</span>`
+      : `<span class="pmcs-badge ok">${lbl} ✓</span>`;
+    const anyDue = due.daily || due.weekly || due.monthly;
+    const lastTxt = st.daily ? `Last daily: ${st.daily}` : 'No daily logged yet';
+    html += `
+      <div class="pmcs-card">
+        <div class="pmcs-card-top">
+          <div class="pmcs-card-icon">${eq.icon}</div>
+          <div style="flex:1;">
+            <div class="pmcs-card-name">${esc(eq.name)}</div>
+            <div class="pmcs-card-sub">${esc(lastTxt)}</div>
+          </div>
+        </div>
+        <div class="pmcs-badges">${badge('daily','Daily')}${badge('weekly','Weekly')}${badge('monthly','Monthly')}</div>
+        <button class="pmcs-start-btn ${anyDue?'':'allok'}" onclick="pmcsOpenSingle('${eq.key}')">
+          ${anyDue ? '▶ Start '+esc(eq.name)+' PMCS' : '↻ Re-run '+esc(eq.name)+' PMCS'}
+        </button>
+      </div>`;
+  }
+  body.innerHTML = html;
+}
+
+function pmcsOpenSingle(eqKey){
+  _pmcsInjectStyle(); _pmcsInjectOverlay();
+  _pmcsMode = 'single';
+  _pmcsQueue = [eqKey];
+  _pmcsIdx = 0;
+  _pmcsStartCurrent();
+}
+function pmcsGateForClockIn(){
+  return new Promise(async (resolve) => {
+    _pmcsInjectStyle(); _pmcsInjectOverlay();
+    try { await pmcsLoadConfig(false); } catch(e){}   // latest edited checklists
+    await pmcsLoadStatus(false);   // uses the status pre-warmed on Field Mode entry → instant
+    // Any machine with an outstanding check (daily, or a weekly/monthly that's due
+    // or was missed/skipped) goes in the gate — and keeps coming back each day.
+    const dueList = PMCS_EQUIPMENT.filter(e => _pmcsDueCads(e.key).length).map(e => e.key);
+    if (!dueList.length){ resolve(true); return; }   // nothing due — straight to route
+    _pmcsMode = 'gate';
+    _pmcsQueue = dueList;
+    _pmcsIdx = 0;
+    _pmcsResolveGate = resolve;
+    _pmcsStartCurrent();
+  });
+}
+function _pmcsStartCurrent(){
+  const eqKey = _pmcsQueue[_pmcsIdx];
+  const eq = _pmcsEq(eqKey);
+  if (!eq){ pmcsFinishRunner(); return; }
+  // Both gate and tab run every cadence that's currently outstanding for this
+  // machine (daily + weekly on Mondays + monthly every 4th Monday, plus anything
+  // missed). Re-running from the tab when nothing's due falls back to daily.
+  _pmcsCads = _pmcsDueCads(eqKey);
+  if (!_pmcsCads.length) _pmcsCads = ['daily'];
+  // Nothing is pre-checked — the crew must actively pass or X every item.
+  _pmcsItemState = {}; _pmcsNotes = {};
+  pmcsRenderRunner();
+  const ov = document.getElementById('pmcsOverlay');
+  if (ov) ov.classList.add('open');
+}
+function pmcsRenderRunner(){
+  const eq = _pmcsEq(_pmcsQueue[_pmcsIdx]);
+  if (!eq) return;
+  document.getElementById('pmcsRunTitle').innerHTML = eq.icon + ' ' + esc(eq.name) + ' PMCS';
+  const cadTxt = _pmcsCads.map(c => c.charAt(0).toUpperCase()+c.slice(1)).join(' + ');
+  document.getElementById('pmcsRunSub').textContent =
+    cadTxt + ' checks · Check ✓ or X every item' + (_pmcsMode === 'gate' ? ' · or skip with a reason' : '');
+  const prog = document.getElementById('pmcsRunProgress');
+  if (_pmcsMode === 'gate'){ prog.style.display = ''; prog.textContent = (_pmcsIdx+1) + ' of ' + _pmcsQueue.length; }
+  else { prog.style.display = 'none'; }
+  document.getElementById('pmcsRunClose').style.display = '';   // closable in every mode
+  let html = '';
+  for (const cad of _pmcsCads){
+    const items = eq.items.filter(it => it.cad === cad);
+    if (!items.length) continue;
+    html += `<div class="pmcs-section-title">${cad} — ${items.length} item${items.length!==1?'s':''}</div>`;
+    for (const it of items){
+      const stt = _pmcsItemState[it.id] || 'unset';
+      html += `
+        <div class="pmcs-item ${stt}" id="pmcsItem_${it.id}">
+          <div class="pmcs-item-main">
+            <div class="pmcs-item-label">${esc(it.label)}${it.crit?'<span class="crit">● NO-GO IF FAIL</span>':''}</div>
+            <input class="pmcs-item-note" id="pmcsNote_${it.id}" placeholder="Required: what's wrong?"
+              value="${esc(_pmcsNotes[it.id]||'')}" oninput="_pmcsNotes['${it.id}']=this.value;pmcsUpdateBanner();">
+          </div>
+          <div class="pmcs-item-btns">
+            <button class="pmcs-pf pass ${stt==='pass'?'on':''}"  onclick="pmcsSetItem('${it.id}','pass')">✓</button>
+            <button class="pmcs-pf fault ${stt==='fault'?'on':''}" onclick="pmcsSetItem('${it.id}','fault')">✕</button>
+          </div>
+        </div>`;
+    }
+  }
+  document.getElementById('pmcsRunBody').innerHTML = html;
+  pmcsUpdateBanner();
+}
+// Count items still needing a decision, and faults still needing a written reason.
+function _pmcsUnset(){
+  const eq = _pmcsEq(_pmcsQueue[_pmcsIdx]); if (!eq) return { left:0, needNote:0 };
+  let left=0, needNote=0;
+  for (const it of eq.items){
+    if (!_pmcsCads.includes(it.cad)) continue;
+    const s = _pmcsItemState[it.id];
+    if (s !== 'pass' && s !== 'fault') left++;
+    else if (s === 'fault' && !(_pmcsNotes[it.id]||'').trim()) needNote++;
+  }
+  return { left, needNote };
+}
+function pmcsSetItem(id, val){
+  _pmcsItemState[id] = val;
+  const row = document.getElementById('pmcsItem_' + id);
+  if (row){
+    row.classList.remove('unset','pass','fault'); row.classList.add(val);
+    row.querySelectorAll('.pmcs-pf').forEach(b => b.classList.remove('on'));
+    const b = row.querySelector('.pmcs-pf.' + val); if (b) b.classList.add('on');
+    if (val === 'fault'){ const n = document.getElementById('pmcsNote_'+id); if (n) setTimeout(()=>n.focus(),60); }
+  }
+  pmcsUpdateBanner();
+}
+function pmcsSetAll(cad, val){
+  const eq = _pmcsEq(_pmcsQueue[_pmcsIdx]);
+  for (const it of eq.items){ if (it.cad === cad){ _pmcsItemState[it.id] = val; } }
+  pmcsRenderRunner();
+}
+function _pmcsFaults(){
+  const eq = _pmcsEq(_pmcsQueue[_pmcsIdx]);
+  const out = [];
+  for (const it of eq.items){
+    if (!_pmcsCads.includes(it.cad)) continue;
+    if (_pmcsItemState[it.id] === 'fault'){
+      out.push({ id:it.id, label:it.label, critical:!!it.crit, note:(_pmcsNotes[it.id]||'').trim() });
+    }
+  }
+  return out;
+}
+function _pmcsResult(){
+  const faults = _pmcsFaults();
+  if (faults.some(f => f.critical)) return 'NO-GO';
+  return 'GO';
+}
+function pmcsUpdateBanner(){
+  const banner = document.getElementById('pmcsRunBanner');
+  if (!banner) return;
+  const submit = document.getElementById('pmcsRunSubmit');
+  const { left, needNote } = _pmcsUnset();
+  // mark note fields that still need a reason
+  document.querySelectorAll('.pmcs-item.fault').forEach(row => {
+    const n = row.querySelector('.pmcs-item-note');
+    if (n) n.classList.toggle('need', !(n.value||'').trim());
+  });
+  if (left > 0){
+    banner.className = 'pmcs-status-banner pending';
+    banner.textContent = '☐ ' + left + ' item' + (left!==1?'s':'') + ' still need a ✓ or ✕';
+    if (submit){ submit.disabled = true; submit.textContent = 'Check every item'; }
+    return;
+  }
+  if (needNote > 0){
+    banner.className = 'pmcs-status-banner nogo';
+    banner.textContent = '✏️ Write a reason for ' + needNote + ' X\'d item' + (needNote!==1?'s':'');
+    if (submit){ submit.disabled = true; submit.textContent = 'Add reason for each X'; }
+    return;
+  }
+  const faults = _pmcsFaults();
+  const res = _pmcsResult();
+  if (submit){ submit.disabled = false; submit.textContent = 'Submit ✓'; }
+  if (res === 'NO-GO'){
+    banner.className = 'pmcs-status-banner nogo';
+    banner.textContent = '⛔ NO-GO — ' + faults.filter(f=>f.critical).length + ' safety fault(s). Do not operate until fixed.';
+  } else if (faults.length){
+    banner.className = 'pmcs-status-banner go';
+    banner.textContent = '✅ GO — with ' + faults.length + ' fault(s) logged.';
+  } else {
+    banner.className = 'pmcs-status-banner go';
+    banner.textContent = '✅ GO — all checks pass.';
+  }
+}
+
+function pmcsSubmitCurrent(){
+  const eq = _pmcsEq(_pmcsQueue[_pmcsIdx]);
+  // Must check ✓ or X every item, and every X needs a written reason.
+  const { left, needNote } = _pmcsUnset();
+  if (left > 0){ alert('Check ✓ or ✕ every item first — ' + left + ' still unmarked.'); pmcsUpdateBanner(); return; }
+  if (needNote > 0){ alert('Write a reason for every X\'d item (' + needNote + ' missing).'); pmcsUpdateBanner(); return; }
+  const faults = _pmcsFaults();
+  const result = _pmcsResult();
+  if (result === 'NO-GO'){
+    const ok = confirm(eq.name + ' is NO-GO (a safety-critical item failed).\n\nLog it as NO-GO and continue? The equipment should be repaired or swapped before use.');
+    if (!ok) return;
+  }
+  const itemsCompact = {};
+  for (const it of eq.items){ if (_pmcsCads.includes(it.cad)) itemsCompact[it.id] = (_pmcsItemState[it.id]==='fault'?'F':'P'); }
+  const params = {
+    action:'pmcs_log', idemKey:_pmcsUuid(),
+    equipment:eq.name, equipKey:eq.key,
+    cadences:_pmcsCads.join(','),
+    result, by:adminName || adminEmail || '', crew:_pmcsCrewLabel(),
+    date:_pmcsToday(),
+    faults:JSON.stringify(faults), items:JSON.stringify(itemsCompact),
+    skipped:'false', skipReason:'',
+    adminToken
+  };
+  _pmcsSend(params);
+  _pmcsState.status[eq.key] = _pmcsState.status[eq.key] || {};
+  for (const c of _pmcsCads) _pmcsState.status[eq.key][c] = _pmcsToday();
+  _pmcsSaveLocalStatus();   // remember on-device so this period isn't re-asked at next login
+  // In the clock-in gate we run several machines back-to-back — don't spam a toast
+  // for each (they pile up over the next screen). The progress counter is enough.
+  if (_pmcsMode !== 'gate' && typeof showToast === 'function') showToast(eq.icon + ' ' + eq.name + ' PMCS logged — ' + result);
+  pmcsAdvance();
+}
+function pmcsSkipCurrent(){
+  const eq = _pmcsEq(_pmcsQueue[_pmcsIdx]);
+  const reason = prompt('Skip ' + eq.name + ' PMCS for today?\n\nEnter a reason (required — this is logged):', '');
+  if (reason === null) return;          // cancelled
+  const r = (reason || '').trim();
+  if (!r){ alert('A reason is required to skip a PMCS.'); return; }
+  const params = {
+    action:'pmcs_log', idemKey:_pmcsUuid(),
+    equipment:eq.name, equipKey:eq.key,
+    cadences:_pmcsCads.join(','),
+    result:'SKIPPED', by:adminName || adminEmail || '', crew:_pmcsCrewLabel(),
+    date:_pmcsToday(),
+    faults:'[]', items:'{}',
+    skipped:'true', skipReason:r,
+    adminToken
+  };
+  _pmcsSend(params);
+  if (_pmcsMode !== 'gate' && typeof showToast === 'function') showToast('⤼ ' + eq.name + ' PMCS skipped — reason logged');
+  pmcsAdvance();
+}
+function pmcsAdvance(){
+  _pmcsIdx++;
+  if (_pmcsIdx < _pmcsQueue.length){ _pmcsStartCurrent(); }
+  else { pmcsFinishRunner(); }
+}
+function pmcsFinishRunner(){
+  const ov = document.getElementById('pmcsOverlay');
+  if (ov) ov.classList.remove('open');
+  try { pmcsRenderTab(); } catch(e){}
+  try { if (document.getElementById('pmcsMenuOverlay')) pmcsRenderMenu(); } catch(e){}
+  if (_pmcsMode === 'gate' && typeof _pmcsResolveGate === 'function'){
+    const r = _pmcsResolveGate; _pmcsResolveGate = null; r(true);   // completed → start the route
+  }
+}
+function pmcsCloseRunner(){
+  const ov = document.getElementById('pmcsOverlay');
+  if (ov) ov.classList.remove('open');
+  try { pmcsRenderTab(); } catch(e){}
+  try { if (document.getElementById('pmcsMenuOverlay')) pmcsRenderMenu(); } catch(e){}
+  // Closing the clock-in gate cancels starting the route (it can't be used to skip
+  // PMCS and still get the route). They can tap Start again to re-open it.
+  if (_pmcsMode === 'gate' && typeof _pmcsResolveGate === 'function'){
+    const r = _pmcsResolveGate; _pmcsResolveGate = null; r(false);
+  }
+}
+function _pmcsSend(params){
+  if (typeof _fmTestMode!=='undefined' && _fmTestMode){ try { console.log('[TEST] blocked PMCS log:', params && params.equipment); } catch(e){} return; }
+  try {
+    if (typeof _fmEnqueue === 'function'){
+      _fmEnqueue({ kind:'pmcs', method:'GET', params });
+      if (typeof _fmFlushQueue === 'function') _fmFlushQueue();
+      return;
+    }
+  } catch(e){}
+  try { fetch(SCRIPT_URL + '?' + new URLSearchParams(params).toString()).catch(()=>{}); } catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// "Got everything?" load-out checklist — runs after the PMCS gate, before the
+// route builds. Fast memory aid so nothing's left at the shop. Logged to the
+// FieldLog sheet (type=loadout) via the same offline-safe queue.
+// ═══════════════════════════════════════════════════════════════════════════
+const LOADOUT_ITEMS = [
+  { id:'lo_vac',    label:'🧹 Vacuum (charged/bagged) · mop & bucket' },
+  { id:'lo_sprays', label:'🧴 Sprays: all-purpose, glass, bathroom, degreaser' },
+  { id:'lo_cloths', label:'🧽 Microfiber cloths & scrub pads (plenty)' },
+  { id:'lo_kit',    label:'🧤 Gloves, trash bags & liners, paper towels' },
+  { id:'lo_extras', label:'🪜 Step stool · duster · caddy restocked' },
+];
+let _loadoutState = {};
+let _loadoutResolve = null;
+
+function _loadoutInjectOverlay(){
+  if (document.getElementById('loadoutOverlay')) return;
+  _pmcsInjectStyle();
+  const o = document.createElement('div');
+  o.className = 'pmcs-overlay'; o.id = 'loadoutOverlay';
+  o.innerHTML = `
+    <div class="pmcs-panel">
+      <div class="pmcs-head">
+        <div class="pmcs-head-row"><div class="pmcs-head-title">🧰 Got everything?</div></div>
+        <div class="pmcs-head-sub">Quick load-out check before you roll. Tap each thing that's loaded.</div>
+      </div>
+      <div class="pmcs-body" id="loadoutBody"></div>
+      <div class="pmcs-foot">
+        <div class="pmcs-quick"><button onclick="loadoutSetAll(true)">✓ Loaded it all</button><button onclick="loadoutSetAll(false)">Clear</button></div>
+        <div class="pmcs-foot-btns">
+          <button class="pmcs-btn pmcs-btn-submit" onclick="loadoutConfirm()">Start Route →</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(o);
+}
+function loadoutGate(){
+  return new Promise((resolve) => {
+    _loadoutInjectOverlay();
+    _loadoutState = {};
+    for (const it of LOADOUT_ITEMS) _loadoutState[it.id] = false;
+    _loadoutResolve = resolve;
+    loadoutRender();
+    const ov = document.getElementById('loadoutOverlay');
+    if (ov) ov.classList.add('open');
+  });
+}
+function loadoutRender(){
+  const body = document.getElementById('loadoutBody');
+  if (!body) return;
+  const n = LOADOUT_ITEMS.filter(it => _loadoutState[it.id]).length;
+  let html = `<div class="pmcs-section-title">Load-out — ${n}/${LOADOUT_ITEMS.length} loaded</div>`;
+  for (const it of LOADOUT_ITEMS){
+    const on = !!_loadoutState[it.id];
+    html += `
+      <div class="pmcs-item ${on?'pass':''}" onclick="loadoutToggle('${it.id}')" style="cursor:pointer;">
+        <button class="pmcs-item-toggle" onclick="event.stopPropagation();loadoutToggle('${it.id}')">${on?'✓':''}</button>
+        <div class="pmcs-item-main"><div class="pmcs-item-label">${esc(it.label)}</div></div>
+      </div>`;
+  }
+  body.innerHTML = html;
+}
+function loadoutToggle(id){ _loadoutState[id] = !_loadoutState[id]; loadoutRender(); }
+function loadoutSetAll(val){ for (const it of LOADOUT_ITEMS) _loadoutState[it.id] = !!val; loadoutRender(); }
+function loadoutConfirm(){
+  const checked  = LOADOUT_ITEMS.filter(it => _loadoutState[it.id]).map(it => it.id);
+  const missing  = LOADOUT_ITEMS.filter(it => !_loadoutState[it.id]).map(it => it.label);
+  if (missing.length){
+    const ok = confirm('Not loaded yet:\n\n• ' + missing.join('\n• ') + '\n\nStart the route anyway?');
+    if (!ok) return;
+  }
+  _pmcsSend({
+    action:'log_checklist', idemKey:_pmcsUuid(),
+    type:'loadout', date:_pmcsToday(), crew:_pmcsCrewLabel(), by:adminName || adminEmail || '',
+    items: JSON.stringify({ checked: checked, missingCount: missing.length }),
+    adminToken
+  });
+  const ov = document.getElementById('loadoutOverlay');
+  if (ov) ov.classList.remove('open');
+  if (typeof showToast === 'function') showToast('🧰 Load-out logged — rolling out');
+  if (typeof _loadoutResolve === 'function'){ const r = _loadoutResolve; _loadoutResolve = null; r(); }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   END-OF-DAY DROP-OFF PMCS — runs at the shop after the route, BEFORE clock-out.
+   Clean-up checklist + truck mileage. Logged via the same offline-safe queue
+   (log_checklist type=end_of_day) so the office sees daily mileage + shutdown.
+   ═══════════════════════════════════════════════════════════════════════════ */
+const ENDOFDAY_ITEMS = [
+  { id:'ed_restock', label:'🧴 Caddy restocked for tomorrow (sprays, cloths, bags)' },
+  { id:'ed_launder', label:'🧺 Dirty cloths & mop heads in the wash' },
+  { id:'ed_vac',     label:'🧹 Vacuum emptied · equipment wiped down' },
+  { id:'ed_lock',    label:'🔒 Van unloaded & locked up' },
+];
+let _eodState={}, _eodResolve=null, _eodOdo='', _eodTrip='';
+function _eodInject(){
+  if (document.getElementById('eodOverlay')) return;
+  _pmcsInjectStyle();
+  const o=document.createElement('div'); o.className='pmcs-overlay'; o.id='eodOverlay';
+  o.innerHTML = `
+    <div class="pmcs-panel">
+      <div class="pmcs-head">
+        <div class="pmcs-head-row"><div class="pmcs-head-title">🧽 End-of-Day Checklist</div></div>
+        <div class="pmcs-head-sub">Back at the shop — clean up, log the truck mileage, then clock out.</div>
+      </div>
+      <div class="pmcs-body" id="eodBody"></div>
+      <div class="pmcs-foot">
+        <div class="pmcs-foot-btns"><button class="pmcs-btn pmcs-btn-submit" onclick="eodConfirm()">Log &amp; Clock Out →</button></div>
+      </div>
+    </div>`;
+  document.body.appendChild(o);
+}
+function endOfDayGate(){
+  return new Promise((resolve)=>{
+    _eodInject(); _eodState={}; ENDOFDAY_ITEMS.forEach(it=>_eodState[it.id]=false);
+    _eodResolve=resolve; eodRender();
+    const ov=document.getElementById('eodOverlay'); if(ov) ov.classList.add('open');
+  });
+}
+function eodRender(){
+  const body=document.getElementById('eodBody'); if(!body) return;
+  const n=ENDOFDAY_ITEMS.filter(it=>_eodState[it.id]).length;
+  let html='<div class="pmcs-section-title">Truck mileage</div>'
+    +'<div style="padding:4px 2px 10px;">'
+    +'<input id="eodOdo" type="number" inputmode="decimal" placeholder="Ending odometer (miles) — required" value="'+esc(_eodOdo||'')+'" oninput="_eodOdo=this.value" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:16px;box-sizing:border-box;color:#12293e;">'
+    +'<input id="eodTrip" type="number" inputmode="decimal" placeholder="Miles driven today (trip) — optional" value="'+esc(_eodTrip||'')+'" oninput="_eodTrip=this.value" style="width:100%;margin-top:8px;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:16px;box-sizing:border-box;color:#12293e;">'
+    +'</div>'
+    +'<div class="pmcs-section-title">Shutdown &amp; clean-up — '+n+'/'+ENDOFDAY_ITEMS.length+'</div>';
+  ENDOFDAY_ITEMS.forEach(it=>{ const on=!!_eodState[it.id];
+    html+='<div class="pmcs-item '+(on?'pass':'')+'" onclick="eodToggle(\''+it.id+'\')" style="cursor:pointer;"><button class="pmcs-item-toggle" onclick="event.stopPropagation();eodToggle(\''+it.id+'\')">'+(on?'✓':'')+'</button><div class="pmcs-item-main"><div class="pmcs-item-label">'+esc(it.label)+'</div></div></div>';
+  });
+  body.innerHTML=html;
+}
+function eodToggle(id){ _eodState[id]=!_eodState[id]; eodRender(); }
+function eodConfirm(){
+  const odoEl=document.getElementById('eodOdo'); const odo=String((odoEl&&odoEl.value)||_eodOdo||'').trim();
+  if(!odo){ alert('Enter the truck odometer (ending mileage) before clocking out.'); return; }
+  const tripEl=document.getElementById('eodTrip'); const trip=String((tripEl&&tripEl.value)||_eodTrip||'').trim();
+  const checked=ENDOFDAY_ITEMS.filter(it=>_eodState[it.id]).map(it=>it.id);
+  const missing=ENDOFDAY_ITEMS.filter(it=>!_eodState[it.id]).map(it=>it.label);
+  if(missing.length){ if(!confirm('Not done yet:\n\n• '+missing.join('\n• ')+'\n\nClock out anyway?')) return; }
+  _pmcsSend({ action:'log_checklist', idemKey:_pmcsUuid(), type:'end_of_day', date:_pmcsToday(),
+    crew:_pmcsCrewLabel(), by:adminName||adminEmail||'', mileage:odo, tripMiles:trip,
+    items:JSON.stringify({ checked:checked, missingCount:missing.length, odometer:odo, tripMiles:trip }), adminToken });
+  const ov=document.getElementById('eodOverlay'); if(ov) ov.classList.remove('open');
+  _eodOdo=''; _eodTrip='';
+  if(typeof showToast==='function') showToast('🔧 Drop-off logged — clocking out');
+  if(typeof _eodResolve==='function'){ const r=_eodResolve; _eodResolve=null; r(true); }
+}
+
+</script>
+</body>
+</html>
