@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-06.1 */
+/* APP_VER:2026-07-06.2 */
 (function(){
-  var V='2026-07-03.3'; window.__APP_VER=V;
+  var V='2026-07-06.2'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -1271,10 +1271,13 @@ function _fmRenderJob(stops,idx){
   if(done) pills+='<span class="fm-pill">✓ Done</span>'; else if(skipped) pills+='<span class="fm-pill warn">⤼ Skipped</span>';
   const em=String(bk.email||'').toLowerCase().trim();
   const cust=(allCustomers||[]).find(c=>String(c.Email||'').toLowerCase().trim()===em);
-  const notes=(cust&&String(cust.Notes||'').trim())||String(bk.notes||'').replace(/\blot:\s*[\d.]+ac\b/gi,'').replace(/\s*\|\s*$/,'').trim();
-  const noteHtml=notes?'<div class="fm-note-box"><b>Notes</b>'+esc(notes)+'</div>':'';
-  const phone=String(bk.phone||'').trim();
-  const phoneRow=phone?'<a class="fm-btn fm-btn-sm fm-btn-ghost" href="tel:'+esc(phone.replace(/[^0-9+]/g,''))+'">📞 Call '+esc(bk.name?bk.name.split(' ')[0]:'customer')+'</a>':'';
+  const custNotes=(cust&&String(cust.Notes||'').trim())||'';
+  let jobNotes=String(bk.notes||'').replace(/\blot:\s*[\d.]+ac\b/gi,'').replace(/\s*\|\s*$/,'').trim();
+  if(jobNotes==='(none)') jobNotes='';
+  const noteHtml=(custNotes?'<div class="fm-note-box"><b>Customer notes</b>'+esc(custNotes)+'</div>':'')
+    +(jobNotes&&jobNotes!==custNotes?'<div class="fm-note-box"><b>Job notes</b>'+esc(jobNotes)+'</div>':'');
+  const phone=String(bk.phone||'').trim(), phoneDigits=phone.replace(/[^0-9+]/g,'');
+  const phoneRow=phone?('<a class="fm-btn fm-btn-sm fm-btn-ghost" href="tel:'+esc(phoneDigits)+'">📞 Call</a><a class="fm-btn fm-btn-sm fm-btn-ghost" href="sms:'+esc(phoneDigits)+'">💬 Text</a>'):'';
   document.getElementById('fmJobBody').innerHTML=
     '<div class="fm-card"><div class="fm-card-stopno">'+(idx+1)+'</div><div class="fm-card-name">'+esc(bk.name||'Customer')+'</div>'+
     '<div class="fm-card-addr">📍 '+esc(bk.address||'—')+(bk.zip?', '+esc(bk.zip):'')+'</div><div class="fm-pills">'+pills+'</div>'+noteHtml+
@@ -1562,12 +1565,13 @@ const QC_ADDONS=[
   {id:'pets',name:'Pets in the home',price:15}
 ];
 let _qc={service:'standard',bed:2,bath:1,extra:0,sqft:'1,000–2,000 sq ft',addons:{}};
+function _p9(n){ n=Math.round(n); const r=Math.round((n+1)/10)*10-1; return r<9?9:r; } // prices end in 9 — 150→149, 75→79
 function qcPrice(svc,skipAddons){
   const r=QC_RATES[svc||_qc.service];
   let t=r.base+_qc.bed*r.bed+_qc.bath*r.bath+_qc.extra*r.room+(QC_SQFT[_qc.sqft]||0);
   t=Math.max(QC_FLOOR,t);
   if(!skipAddons) QC_ADDONS.forEach(a=>{ if(_qc.addons[a.id]) t+=a.price; });
-  return t;
+  return _p9(t);
 }
 function qcOpen(){
   if(!document.getElementById('qcOverlay')){

@@ -5316,9 +5316,10 @@ function updateAcPricePreview() {
   const bath = parseInt(document.getElementById('ac-bath')?.value||'0')||0;
   const extra= parseInt(document.getElementById('ac-extra')?.value||'0')||0;
   const sqft = document.getElementById('ac-sqft')?.value || '';
+  const _p9 = n => { n = Math.round(n); const v = Math.round((n+1)/10)*10 - 1; return v < 9 ? 9 : v; }; // prices end in 9
   let base = r.base + bed*r.bed + bath*r.bath + extra*r.room + (AC_SQFT[sqft]||0);
-  base = Math.max(AC_FLOOR, base);
-  const total = base + acAddonsTotal();
+  base = _p9(Math.max(AC_FLOOR, base));
+  const total = _p9(base + acAddonsTotal());
   if (priceInput) priceInput.value = total;
   const yard = document.getElementById('ac-yard'); if (yard) yard.value = bed+'bd/'+bath+'ba';
   if (prev) prev.textContent = '💧 Auto price: $'+total+'   ('+acBuildDesc()+')';
