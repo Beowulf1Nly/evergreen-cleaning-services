@@ -1094,14 +1094,6 @@
         </select>
       </div>
 
-      <!-- 📋 Pending Estimates — open quotes sent to customers, auto-expires at validThru (owner only) -->
-      <div id="pendingEstimatesSection" style="margin-bottom:32px;display:none;">
-        <div class="section-label">
-          📋 Pending Estimates <span class="badge" style="background:#7c3aed;" id="pendingEstimatesCount">0</span>
-        </div>
-        <div id="pendingEstimatesList"></div>
-      </div>
-
       <!-- 📋 Visited Quotes — quote visits marked done, awaiting scheduling (owner only) -->
       <div id="visitedQuotesSection" style="margin-bottom:32px;display:none;">
         <div class="section-label">
@@ -1754,13 +1746,19 @@
   <div id="pane-quote" class="tab-pane">
     <div class="container" style="max-width:720px;padding-bottom:40px;">
 
+      <!-- 📋 Pending Estimates — open quotes sent to customers, auto-expires at validThru (owner only) -->
+      <div id="pendingEstimatesSection" style="margin-bottom:32px;display:none;">
+        <div class="section-label">
+          📋 Pending Estimates <span class="badge" style="background:#7c3aed;" id="pendingEstimatesCount">0</span>
+        </div>
+        <div id="pendingEstimatesList"></div>
+      </div>
+
       <div style="margin-bottom:24px;">
         <div style="font-size:22px;font-weight:700;color:var(--green-deep);margin-bottom:4px;" id="qt-tab-title">📋 Send an Estimate</div>
-        <div style="font-size:14px;color:var(--text-muted);" id="qt-tab-sub">Build a professional estimate and email it directly to a customer.</div>
-        <!-- Employee notice — shown only when employee is logged in -->
-        <div id="qt-employee-notice" style="display:none;margin-top:12px;padding:12px 16px;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;font-size:13px;color:#92400e;">
-          👷 <strong>Employee mode:</strong> Estimates you submit go to the owner for approval before being sent to the customer.
-        </div>
+        <div style="font-size:14px;color:var(--text-muted);" id="qt-tab-sub">Build a professional estimate and email it directly to a customer — the email includes a Book Now button they can tap to schedule.</div>
+        <!-- Estimates email straight to the customer with a Book Now button -->
+        <div id="qt-employee-notice" style="display:none;"></div>
       </div>
 
       <!-- ── CUSTOMER INFO ── -->
@@ -2575,7 +2573,7 @@ function showTab(tab) {
   if (tab === 'analytics') loadAnalytics();
   if (tab === 'route')     initRouteTab();
   if (tab === 'customers') { loadCustomers(); }
-  if (tab === 'quote')     { qtInit(); qtSetupForRole(); }
+  if (tab === 'quote')     { qtInit(); qtSetupForRole(); if (adminRole === 'owner') loadPendingEstimates(); }
   if (tab === 'job')       { jobInit(); }
   if (tab === 'config')    { initConfigTab(); }
   if (tab === 'history')   { initHistoryTab(); }
@@ -2762,11 +2760,8 @@ function qtFillFromCustomer() {
 
 // ── Set up quote tab UI based on current role ─────────
 function qtSetupForRole() {
-  const isEmployee = adminRole === 'employee';
-  const notice   = document.getElementById('qt-employee-notice');
   const sendBtn  = document.getElementById('qt-send-btn');
-  if (notice)  notice.style.display  = isEmployee ? 'block' : 'none';
-  if (sendBtn) sendBtn.textContent   = isEmployee ? '📤 Submit for Approval' : '📧 Send Estimate';
+  if (sendBtn) sendBtn.textContent = '📧 Send Estimate';
 }
 
 // ── SEND (or submit for approval) ─────────────────────
@@ -2786,15 +2781,16 @@ async function qtSend() {
   if (!email) { showToast('Enter customer email'); return; }
   if (!qtItems.length || qtItems.every(it => !it.desc.trim())) { showToast('Add at least one service'); return; }
 
+  if (!confirm('Send this estimate to ' + email + '?\n\nThe email includes a Book Now button the customer can use to schedule.')) return;
+
   const btn    = document.getElementById('qt-send-btn');
   const status = document.getElementById('qt-status');
   btn.disabled = true;
-  const isEmployee = adminRole === 'employee';
-  btn.textContent  = isEmployee ? '⏳ Submitting…' : '📧 Sending…';
+  btn.textContent  = '📧 Sending…';
   if (status) { status.textContent = ''; status.style.color = ''; }
 
-  // Employees submit for owner approval; owners send directly
-  const action = isEmployee ? 'submit_estimate_for_approval' : 'send_quote_email';
+  // Everyone sends directly — the approval flow is retired
+  const action = 'send_quote_email';
 
   const params = new URLSearchParams({
     action,
@@ -2821,13 +2817,7 @@ async function qtSend() {
     const res  = await fetch(SCRIPT_URL + '?' + params.toString());
     const data = await res.json();
     if (data.success) {
-      if (isEmployee) {
-        if (status) {
-          status.textContent = '✅ Estimate submitted for owner approval!';
-          status.style.color = '#1565a8';
-        }
-        showToast('✅ Estimate sent to owner for approval');
-      } else {
+      {
         if (status) {
           status.textContent = '✅ Estimate ' + (data.quoteNumber || estNum) + ' sent to ' + email + ' — $' + (data.subtotal || '0');
           status.style.color = '#1565a8';
@@ -2841,14 +2831,15 @@ async function qtSend() {
         }
       }
     } else {
-      throw new Error(data.error || (isEmployee ? 'Failed to submit estimate' : 'Failed to send estimate'));
+      throw new Error(data.error || 'Failed to send estimate');
     }
   } catch(err) {
     if (status) { status.textContent = '❌ ' + err.message; status.style.color = '#e53e3e'; }
     showToast('Error: ' + err.message);
   }
   btn.disabled = false;
-  btn.textContent = isEmployee ? '📤 Submit for Approval' : '📧 Send Estimate';
+  btn.textContent = '📧 Send Estimate';
+  if (adminRole === 'owner') loadPendingEstimates();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -5254,12 +5245,12 @@ function onSchedPromoChange() {
 
 // ── Add-Client builder pricing (mirrors the public home builder) ──
 const AC_RATES = {
-  'Standard Clean':    { base:40,  bed:28, bath:18, room:15 },
-  'Deep Clean':        { base:105, bed:38, bath:26, room:20 },
-  'Move In/Out Clean': { base:155, bed:48, bath:32, room:24 }
-};
-const AC_SQFT  = { 'Under 1,000 sq ft':0, '1,000–2,000 sq ft':12, '2,000–3,000 sq ft':34, '3,000+ sq ft':60 };
-const AC_FLOOR = 80;
+  'Standard Clean':    { base:45, bed:25, bath:15, room:15 },
+  'Deep Clean':        { base:72, bed:42, bath:27, room:25 },
+  'Move In/Out Clean': { base:89, bed:50, bath:30, room:30 }
+}; // ~$50/hr — 3bed/2bath standard = $150
+const AC_SQFT  = { 'Under 1,000 sq ft':0, '1,000–2,000 sq ft':0, '2,000–3,000 sq ft':25, '3,000+ sq ft':50 };
+const AC_FLOOR = 75;
 const AC_ADDONS = [
   {id:'windows', name:'🪟 Windows', price:40}, {id:'fridge',  name:'🧊 Fridge',  price:35},
   {id:'oven',    name:'🔥 Oven',    price:35}, {id:'cabinets',name:'🚪 Cabinets',price:40},

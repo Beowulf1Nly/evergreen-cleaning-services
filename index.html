@@ -32,14 +32,14 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Evergreen Cleaning Services | House Cleaning in Central Florida</title>
-<meta name="description" content="Evergreen Cleaning Services — professional house cleaning in Central Florida. Standard, deep, and move-in/out cleans starting at $90. Fully insured, eco-friendly supplies, 5-star service."/>
+<meta name="description" content="Evergreen Cleaning Services — professional house cleaning in Central Florida. Standard, deep, and move-in/out cleans starting at $75. Fully insured, eco-friendly supplies, 5-star service."/>
 <meta name="keywords" content="house cleaning Citrus County FL, maid service Inverness FL, deep cleaning Crystal River, move out cleaning Lecanto FL, home cleaning Central Florida"/>
 <meta name="robots" content="index, follow"/>
 
 <!-- Open Graph -->
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="Evergreen Cleaning Services | Central Florida"/>
-<meta property="og:description" content="Professional house cleaning in Central Florida. Standard, deep, and move-in/out cleans starting at $90. Fully insured · Eco-friendly supplies · 5-star service."/>
+<meta property="og:description" content="Professional house cleaning in Central Florida. Standard, deep, and move-in/out cleans starting at $75. Fully insured · Eco-friendly supplies · 5-star service."/>
 <meta property="og:image" content="CleaningServicesTransparent.png"/>
 <meta property="og:site_name" content="Evergreen Cleaning Services"/>
 <meta property="og:locale" content="en_US"/>
@@ -51,9 +51,9 @@
   "@type": "HouseCleaningService",
   "name": "Evergreen Cleaning Services",
   "telephone": "+13524620627",
-  "priceRange": "$90–$420",
+  "priceRange": "$75–$400",
   "image": "CleaningServicesTransparent.png",
-  "description": "Evergreen Cleaning Services — professional house cleaning serving Central Florida. Standard, deep, and move-in/out cleaning with flat-rate pricing starting at $90.",
+  "description": "Evergreen Cleaning Services — professional house cleaning serving Central Florida. Standard, deep, and move-in/out cleaning with flat-rate pricing starting at $75.",
   "areaServed": {
     "@type": "AdministrativeArea",
     "name": "Central Florida"
@@ -780,7 +780,7 @@
     <div class="hero-content">
       <div class="hero-badge">A Solutions Based Company 🫧</div>
       <h1>A Spotless Home,<br/><em>Every Single Time</em></h1>
-      <p>Central Florida's professional house cleaning company. Flat-rate pricing starting at $90, eco-friendly supplies, and a 5-star service guarantee — no contracts, cancel anytime.</p>
+      <p>Central Florida's professional house cleaning company. Flat-rate pricing starting at $75, eco-friendly supplies, and a 5-star service guarantee — no contracts, cancel anytime.</p>
       <div class="hero-btns">
         <a id="heroBookBtn" href="javascript:void(0)" onclick="openBookModal()" class="btn-primary">Book Now →</a>
         <a href="tel:+13524620627" class="btn-secondary">📞 Call (352) 462-0627</a>
@@ -1200,20 +1200,21 @@ function submitQuote() {
 // Base prices come straight from the published flat-rate tiers.
 // Bedrooms drive the tier; bathrooms & sq ft are collected for the quote
 // but don't change the flat rate (keeps pricing consistent with the table).
-// Per-item pricing — every choice moves the price. PRICE_FLOOR keeps the
-// minimum "step in the door" rate at $80. Tweak these numbers to retune.
+// Per-item pricing — every choice moves the price. Model: ~$50 per hour of
+// work — a 3 bed / 2 bath standard clean lands at exactly $150. PRICE_FLOOR
+// keeps the minimum "step in the door" rate at $75. Tweak these to retune.
 const RATES = {
-  standard: { base:40,  bed:28, bath:18, room:15 },
-  deep:     { base:105, bed:38, bath:26, room:20 },
-  move:     { base:155, bed:48, bath:32, room:24 }
+  standard: { base:45, bed:25, bath:15, room:15 },
+  deep:     { base:72, bed:42, bath:27, room:25 },
+  move:     { base:89, bed:50, bath:30, room:30 }
 };
 const SQFT_FEE = {
   'Under 1,000 sq ft': 0,
-  '1,000–2,000 sq ft': 12,
-  '2,000–3,000 sq ft': 34,
-  '3,000+ sq ft':      60
+  '1,000–2,000 sq ft': 0,
+  '2,000–3,000 sq ft': 25,
+  '3,000+ sq ft':      50
 };
-const PRICE_FLOOR = 80;
+const PRICE_FLOOR = 75;
 const SVC_NAME = { standard:'Standard Clean', deep:'Deep Clean', move:'Move In/Out Clean' };
 const SVC_SUB  = { standard:'Recurring upkeep', deep:'Top-to-bottom reset', move:'Empty home' };
 const PETS_FEE = 15;
