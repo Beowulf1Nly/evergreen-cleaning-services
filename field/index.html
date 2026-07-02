@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:C2026-07-02.1 */
+/* APP_VER:C2026-07-02.2 */
 (function(){
-  var V='C2026-07-02.1'; window.__APP_VER=V;
+  var V='C2026-07-02.2'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -285,8 +285,8 @@
   <div class="fm-screen" id="fmScreenReturn">
     <div class="fm-done-center">
       <div class="fm-done-emoji">🏠</div>
-      <div class="fm-done-title">Last yard done!</div>
-      <div class="fm-done-sub" id="fmReturnSub">Head back to home base for drop-off.</div>
+      <div class="fm-done-title">Last home done!</div>
+      <div class="fm-done-sub" id="fmReturnSub">All homes finished — head back to base.</div>
       <div id="fmReturnAddr" style="color:#9cc8e3;font-size:16px;font-weight:700;margin:6px 0 22px;"></div>
       <a class="fm-btn fm-btn-xl fm-btn-start" id="fmReturnNav" href="#" target="_blank" style="min-width:260px;display:inline-block;text-decoration:none;">🧭 Navigate to Home Base</a>
       <button class="fm-btn fm-btn-xl" onclick="fmArrivedBase()" style="min-width:260px;margin-top:14px;background:#1d4ed8;color:#fff;">✅ I'm here — Start End-of-Day Checklist</button>
@@ -336,11 +336,11 @@
     <div class="fm-sheet-title" id="fmSkipTitle">Couldn't service this stop</div>
     <div class="fm-sheet-sub">The job stays open for follow-up — a note is logged for the office.</div>
     <div class="fm-skip-reasons">
-      <button class="fm-toggle-btn" onclick="fmRecordSkip('Not home')">🚪 Not home</button>
-      <button class="fm-toggle-btn" onclick="fmRecordSkip('Gate locked')">🔒 Gate locked</button>
-      <button class="fm-toggle-btn" onclick="fmRecordSkip('Dog in yard')">🐕 Dog in yard</button>
-      <button class="fm-toggle-btn" onclick="fmRecordSkip('Weather')">🌧 Weather</button>
-      <button class="fm-toggle-btn" onclick="fmRecordSkip('Yard not ready')">🌱 Yard not ready</button>
+      <button class="fm-toggle-btn" onclick="fmRecordSkip('Not home / no answer')">🚪 Not home</button>
+      <button class="fm-toggle-btn" onclick="fmRecordSkip('Couldn&#39;t get inside')">🔑 Couldn't get in</button>
+      <button class="fm-toggle-btn" onclick="fmRecordSkip('Customer rescheduled at door')">📅 Rescheduled at door</button>
+      <button class="fm-toggle-btn" onclick="fmRecordSkip('Pet issue')">🐕 Pet issue</button>
+      <button class="fm-toggle-btn" onclick="fmRecordSkip('Home not ready to clean')">📦 Home not ready</button>
       <button class="fm-toggle-btn" onclick="fmPromptSkipOther()">✏️ Other reason…</button>
     </div>
     <div class="fm-err" id="fmSkipErr"></div>
