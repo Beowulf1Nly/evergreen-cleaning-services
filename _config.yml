@@ -1,0 +1,8 @@
+# Keep large, UNUSED files in the repo but out of the published site so GitHub
+# Pages publishes fast/reliably. Nothing on the live site references these.
+exclude:
+  - players_fixed.db                                # ~4MB database, not used by the website
+  - index.html.bak-20260605-023022                  # backup
+  - index.html.bak-reviews-031336                   # backup
+  - "ChatGPT Image Jun 16, 2026, 08_05_41 PM.png"   # stray root-level image duplicate, unused
+  - README.md
