@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-03.1 */
+/* APP_VER:2026-07-03.2 */
 (function(){
-  var V='2026-07-03.1'; window.__APP_VER=V;
+  var V='2026-07-03.2'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -568,7 +568,7 @@ function mowMinutes(bk){
   // Cleaning-time model: custom override → quote visits → service type + beds/baths.
   const custom=parseInt(String(bk.mowMinutes||bk.customMowMins||'')); if(custom>0) return custom;
   const n=String(bk.notes||'').toLowerCase(), freq=String(bk.frequency||'').toLowerCase(), svc=String(bk.service||bk.serviceType||'').toLowerCase();
-  if(freq.includes('quote')||svc.includes('quote')) return 20;
+  if(_isQuoteJob(bk)) return 20;
   const d=n.match(/duration[:\s]+(\d+)\s*(min|hr|hour)?/i);
   if(d) return Math.round(parseFloat(d[1])*(/hr|hour/.test(d[0])?60:1));
   const bed=(n.match(/(\d+)\s*bed/)||[])[1], bath=(n.match(/(\d+)\s*bath/)||[])[1];
@@ -876,6 +876,7 @@ async function _reoptimizeNow(){
   _fmRender();
   if(!ok){
     if(navigator.onLine===false) showToast('📴 Offline — using last saved order');
+    else if(_fmTodayRawJobs().length<2){ showToast('✅ Only '+_fmTodayRawJobs().length+' stop today — nothing to optimize'); }
     else {
       // geocoders unreachable → cluster by zip + street so the day still flows sensibly
       const ds=_fmTodayRawJobs();
@@ -1625,7 +1626,7 @@ function qcText(){
 
 
 /* ═══════════ QUOTE CLOSER — a quote visit ends in an OUTCOME, not a payment ═══════════ */
-function _isQuoteJob(bk){ const t=(String(bk.frequency||'')+' '+String(bk.service||bk.serviceType||'')).toLowerCase(); return t.includes('quote'); }
+function _isQuoteJob(bk){ const t=(String(bk.frequency||'')+' '+String(bk.service||bk.serviceType||'')+' '+String(bk.price||'')+' '+String(bk.notes||'')+' '+String(bk.payMethod||'')).toLowerCase(); return t.indexOf('quote')>=0; }
 let _qjBk=null;
 function fmQuoteCloser(bk){
   _qjBk=bk;
