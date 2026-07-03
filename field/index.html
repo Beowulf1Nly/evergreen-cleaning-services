@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-07.1 */
+/* APP_VER:2026-07-07.2 */
 (function(){
-  var V='2026-07-07.1'; window.__APP_VER=V;
+  var V='2026-07-07.2'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -1149,6 +1149,22 @@ function _autoClockOut(){
 /* ───────── Stops / ordering ───────── */
 function _stopKey(bk){ return String(bk.email||'').toLowerCase().trim()+'|'+dateOf(bk); }
 function _crewMatch(bk){ if(_crewSel){ if(_crewSel==='ALL') return true; const c=String(bk.crew||'').toUpperCase().trim(); if(_crewSel==='UNASSIGNED') return !c; return c===_crewSel||!c; } return _crewOk(bk); } // explicit override else staff assignment
+
+/* ── Same-day additions: local insert so the new job is playable IMMEDIATELY ── */
+let _fmInsertAfter={}; try{ _fmInsertAfter=JSON.parse(localStorage.getItem('evg_fm_insafter')||'{}'); }catch(e){}
+function _fmInsAfterSave(){ try{ localStorage.setItem('evg_fm_insafter',JSON.stringify(_fmInsertAfter)); }catch(e){} }
+function _fmAddLocalSameDay(nb,anchorKey){
+  try{
+    nb._localTemp=true;
+    (allBookings=allBookings||[]).push(nb);
+    const nk=_stopKey(nb);
+    if(anchorKey&&anchorKey!==nk){ _fmInsertAfter[nk]=anchorKey; _fmInsAfterSave(); }
+    _persist(); _fmRender();
+    // the queued booking hits the backend in seconds — refresh swaps the temp for the real row
+    setTimeout(function(){ try{ loadData(true); }catch(e){} },6000);
+  }catch(e){}
+}
+
 function _fmTodayRawJobs(){ const ds=todayISOStr(); return (allBookings||[]).filter(b=>!b.rowCancelled&&dateOf(b)===ds&&_crewMatch(b)); } // completed jobs stay so progress counts them as done
 function _fmStops(){
   const jobs=_fmTodayRawJobs().map(bk=>({bk}));
@@ -1161,6 +1177,21 @@ function _fmStops(){
   } else {
     jobs.sort((a,b)=>{ const ta=a.bk.jobTime||'99:99', tb=b.bk.jobTime||'99:99'; return ta<tb?-1:ta>tb?1:0; }); // (c) job time last resort
   }
+  // Same-day additions slot in right after the stop they were sold at
+  try{
+    const iaKeys=Object.keys(_fmInsertAfter||{});
+    if(iaKeys.length){
+      iaKeys.forEach(function(nk){
+        const anchor=_fmInsertAfter[nk];
+        if(!anchor||anchor===nk) return;
+        const ni=jobs.findIndex(function(s){return _stopKey(s.bk)===nk;});
+        if(ni<0) return;
+        const moved=jobs.splice(ni,1)[0];
+        const ai=jobs.findIndex(function(s){return _stopKey(s.bk)===anchor;});
+        jobs.splice(ai<0?jobs.length:ai+1,0,moved);
+      });
+    }
+  }catch(e){}
   return jobs;
 }
 function _fmIsSkipped(bk){ return !!_fmSkipped[_stopKey(bk)]; }
@@ -1835,7 +1866,13 @@ function ncSubmit(){
   if(!confirm('Add '+name+'?\n'+freq+(price?(' · $'+price):'')+' · first visit '+date+'\n'+addr)) return;
   _fmEnqueue({ kind:'newcust', idemKey:'nc:'+_uuid(), method:'GET', params:{ action:'manual_schedule', name:name, email:email, phone:phone, address:addr, zip:zip, frequency:freq, price:price, serviceDate:date, notes:(notes?notes+' — ':'')+'Added on route by '+(adminName||'crew'), payMethod:pay||'card', adminToken:adminToken } });
   _fmFlushQueue();
-  ncClose(); showToast('✅ '+name+' added — they’ll show up on the schedule');
+  if(date===todayISOStr()){
+    const cur=(function(){ try{ const st=_fmStops(); return st[_fmViewIdx]?_stopKey(st[_fmViewIdx].bk):null; }catch(e){ return null; } })();
+    _fmAddLocalSameDay({ name:name, email:email, phone:phone, address:addr, zip:zip, frequency:freq, price:(price?('$'+price):''), serviceDate:date, notes:'Added on route (same-day)', crew:'', jobTime:'', payMethod:pay||'card' }, cur);
+    ncClose(); showToast('✅ '+name+' added — slotted in as your next stop');
+  } else {
+    ncClose(); showToast('✅ '+name+' added — they’ll show up on the schedule');
+  }
 }
 
 /* ═══════════ QUOTE CLOSER — a quote visit ends in an OUTCOME, not a payment ═══════════ */
@@ -2044,6 +2081,11 @@ async function qjOutcome(kind){
     if(!confirm('Book '+(bk.name||'customer')+':\n'+desc+'\n1st visit $'+firstPrice+(_qjc.freq!=='onetime'?(' · then $'+recurring+'/visit'):'')+addsLine+'\nstarting '+date+'?')) return;
     _fmEnqueue({ kind:'quotebook', idemKey:'qb:'+base, method:'GET', params:{ action:'manual_schedule', name:bk.name||'', email:bk.email||'', phone:String(bk.phone||''), address:bk.address||'', zip:String(bk.zip||''), frequency:_qjFreqLabel(), price:String(firstPrice), serviceDate:date, notes:'Booked at quote visit — '+desc+cadenceNote+(adds.length?(' | Add-ons: '+adds.map(a=>a.name+' +$'+a.price).join('; ')):'')+(_qjNote()?(' | 📝 '+_qjNote()):'')+' — by '+(adminName||'crew'), payMethod:'card', services:_qjServicesStr(), adminToken } });
     try{ _qjBookedStore[base]={ date:date, email:String(bk.email||'').toLowerCase().trim(), name:bk.name||'', freq:_qjFreqLabel(), price:String(firstPrice), qc:JSON.parse(JSON.stringify(_qc)), qjc:JSON.parse(JSON.stringify(_qjc)) }; _qjBookedSave(); }catch(e){}
+    if(date===todayISOStr()){
+      _fmAddLocalSameDay({ name:bk.name||'', email:String(bk.email||'').toLowerCase(), phone:String(bk.phone||''), address:bk.address||'', zip:String(bk.zip||''), frequency:_qjFreqLabel(), price:'$'+firstPrice, serviceDate:date, notes:'Booked at quote visit (same-day)', crew:bk.crew||'', jobTime:'', payMethod:'card' }, base);
+      _qjFinish('✅ Booked for TODAY — it\u2019s your next stop after this quote. $'+firstPrice, 'Quote WON — '+_qjFreqLabel()+' $'+recurring+'/visit'+cadenceNote+' ('+desc+') — same-day job added');
+      return;
+    }
     _qjFinish('✅ Booked! 1st visit $'+firstPrice+' · starts '+date+' — ‹ Prev lets you edit it', 'Quote WON — '+_qjFreqLabel()+' $'+recurring+'/visit'+cadenceNote+' ('+desc+')');
   } else if(kind==='estimate'){
     let _em=prompt('Send the estimate to this email — fix it if it\u2019s wrong:', String(bk.email||'').trim());
