@@ -8274,10 +8274,50 @@ function addMin(date, mins) {
   return d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
 }
 
-// ── Nearest-neighbour route optimizer ────────────────────────────────────
+// ── Nearest-neighbour route optimizer + 2-opt + Or-opt local search ─────────
+// Bare NN grabs the closest next stop and pays for it later (e.g. Fortune Ln →
+// Ruska first, then a giant backtrack past Skyline). The improvement passes
+// untangle exactly that: 2-opt reverses crossed segments, Or-opt relocates
+// short runs of stops to cheaper positions.
+function _rtDD(a,b){ return (a&&b&&a.lat!=null&&b.lat!=null)?haversineMiles(a.lat,a.lon,b.lat,b.lon):0; }
+function _rtLen(arr,org){ let t=0,prev=(org&&org.lat!=null)?org:null; for(const s of arr){ if(s&&s.lat!=null){ if(prev) t+=_rtDD(prev,s); prev=s; } } return t; }
+function _rt2opt(route,origin){
+  if(!route||route.length<4) return route;
+  const pts=route.slice(); const org=(origin&&origin.lat!=null)?origin:null;
+  let improved=true,guard=0;
+  while(improved&&guard++<40){ improved=false;
+    for(let i=0;i<pts.length-1;i++){ for(let j=i+1;j<pts.length;j++){
+      const A=i===0?org:pts[i-1], B=pts[i], C=pts[j], D=j+1<pts.length?pts[j+1]:null;
+      if(_rtDD(A,C)+_rtDD(B,D)+1e-6<_rtDD(A,B)+_rtDD(C,D)){
+        for(let lo=i,hi=j;lo<hi;lo++,hi--){ const t=pts[lo]; pts[lo]=pts[hi]; pts[hi]=t; }
+        improved=true;
+      }
+    } } }
+  return pts;
+}
+function _rtOrOpt(route,origin){
+  if(!route||route.length<3) return route;
+  let pts=route.slice(); const org=(origin&&origin.lat!=null)?origin:null;
+  let improved=true,guard=0;
+  while(improved&&guard++<60){ improved=false; const base=_rtLen(pts,org);
+    outer: for(let L=1;L<=3&&L<pts.length;L++){
+      for(let i=0;i+L<=pts.length;i++){
+        const seg=pts.slice(i,i+L), rest=pts.slice(0,i).concat(pts.slice(i+L));
+        for(let j=0;j<=rest.length;j++){
+          const cand=rest.slice(0,j).concat(seg,rest.slice(j));
+          let same=true; for(let k=0;k<cand.length;k++){ if(cand[k]!==pts[k]){ same=false; break; } }
+          if(same) continue;
+          if(_rtLen(cand,org)+1e-6<base){ pts=cand; improved=true; break outer; }
+        }
+      }
+    }
+  }
+  return pts;
+}
+function _rtCalcDist(arr,org){ let prev=(org&&org.lat!=null)?org:null; for(const s of arr){ if(s&&s.lat!=null){ s.distFromPrev=prev?_rtDD(prev,s):0; prev=s; } } return arr; }
 function nearestNeighbour(startCoord, stops) {
   const unvisited = [...stops];
-  const route = [];
+  let route = [];
   let cur = startCoord;
   while (unvisited.length) {
     let best = -1, bestDist = Infinity;
@@ -8289,7 +8329,8 @@ function nearestNeighbour(startCoord, stops) {
     cur = unvisited[best];
     unvisited.splice(best, 1);
   }
-  return route;
+  for(let pass=0;pass<8;pass++){ const before=_rtLen(route,startCoord); route=_rt2opt(route,startCoord); route=_rtOrOpt(route,startCoord); if(_rtLen(route,startCoord)+1e-9>=before) break; }
+  return _rtCalcDist(route,startCoord);
 }
 
 // ── MAIN: Build & render the optimized route ─────────────────────────────
