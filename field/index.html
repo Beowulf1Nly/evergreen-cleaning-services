@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-06.8 */
+/* APP_VER:2026-07-06.9 */
 (function(){
-  var V='2026-07-06.8'; window.__APP_VER=V;
+  var V='2026-07-06.9'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -1324,6 +1324,21 @@ function _fmRenderJob(stops,idx){
   const phone=String(bk.phone||'').trim(), phoneDigits=phone.replace(/[^0-9+]/g,'');
   const phoneRow=phone?('<a class="fm-btn fm-btn-sm fm-btn-ghost" href="tel:'+esc(phoneDigits)+'">📞 Call</a><a class="fm-btn fm-btn-sm fm-btn-ghost" href="sms:'+esc(phoneDigits)+'">💬 Text</a>'):'';
   window._fmCurBk=bk;
+  // What this visit includes — derived from the booked package (+ bolted-on features in the notes)
+  function _pkTier(){ const t=(String(bk.service||bk.serviceType||'')+' '+String(bk.frequency||'')+' '+String(bk.notes||'')).toLowerCase();
+    if(/move/.test(t)) return 'move'; if(/deep|best/.test(t)) return 'deep'; if(/detail|better/.test(t)) return 'better'; return 'standard'; }
+  let pkgHtml='';
+  if(!_isQuoteJob(bk)){
+    const tier=_pkTier();
+    const noteT=String(bk.notes||'').toLowerCase();
+    let items=['Kitchen & bathrooms','Dusting & all surfaces','All floors vacuumed & mopped','Trash out & home reset'];
+    if(tier!=='standard') items=items.concat(['Ceiling fans & vents','Interior windows','Baseboards & door frames']);
+    if(tier==='deep'||tier==='move') items=items.concat(['Inside fridge & oven','Inside cabinets','Tile & grout detail']);
+    if(tier==='move') items=items.concat(['Inside closets & cabinets','Spot-cleaned walls']);
+    try{ QC_FEATURES.forEach(function(f){ if(QC_TIER_RANK[tier]<QC_TIER_RANK[f.tier] && noteT.indexOf(f.name.toLowerCase())>=0) items.push(f.name+' — added to their plan'); }); }catch(e){}
+    pkgHtml='<div class="fm-note-box"><b>🧽 '+(QC_TIER_LABEL[tier]||'Standard Clean')+' — this visit includes</b>'
+      +'<div style="margin-top:6px;">'+items.map(function(x){ return '<div style="font-size:13px;line-height:1.9;"><span style="color:#7dd3fc;font-weight:800;">✓</span> '+x+'</div>'; }).join('')+'</div></div>';
+  }
   const _svcList=customerServicesFor(bk.email)||[];
   const _selMap=_fmAddonSel[_stopKey(bk)]||{};
   const addonHtml=_svcList.length?('<div class="fm-note-box"><b>🧺 As-needed add-ons — tap what you\'ll do today</b>'
@@ -1332,7 +1347,7 @@ function _fmRenderJob(stops,idx){
     +'</div><div style="font-size:11px;color:#94a3b8;margin-top:6px;">Only what you tap gets done &amp; charged — it pre-fills the finish screen.</div></div>'):'';
   document.getElementById('fmJobBody').innerHTML=
     '<div class="fm-card"><div class="fm-card-stopno">'+(idx+1)+'</div><div class="fm-card-name">'+esc(bk.name||'Customer')+'</div>'+
-    '<div class="fm-card-addr">📍 '+esc(bk.address||'—')+(bk.zip?', '+esc(bk.zip):'')+'</div><div class="fm-pills">'+pills+'</div>'+noteHtml+addonHtml+
+    '<div class="fm-card-addr">📍 '+esc(bk.address||'—')+(bk.zip?', '+esc(bk.zip):'')+'</div><div class="fm-pills">'+pills+'</div>'+noteHtml+pkgHtml+addonHtml+
     '<div class="fm-card-actions"><button class="fm-btn fm-btn-lg fm-btn-nav" onclick="fmNavigate('+idx+')">🧭 Navigate Here</button>'+
     '<div class="fm-secondary-row">'+phoneRow+(_isQuoteJob(bk)&&isDone(bk)&&_qjBookedStore[_stopKey(bk)]?'<button class="fm-btn fm-btn-sm fm-btn-ghost" style="border-color:#fdba74;color:#9a3412;" onclick="fmQuoteCloser(window._fmCurBk)">✏️ Edit booked plan</button>':'')+(_fmIsBoss()?'<button class="fm-btn fm-btn-sm fm-btn-ghost" onclick="fmRemainingMap()">🗺 Remaining</button>':'')+'</div></div></div>'+
     (_fmIsBoss()
@@ -1771,7 +1786,22 @@ function qcText(){
 
 
 /* ═══════════ QUOTE CLOSER — a quote visit ends in an OUTCOME, not a payment ═══════════ */
-function _isQuoteJob(bk){ const t=(String(bk.frequency||'')+' '+String(bk.service||bk.serviceType||'')+' '+String(bk.price||'')+' '+String(bk.notes||'')+' '+String(bk.payMethod||'')).toLowerCase(); return t.indexOf('quote')>=0; }
+function _isQuoteJob(bk){
+  // STRICT quote detection. The old version scanned the whole notes blob for the
+  // word "quote" — so a real job whose notes said "Booked at quote visit" was
+  // treated as a quote forever. Only true quote markers count now:
+  const f=String(bk.frequency||'').toLowerCase();
+  const s=String(bk.service||bk.serviceType||'').toLowerCase();
+  const p=String(bk.price||'').toLowerCase();
+  const pm=String(bk.payMethod||'').toLowerCase();
+  const n=String(bk.notes||'').toLowerCase();
+  if(f.indexOf('quote')>=0) return true;          // frequency: "Quote Visit"
+  if(s.indexOf('quote')>=0) return true;          // service column says quote
+  if(p.indexOf('quote')>=0) return true;          // price: "Quote requested"
+  if(pm==='quote') return true;
+  if(n.indexOf('[quote request]')>=0) return true; // website marker only — NOT "booked at quote visit"
+  return false;
+}
 let _qjBk=null, _qjEditMode=false;
 let _qjNotesStore={}; try{ _qjNotesStore=JSON.parse(localStorage.getItem('evg_qj_notes')||'{}'); }catch(e){}
 function _qjNoteSave(){ try{ if(!_qjBk) return; _qjNotesStore[_stopKey(_qjBk)]=document.getElementById('qjNotes').value; localStorage.setItem('evg_qj_notes',JSON.stringify(_qjNotesStore)); }catch(e){} }
