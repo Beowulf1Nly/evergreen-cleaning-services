@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-06.5 */
+/* APP_VER:2026-07-06.6 */
 (function(){
-  var V='2026-07-06.5'; window.__APP_VER=V;
+  var V='2026-07-06.6'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -1254,8 +1254,17 @@ function fmBeginRoute(){
 }
 
 /* ───────── Job card ───────── */
+let _fmAddonSel={}; try{ _fmAddonSel=JSON.parse(localStorage.getItem('evg_fm_addonsel')||'{}'); }catch(e){}
+function _fmAddonSelSave(){ try{ localStorage.setItem('evg_fm_addonsel',JSON.stringify(_fmAddonSel)); }catch(e){} }
+function fmJobAddonTgl(i){
+  const bk=window._fmCurBk; if(!bk) return;
+  const list=customerServicesFor(bk.email)||[]; const s=list[i]; if(!s) return;
+  const k=_stopKey(bk); _fmAddonSel[k]=_fmAddonSel[k]||{}; _fmAddonSel[k][s.name]=!_fmAddonSel[k][s.name]; _fmAddonSelSave();
+  if(window._fmCurStops!=null&&window._fmCurIdx!=null) _fmRenderJob(window._fmCurStops,window._fmCurIdx);
+}
 function _fmRenderJob(stops,idx){
   _fmShow('fmScreenJob');
+  window._fmCurStops=stops; window._fmCurIdx=idx;
   const total=stops.length, doneCount=stops.filter(s=>isDone(s.bk)).length, skippedCount=stops.filter(s=>!isDone(s.bk)&&_fmIsSkipped(s.bk)).length;
   const stop=stops[idx]; if(!stop){ _fmRender(); return; }
   const bk=stop.bk;
@@ -1286,9 +1295,16 @@ function _fmRenderJob(stops,idx){
     +(jobNotes&&jobNotes!==custNotes?'<div class="fm-note-box"><b>Job notes</b>'+esc(jobNotes)+'</div>':'');
   const phone=String(bk.phone||'').trim(), phoneDigits=phone.replace(/[^0-9+]/g,'');
   const phoneRow=phone?('<a class="fm-btn fm-btn-sm fm-btn-ghost" href="tel:'+esc(phoneDigits)+'">📞 Call</a><a class="fm-btn fm-btn-sm fm-btn-ghost" href="sms:'+esc(phoneDigits)+'">💬 Text</a>'):'';
+  window._fmCurBk=bk;
+  const _svcList=customerServicesFor(bk.email)||[];
+  const _selMap=_fmAddonSel[_stopKey(bk)]||{};
+  const addonHtml=_svcList.length?('<div class="fm-note-box"><b>🧺 As-needed add-ons — tap what you\'ll do today</b>'
+    +'<div class="fm-addon-row" style="margin-top:8px;">'
+    +_svcList.map(function(s2,i2){ const on2=!!_selMap[s2.name]; return '<button class="fm-addon-chip'+(on2?' on':'')+'" onclick="fmJobAddonTgl('+i2+')"><span>'+(on2?'✓ ':'＋ ')+esc(s2.name)+'</span>'+(_seeMoney(bk)?'<span class="fm-addon-price">$'+(+s2.price||0).toFixed(0)+'</span>':'')+'</button>'; }).join('')
+    +'</div><div style="font-size:11px;color:#94a3b8;margin-top:6px;">Only what you tap gets done &amp; charged — it pre-fills the finish screen.</div></div>'):'';
   document.getElementById('fmJobBody').innerHTML=
     '<div class="fm-card"><div class="fm-card-stopno">'+(idx+1)+'</div><div class="fm-card-name">'+esc(bk.name||'Customer')+'</div>'+
-    '<div class="fm-card-addr">📍 '+esc(bk.address||'—')+(bk.zip?', '+esc(bk.zip):'')+'</div><div class="fm-pills">'+pills+'</div>'+noteHtml+
+    '<div class="fm-card-addr">📍 '+esc(bk.address||'—')+(bk.zip?', '+esc(bk.zip):'')+'</div><div class="fm-pills">'+pills+'</div>'+noteHtml+addonHtml+
     '<div class="fm-card-actions"><button class="fm-btn fm-btn-lg fm-btn-nav" onclick="fmNavigate('+idx+')">🧭 Navigate Here</button>'+
     '<div class="fm-secondary-row">'+phoneRow+(_fmIsBoss()?'<button class="fm-btn fm-btn-sm fm-btn-ghost" onclick="fmRemainingMap()">🗺 Remaining</button>':'')+'</div></div></div>'+
     (_fmIsBoss()
@@ -1358,7 +1374,7 @@ function fmOpenComplete(){
   const bk=stop.bk;
   _fmcStop=stop; _fmcRowIdx=(allBookings||[]).indexOf(bk); _fmcPayType=_payType(bk);
   _fmcCash=false; _fmcInvoiceSent=false; _fmcChargeChosen=false; _fmcBase=_fmAmt(bk); _fmcPhotos=[];
-  _fmcAddons=(customerServicesFor(bk.email)||[]).map(s=>({name:s.name,price:+s.price||0,on:false}));
+  _fmcAddons=(customerServicesFor(bk.email)||[]).map(s=>({name:s.name,price:+s.price||0,on:!!((_fmAddonSel[_stopKey(bk)]||{})[s.name])}));
   _fmcEndChk={}; END_CHECKLIST.forEach(l=>_fmcEndChk[l]=false);
   if(_fmcPayType==='cash') _fmcEndChk['Collected cash']=false;
   document.getElementById('fmcTitle').textContent='Finish '+(bk.name||'job');
@@ -1608,11 +1624,13 @@ const QC_FEATURES=[
 // True add-ons — per-visit extras, never part of a package (billed only when done).
 const QC_ADDONS=[
   {id:'sofa',name:'Sofa steam clean',price:50},{id:'carpet',name:'Carpet steam clean',price:45},
-  {id:'laundry',name:'Laundry (wash & fold)',price:20}
+  {id:'laundry',name:'Laundry (wash & fold)',price:20},{id:'dishes',name:'Dishes & sink pile',price:15},
+  {id:'linens',name:'Bed linens changed',price:15},{id:'walls',name:'Wall spot-cleaning',price:25},
+  {id:'patio',name:'Patio / lanai wipe-down',price:30},{id:'garage',name:'Garage sweep-out',price:35}
 ];
 function _qcFeatIncluded(f,svc){ return QC_TIER_RANK[svc||_qc.service]>=QC_TIER_RANK[f.tier]; }
 function _qcExtraFeats(svc){ return QC_FEATURES.filter(f=>!_qcFeatIncluded(f,svc)&&_qc.feats[f.id]); }
-let _qc={service:'standard',bed:2,bath:1,extra:0,sqft:'1,000–2,000 sq ft',addons:{},feats:{}};
+let _qc={service:'standard',bed:2,bath:1,extra:0,sqft:'1,000–2,000 sq ft',addons:{},feats:{},custOpen:false};
 function _p9(n){ n=Math.round(n); const r=Math.round((n+1)/10)*10-1; return r<9?9:r; } // prices end in 9 — 150→149, 75→79
 function _p9d(n){ n=Math.round(n); if(n%10===9) return n; const r=Math.floor(n/10)*10-1; return r<9?9:r; } // down to the nearest 9 — composite totals never round up on the customer
 function qcPrice(svc,skipAddons){
@@ -1624,31 +1642,33 @@ function qcPrice(svc,skipAddons){
 // ── Good/Better/Best package cards + on-the-fly feature customization ──
 function _qcPurePkg(svc){ const r=QC_RATES[svc]; return _p9(Math.max(QC_FLOOR, r.base+_qc.bed*r.bed+_qc.bath*r.bath+_qc.extra*r.room+(QC_SQFT[_qc.sqft]||0))); }
 function _qcAlaCarte(svc){ let sum=_qcPurePkg('standard'); QC_FEATURES.forEach(f=>{ if(QC_TIER_RANK[svc]>=QC_TIER_RANK[f.tier]) sum+=f.price; }); return sum; }
-function _qcPkgCards(fn){
+function _qcPkgCards(fn,featFn,tglFn){
   const rows=[
-    {svc:'standard', tag:'GOOD',   name:'Standard Clean', desc:'Kitchen · bathrooms · dusting · all floors · trash & reset'},
-    {svc:'better',   tag:'BETTER', name:'Detail Clean',   desc:'Everything in Good + ceiling fans & vents, interior windows, baseboards & door frames'},
-    {svc:'deep',     tag:'BEST',   name:'Deep Clean',     desc:'Everything in Better + inside fridge, oven, cabinets, tile & grout detail'},
-    {svc:'move',     tag:'MOVE',   name:'Move In/Out',    desc:'The full Best treatment for an empty home — cabinets, closets, spot-cleaned walls'}
+    {svc:'standard', tag:'GOOD',   name:'Standard Clean', inc:['Kitchen & bathrooms','Dusting & all surfaces','All floors vacuumed & mopped','Trash out & home reset']},
+    {svc:'better',   tag:'BETTER', name:'Detail Clean',   inc:['Everything in Good','Ceiling fans & vents','Interior windows','Baseboards & door frames']},
+    {svc:'deep',     tag:'BEST',   name:'Deep Clean',     inc:['Everything in Better','Inside fridge & oven','Inside cabinets','Tile & grout detail']},
+    {svc:'move',     tag:'MOVE',   name:'Move In/Out',    inc:['The full Best treatment','Inside closets & cabinets','Spot-cleaned walls','Built for empty homes']}
   ];
   return rows.map(function(r){
     const on=_qc.service===r.svc;
     const save=(r.svc==='better'||r.svc==='deep')?(_qcAlaCarte(r.svc)-_qcPurePkg(r.svc)):0;
+    const extras=QC_FEATURES.filter(f=>!_qcFeatIncluded(f,r.svc));
+    const nSel=on?QC_FEATURES.filter(f=>!_qcFeatIncluded(f)&&_qc.feats[f.id]).length:0;
     return '<div onclick="'+fn+'(\''+r.svc+'\')" style="border:2px solid '+(on?'#0284c7':'#e2e8f0')+';border-radius:14px;background:'+(on?'#f0f9ff':'#fff')+';padding:12px 14px;margin-bottom:8px;cursor:pointer;">'
       +'<div style="display:flex;align-items:center;gap:9px;">'
       +'<span style="font-size:10.5px;font-weight:800;letter-spacing:.06em;color:#fff;background:'+(on?'#0284c7':'#94a3b8')+';border-radius:6px;padding:3px 7px;">'+r.tag+'</span>'
       +'<span style="flex:1;font-size:14.5px;font-weight:800;">'+r.name+'</span>'
       +'<span style="font-size:16px;font-weight:800;color:#0369a1;">$'+_qcPurePkg(r.svc)+'</span></div>'
-      +'<div style="font-size:12px;color:#64748b;margin-top:5px;line-height:1.5;">'+r.desc+'</div>'
-      +(save>0?'<div style="font-size:11.5px;color:#0284c7;font-weight:800;margin-top:4px;">💰 Saves $'+save+' vs adding these one by one</div>':'')
+      +'<div style="margin-top:7px;">'+r.inc.map(function(x){ return '<div style="font-size:12.5px;color:#475569;line-height:1.85;"><span style="color:#0284c7;font-weight:800;">✓</span> '+x+'</div>'; }).join('')+'</div>'
+      +(save>0?'<div style="font-size:11.5px;color:#0284c7;font-weight:800;margin-top:5px;">💰 Saves $'+save+' vs adding these one by one</div>':'')
+      +(on&&extras.length?('<button onclick="event.stopPropagation();'+tglFn+'()" style="margin-top:9px;width:100%;padding:10px;border:1.5px dashed #0284c7;border-radius:10px;background:#fff;color:#0284c7;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;">'+(_qc.custOpen?'▾ Done customizing':'✏️ Customize — add features from a higher package')+(nSel?' ('+nSel+' added)':'')+'</button>'):'')
+      +(on&&extras.length&&_qc.custOpen?('<div onclick="event.stopPropagation();" style="margin-top:8px;">'+_qcFeatureRows(featFn)+'</div>'):'')
       +'</div>';
   }).join('');
 }
 function _qcFeatureRows(fn){
-  const inc=QC_FEATURES.filter(f=>_qcFeatIncluded(f));
   const extra=QC_FEATURES.filter(f=>!_qcFeatIncluded(f));
-  let h='';
-  if(inc.length) h+='<div style="font-size:11.5px;color:#0369a1;font-weight:700;margin:0 0 7px;">Included: '+inc.map(f=>'✓ '+f.name).join(' · ')+'</div>';
+  let h='<div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:2px 0 7px;">Add to this package — baked into every visit</div>';
   h+=extra.map(function(f){
     const on=!!_qc.feats[f.id];
     return '<div onclick="'+fn+'(\''+f.id+'\')" style="display:flex;align-items:center;gap:11px;padding:11px 13px;border:1.5px solid '+(on?'#0284c7':'#e2e8f0')+';border-radius:12px;background:'+(on?'#f0f9ff':'#fff')+';margin-bottom:7px;cursor:pointer;">'
@@ -1660,6 +1680,8 @@ function _qcFeatureRows(fn){
 }
 function qcFeat(id){ _qc.feats[id]=!_qc.feats[id]; qcRender(); }
 function qjFeat(id){ _qc.feats[id]=!_qc.feats[id]; qjRefresh(); }
+function qcCustTgl(){ _qc.custOpen=!_qc.custOpen; qcRender(); }
+function qjCustTgl(){ _qc.custOpen=!_qc.custOpen; qjRefresh(); }
 function qcOpen(){
   if(!document.getElementById('qcOverlay')){
     const o=document.createElement('div');
@@ -1696,16 +1718,17 @@ function qcRender(){
     +'<button onclick="qcStep(\''+k+'\',-1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:18px;cursor:pointer;">−</button>'
     +'<b style="min-width:44px;text-align:center;font-size:16px;">'+val+'</b>'
     +'<button onclick="qcStep(\''+k+'\',1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:18px;cursor:pointer;">＋</button></span></div>';
-  b.innerHTML=stepper('bed','Bedrooms',_qc.bed===0?'Studio':_qc.bed)
+  b.innerHTML='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">🏠 The home</div>'
+    +stepper('bed','Bedrooms',_qc.bed===0?'Studio':_qc.bed)
     +stepper('bath','Bathrooms',_qc.bath)
     +stepper('extra','Extra rooms',_qc.extra)
+    +'<div style="font-size:11.5px;color:#64748b;margin:6px 0 2px;">Living room &amp; kitchen are already included — <b>never count them</b>. Extra rooms = office, den, bonus room, loft, etc.</div>'
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 7px;">Square footage</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+Object.keys(QC_SQFT).map(k2=>'<button onclick="qcSet(\'sqft\',\''+k2+'\')" style="padding:8px 11px;border-radius:999px;border:1.5px solid '+(_qc.sqft===k2?'#0284c7':'#e2e8f0')+';background:'+(_qc.sqft===k2?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">'+k2.replace(' sq ft','')+'</button>').join('')+'</div>'
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px;">Package</div>'
-    +_qcPkgCards('qcSvc')
-    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px;">Customize this package</div>'
-    +_qcFeatureRows('qcFeat')
-    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px;">Add-ons (per visit)</div>'
+    +_qcPkgCards('qcSvc','qcFeat','qcCustTgl')
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px;">As-needed add-ons</div>'
+    +'<div style="font-size:11.5px;color:#64748b;margin:0 0 7px;">Things the customer wants occasionally — done &amp; charged only when requested, never in the plan price.</div>'
     +_qcAddonChecklist('qcAddon');
   document.getElementById('qcSvcName').textContent=QC_TIER_LABEL[_qc.service]+' · '+(_qc.bed===0?'Studio':_qc.bed+' bed')+' / '+_qc.bath+' bath';
   document.getElementById('qcTotal').textContent='$'+qcPrice();
@@ -1825,7 +1848,9 @@ function qjRenderBuilder(){
     +'<span style="width:23px;height:23px;border-radius:7px;border:2px solid '+(on?'#0284c7':'#cbd5e1')+';background:'+(on?'#0284c7':'#fff')+';color:#fff;font-size:15px;line-height:20px;text-align:center;flex-shrink:0;font-weight:800;">'+(on?'✓':'')+'</span>'
     +'<span style="flex:1;font-size:14px;font-weight:700;">'+label+'</span>'+(extra||'')+'</div>';
   const recurring=_qjc.freq!=='onetime';
-  let h=stepper('bed','Bedrooms',_qc.bed===0?'Studio':_qc.bed)+stepper('bath','Bathrooms',_qc.bath)+stepper('extra','Extra rooms',_qc.extra)
+  let h='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">🏠 The home</div>'
+    +stepper('bed','Bedrooms',_qc.bed===0?'Studio':_qc.bed)+stepper('bath','Bathrooms',_qc.bath)+stepper('extra','Extra rooms',_qc.extra)
+    +'<div style="font-size:11.5px;color:#64748b;margin:6px 0 2px;">Living room &amp; kitchen are already included — <b>never count them</b>. Extra rooms = office, den, bonus room, loft, etc.</div>'
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 6px;">Square footage</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+Object.keys(QC_SQFT).map(k2=>'<button onclick="qjSqft(\''+k2+'\')" style="padding:8px 11px;border-radius:999px;border:1.5px solid '+(_qc.sqft===k2?'#0284c7':'#e2e8f0')+';background:'+(_qc.sqft===k2?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">'+k2.replace(' sq ft','')+'</button>').join('')+'</div>'
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Schedule</div>'
@@ -1843,12 +1868,9 @@ function qjRenderBuilder(){
     }
   }
   h+='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Package</div>'
-    +_qcPkgCards('qjSetSvc')
-    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Customize this package</div>'
-    +'<div style="font-size:11.5px;color:#64748b;margin:0 0 7px;">Bolt a feature from a higher package onto this one — it\'s part of every visit and baked into the plan price.</div>'
-    +_qcFeatureRows('qjFeat')
-    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Add-ons (per visit)</div>'
-    +'<div style="font-size:11.5px;color:#64748b;margin:0 0 7px;">Optional extras like steam cleans — saved to the customer, billed per visit only when actually done. Not part of the plan price.</div>'
+    +_qcPkgCards('qjSetSvc','qjFeat','qjCustTgl')
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">As-needed add-ons</div>'
+    +'<div style="font-size:11.5px;color:#64748b;margin:0 0 7px;">Things the customer wants occasionally (steam cleans, laundry…) — saved to their profile, done &amp; charged per visit only when requested. Never in the plan price.</div>'
     +_qcAddonChecklist('qjAddon');
   b.innerHTML=h;
 }
