@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-06.4 */
+/* APP_VER:2026-07-06.5 */
 (function(){
-  var V='2026-07-06.4'; window.__APP_VER=V;
+  var V='2026-07-06.5'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -1696,13 +1696,13 @@ function qcRender(){
     +'<button onclick="qcStep(\''+k+'\',-1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:18px;cursor:pointer;">−</button>'
     +'<b style="min-width:44px;text-align:center;font-size:16px;">'+val+'</b>'
     +'<button onclick="qcStep(\''+k+'\',1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:18px;cursor:pointer;">＋</button></span></div>';
-  b.innerHTML='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;">Package</div>'
-    +_qcPkgCards('qcSvc')
-    +stepper('bed','Bedrooms',_qc.bed===0?'Studio':_qc.bed)
+  b.innerHTML=stepper('bed','Bedrooms',_qc.bed===0?'Studio':_qc.bed)
     +stepper('bath','Bathrooms',_qc.bath)
     +stepper('extra','Extra rooms',_qc.extra)
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 7px;">Square footage</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+Object.keys(QC_SQFT).map(k2=>'<button onclick="qcSet(\'sqft\',\''+k2+'\')" style="padding:8px 11px;border-radius:999px;border:1.5px solid '+(_qc.sqft===k2?'#0284c7':'#e2e8f0')+';background:'+(_qc.sqft===k2?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">'+k2.replace(' sq ft','')+'</button>').join('')+'</div>'
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px;">Package</div>'
+    +_qcPkgCards('qcSvc')
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px;">Customize this package</div>'
     +_qcFeatureRows('qcFeat')
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px;">Add-ons (per visit)</div>'
@@ -1825,9 +1825,7 @@ function qjRenderBuilder(){
     +'<span style="width:23px;height:23px;border-radius:7px;border:2px solid '+(on?'#0284c7':'#cbd5e1')+';background:'+(on?'#0284c7':'#fff')+';color:#fff;font-size:15px;line-height:20px;text-align:center;flex-shrink:0;font-weight:800;">'+(on?'✓':'')+'</span>'
     +'<span style="flex:1;font-size:14px;font-weight:700;">'+label+'</span>'+(extra||'')+'</div>';
   const recurring=_qjc.freq!=='onetime';
-  let h='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;">Package</div>'
-    +_qcPkgCards('qjSetSvc')
-    +stepper('bed','Bedrooms',_qc.bed===0?'Studio':_qc.bed)+stepper('bath','Bathrooms',_qc.bath)+stepper('extra','Extra rooms',_qc.extra)
+  let h=stepper('bed','Bedrooms',_qc.bed===0?'Studio':_qc.bed)+stepper('bath','Bathrooms',_qc.bath)+stepper('extra','Extra rooms',_qc.extra)
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 6px;">Square footage</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+Object.keys(QC_SQFT).map(k2=>'<button onclick="qjSqft(\''+k2+'\')" style="padding:8px 11px;border-radius:999px;border:1.5px solid '+(_qc.sqft===k2?'#0284c7':'#e2e8f0')+';background:'+(_qc.sqft===k2?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">'+k2.replace(' sq ft','')+'</button>').join('')+'</div>'
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Schedule</div>'
@@ -1844,7 +1842,9 @@ function qjRenderBuilder(){
         +'</div>';
     }
   }
-  h+='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Customize this package</div>'
+  h+='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Package</div>'
+    +_qcPkgCards('qjSetSvc')
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Customize this package</div>'
     +'<div style="font-size:11.5px;color:#64748b;margin:0 0 7px;">Bolt a feature from a higher package onto this one — it\'s part of every visit and baked into the plan price.</div>'
     +_qcFeatureRows('qjFeat')
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Add-ons (per visit)</div>'
