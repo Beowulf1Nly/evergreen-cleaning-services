@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-06.3 */
+/* APP_VER:2026-07-06.4 */
 (function(){
-  var V='2026-07-06.3'; window.__APP_VER=V;
+  var V='2026-07-06.4'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -573,8 +573,9 @@ function mowMinutes(bk){
   if(d) return Math.round(parseFloat(d[1])*(/hr|hour/.test(d[0])?60:1));
   const bed=(n.match(/(\d+)\s*bed/)||[])[1], bath=(n.match(/(\d+)\s*bath/)||[])[1];
   let base=60+(bed?+bed*20:30)+(bath?+bath*15:15);
-  if(/deep/.test(svc+freq)) base=Math.round(base*1.7);
+  if(/deep|best/.test(svc+freq)) base=Math.round(base*1.7);
   else if(/move/.test(svc+freq)) base=Math.round(base*2.1);
+  else if(/better|detail/.test(svc+freq)) base=Math.round(base*1.35);
   return Math.max(45,Math.min(360,base));
 }
 function parseServices(str){ return String(str||'').split(';').map(s=>s.trim()).filter(Boolean).map(s=>{ const m=s.match(/^(.*?):\s*\$?([\d.]+)\s*$/); return m?{name:m[1].trim(),price:parseFloat(m[2])||0}:null; }).filter(s=>s&&s.name&&s.price>0); }
@@ -1586,25 +1587,79 @@ window.addEventListener('focus', function(){ _fmResume(); });
 
 
 /* ═══════════ QUOTE CALCULATOR — same math as the website builder ═══════════ */
-const QC_RATES={ standard:{base:45,bed:25,bath:15,room:15}, deep:{base:72,bed:42,bath:27,room:25}, move:{base:89,bed:50,bath:30,room:30} }; // ~$50/hr — 3bed/2bath standard = $150
+// Good / Better / Best packages — each tier bundles the features below at a
+// discount vs à la carte. Crew can bolt any higher-tier feature onto a lower
+// package for its listed price ("Better, plus the fridge from Best").
+const QC_RATES={ standard:{base:45,bed:25,bath:15,room:15}, better:{base:58,bed:33,bath:20,room:18}, deep:{base:72,bed:42,bath:27,room:25}, move:{base:89,bed:50,bath:30,room:30} }; // ~$50/hr — 3/2: Good $149 · Better $199 · Best $249
 const QC_SQFT={ 'Under 1,000 sq ft':0, '1,000–2,000 sq ft':0, '2,000–3,000 sq ft':25, '3,000+ sq ft':50 };
 const QC_FLOOR=75;
-const QC_ADDONS=[
-  {id:'windows',name:'Interior windows',price:40},{id:'fridge',name:'Inside refrigerator',price:35},
-  {id:'oven',name:'Inside oven',price:35},{id:'cabinets',name:'Inside cabinets',price:40},
-  {id:'sofa',name:'Sofa steam clean',price:50},{id:'carpet',name:'Carpet steam clean',price:45},
-  {id:'laundry',name:'Laundry (wash & fold)',price:20},{id:'fans',name:'Ceiling fans & vents',price:25},
-  {id:'pets',name:'Pets in the home',price:15}
+const QC_TIER_RANK={ standard:0, better:1, deep:2, move:3 };
+const QC_TIER_LABEL={ standard:'Good — Standard Clean', better:'Better — Detail Clean', deep:'Best — Deep Clean', move:'Move In/Out Clean' };
+// Features: included at their tier and up; priced à la carte when added to a lower package.
+const QC_FEATURES=[
+  {id:'fans',      name:'Ceiling fans & vents',       price:25, tier:'better'},
+  {id:'windows',   name:'Interior windows',           price:40, tier:'better'},
+  {id:'baseboards',name:'Baseboards & door frames',   price:30, tier:'better'},
+  {id:'fridge',    name:'Inside refrigerator',        price:35, tier:'deep'},
+  {id:'oven',      name:'Inside oven',                price:35, tier:'deep'},
+  {id:'cabinets',  name:'Inside cabinets',            price:40, tier:'deep'},
+  {id:'grout',     name:'Tile & grout detail',        price:35, tier:'deep'}
 ];
-let _qc={service:'standard',bed:2,bath:1,extra:0,sqft:'1,000–2,000 sq ft',addons:{}};
+// True add-ons — per-visit extras, never part of a package (billed only when done).
+const QC_ADDONS=[
+  {id:'sofa',name:'Sofa steam clean',price:50},{id:'carpet',name:'Carpet steam clean',price:45},
+  {id:'laundry',name:'Laundry (wash & fold)',price:20}
+];
+function _qcFeatIncluded(f,svc){ return QC_TIER_RANK[svc||_qc.service]>=QC_TIER_RANK[f.tier]; }
+function _qcExtraFeats(svc){ return QC_FEATURES.filter(f=>!_qcFeatIncluded(f,svc)&&_qc.feats[f.id]); }
+let _qc={service:'standard',bed:2,bath:1,extra:0,sqft:'1,000–2,000 sq ft',addons:{},feats:{}};
 function _p9(n){ n=Math.round(n); const r=Math.round((n+1)/10)*10-1; return r<9?9:r; } // prices end in 9 — 150→149, 75→79
+function _p9d(n){ n=Math.round(n); if(n%10===9) return n; const r=Math.floor(n/10)*10-1; return r<9?9:r; } // down to the nearest 9 — composite totals never round up on the customer
 function qcPrice(svc,skipAddons){
-  const r=QC_RATES[svc||_qc.service];
-  let t=r.base+_qc.bed*r.bed+_qc.bath*r.bath+_qc.extra*r.room+(QC_SQFT[_qc.sqft]||0);
-  t=Math.max(QC_FLOOR,t);
+  let t=_p9(Math.max(QC_FLOOR, (function(){ const r=QC_RATES[svc||_qc.service]; return r.base+_qc.bed*r.bed+_qc.bath*r.bath+_qc.extra*r.room+(QC_SQFT[_qc.sqft]||0); })()));
+  _qcExtraFeats(svc).forEach(f=>{ t+=f.price; }); // higher-tier features bolted onto this package
   if(!skipAddons) QC_ADDONS.forEach(a=>{ if(_qc.addons[a.id]) t+=a.price; });
-  return _p9(t);
+  return _p9d(t);
 }
+// ── Good/Better/Best package cards + on-the-fly feature customization ──
+function _qcPurePkg(svc){ const r=QC_RATES[svc]; return _p9(Math.max(QC_FLOOR, r.base+_qc.bed*r.bed+_qc.bath*r.bath+_qc.extra*r.room+(QC_SQFT[_qc.sqft]||0))); }
+function _qcAlaCarte(svc){ let sum=_qcPurePkg('standard'); QC_FEATURES.forEach(f=>{ if(QC_TIER_RANK[svc]>=QC_TIER_RANK[f.tier]) sum+=f.price; }); return sum; }
+function _qcPkgCards(fn){
+  const rows=[
+    {svc:'standard', tag:'GOOD',   name:'Standard Clean', desc:'Kitchen · bathrooms · dusting · all floors · trash & reset'},
+    {svc:'better',   tag:'BETTER', name:'Detail Clean',   desc:'Everything in Good + ceiling fans & vents, interior windows, baseboards & door frames'},
+    {svc:'deep',     tag:'BEST',   name:'Deep Clean',     desc:'Everything in Better + inside fridge, oven, cabinets, tile & grout detail'},
+    {svc:'move',     tag:'MOVE',   name:'Move In/Out',    desc:'The full Best treatment for an empty home — cabinets, closets, spot-cleaned walls'}
+  ];
+  return rows.map(function(r){
+    const on=_qc.service===r.svc;
+    const save=(r.svc==='better'||r.svc==='deep')?(_qcAlaCarte(r.svc)-_qcPurePkg(r.svc)):0;
+    return '<div onclick="'+fn+'(\''+r.svc+'\')" style="border:2px solid '+(on?'#0284c7':'#e2e8f0')+';border-radius:14px;background:'+(on?'#f0f9ff':'#fff')+';padding:12px 14px;margin-bottom:8px;cursor:pointer;">'
+      +'<div style="display:flex;align-items:center;gap:9px;">'
+      +'<span style="font-size:10.5px;font-weight:800;letter-spacing:.06em;color:#fff;background:'+(on?'#0284c7':'#94a3b8')+';border-radius:6px;padding:3px 7px;">'+r.tag+'</span>'
+      +'<span style="flex:1;font-size:14.5px;font-weight:800;">'+r.name+'</span>'
+      +'<span style="font-size:16px;font-weight:800;color:#0369a1;">$'+_qcPurePkg(r.svc)+'</span></div>'
+      +'<div style="font-size:12px;color:#64748b;margin-top:5px;line-height:1.5;">'+r.desc+'</div>'
+      +(save>0?'<div style="font-size:11.5px;color:#0284c7;font-weight:800;margin-top:4px;">💰 Saves $'+save+' vs adding these one by one</div>':'')
+      +'</div>';
+  }).join('');
+}
+function _qcFeatureRows(fn){
+  const inc=QC_FEATURES.filter(f=>_qcFeatIncluded(f));
+  const extra=QC_FEATURES.filter(f=>!_qcFeatIncluded(f));
+  let h='';
+  if(inc.length) h+='<div style="font-size:11.5px;color:#0369a1;font-weight:700;margin:0 0 7px;">Included: '+inc.map(f=>'✓ '+f.name).join(' · ')+'</div>';
+  h+=extra.map(function(f){
+    const on=!!_qc.feats[f.id];
+    return '<div onclick="'+fn+'(\''+f.id+'\')" style="display:flex;align-items:center;gap:11px;padding:11px 13px;border:1.5px solid '+(on?'#0284c7':'#e2e8f0')+';border-radius:12px;background:'+(on?'#f0f9ff':'#fff')+';margin-bottom:7px;cursor:pointer;">'
+      +'<span style="width:23px;height:23px;border-radius:7px;border:2px solid '+(on?'#0284c7':'#cbd5e1')+';background:'+(on?'#0284c7':'#fff')+';color:#fff;font-size:15px;line-height:20px;text-align:center;flex-shrink:0;font-weight:800;">'+(on?'✓':'')+'</span>'
+      +'<span style="flex:1;font-size:14px;font-weight:700;">'+f.name+' <span style="font-size:10.5px;color:#94a3b8;font-weight:800;letter-spacing:.04em;">from '+(f.tier==='deep'?'BEST':'BETTER')+'</span></span>'
+      +'<span style="font-size:13px;font-weight:800;color:#0369a1;">+$'+f.price+'</span></div>';
+  }).join('');
+  return h;
+}
+function qcFeat(id){ _qc.feats[id]=!_qc.feats[id]; qcRender(); }
+function qjFeat(id){ _qc.feats[id]=!_qc.feats[id]; qjRefresh(); }
 function qcOpen(){
   if(!document.getElementById('qcOverlay')){
     const o=document.createElement('div');
@@ -1629,6 +1684,7 @@ function qcOpen(){
 }
 function qcClose(){ const o=document.getElementById('qcOverlay'); if(o) o.style.display='none'; }
 function qcSet(k,v){ _qc[k]=v; qcRender(); }
+function qcSvc(v){ _qc.service=v; qcRender(); }
 function qcStep(k,d){ const lim={bed:[0,8],bath:[0,6],extra:[0,6]}[k]; _qc[k]=Math.max(lim[0],Math.min(lim[1],_qc[k]+d)); qcRender(); }
 function qcAddon(id){ _qc.addons[id]=!_qc.addons[id]; qcRender(); }
 function qcRender(){
@@ -1640,23 +1696,25 @@ function qcRender(){
     +'<button onclick="qcStep(\''+k+'\',-1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:18px;cursor:pointer;">−</button>'
     +'<b style="min-width:44px;text-align:center;font-size:16px;">'+val+'</b>'
     +'<button onclick="qcStep(\''+k+'\',1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:18px;cursor:pointer;">＋</button></span></div>';
-  b.innerHTML='<div style="display:flex;gap:7px;margin-bottom:12px;">'+seg('standard','Standard')+seg('deep','Deep')+seg('move','Move In/Out')+'</div>'
+  b.innerHTML='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;">Package</div>'
+    +_qcPkgCards('qcSvc')
     +stepper('bed','Bedrooms',_qc.bed===0?'Studio':_qc.bed)
     +stepper('bath','Bathrooms',_qc.bath)
     +stepper('extra','Extra rooms',_qc.extra)
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 7px;">Square footage</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+Object.keys(QC_SQFT).map(k2=>'<button onclick="qcSet(\'sqft\',\''+k2+'\')" style="padding:8px 11px;border-radius:999px;border:1.5px solid '+(_qc.sqft===k2?'#0284c7':'#e2e8f0')+';background:'+(_qc.sqft===k2?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">'+k2.replace(' sq ft','')+'</button>').join('')+'</div>'
-    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px;">Add-ons</div>'
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px;">Customize this package</div>'
+    +_qcFeatureRows('qcFeat')
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px;">Add-ons (per visit)</div>'
     +_qcAddonChecklist('qcAddon');
-  const names={standard:'Standard Clean',deep:'Deep Clean',move:'Move In/Out Clean'};
-  document.getElementById('qcSvcName').textContent=names[_qc.service]+' · '+(_qc.bed===0?'Studio':_qc.bed+' bed')+' / '+_qc.bath+' bath';
+  document.getElementById('qcSvcName').textContent=QC_TIER_LABEL[_qc.service]+' · '+(_qc.bed===0?'Studio':_qc.bed+' bed')+' / '+_qc.bath+' bath';
   document.getElementById('qcTotal').textContent='$'+qcPrice();
-  document.getElementById('qcCompare').textContent='Standard $'+qcPrice('standard')+' · Deep $'+qcPrice('deep')+' · Move $'+qcPrice('move');
+  document.getElementById('qcCompare').textContent='Good $'+_qcPurePkg('standard')+' · Better $'+_qcPurePkg('better')+' · Best $'+_qcPurePkg('deep');
 }
 function qcText(){
-  const names={standard:'Standard Clean',deep:'Deep Clean',move:'Move In/Out Clean'};
   const adds=QC_ADDONS.filter(a=>_qc.addons[a.id]).map(a=>a.name).join(', ');
-  const msg='Evergreen Cleaning quote — '+names[_qc.service]+', '+(_qc.bed===0?'Studio':_qc.bed+' bed')+'/'+_qc.bath+' bath, '+_qc.sqft+(adds?(', add-ons: '+adds):'')+' = $'+qcPrice()+'. Book: evergreencleaningservicesflorida.com';
+  const xtra=_qcExtraFeats().map(f=>f.name).join(', ');
+  const msg='Evergreen Cleaning quote — '+QC_TIER_LABEL[_qc.service]+', '+(_qc.bed===0?'Studio':_qc.bed+' bed')+'/'+_qc.bath+' bath, '+_qc.sqft+(xtra?(' + '+xtra):'')+(adds?(', add-ons: '+adds):'')+' = $'+qcPrice()+'. Book: evergreencleaningservicesflorida.com';
   location.href='sms:?&body='+encodeURIComponent(msg);
 }
 
@@ -1730,9 +1788,10 @@ function _qjFreqLabel(){
        :_qjc.freq==='custom'?('Every '+_qjc.customN+' Weeks')
        :'One-time';
 }
-function _qjSvcLabel(){ return ({standard:'Standard Clean',deep:'Deep Clean',move:'Move In/Out Clean'})[_qc.service]; }
+function _qjSvcLabel(){ return QC_TIER_LABEL[_qc.service]; }
 function _qjDesc(){
   let d=_qjSvcLabel()+' — '+(_qc.bed===0?'Studio':_qc.bed+' bed')+'/'+_qc.bath+' bath, '+_qc.sqft
+    +(_qcExtraFeats().length?(' + '+_qcExtraFeats().map(f=>f.name+' (+$'+f.price+')').join(', ')):'')
     +' · '+_qjFreqLabel();
   if(_qc.service!=='deep'&&_qjc.freq!=='onetime'){
     if(_qjc.firstDeep) d+=' · 1st visit Deep';
@@ -1766,7 +1825,8 @@ function qjRenderBuilder(){
     +'<span style="width:23px;height:23px;border-radius:7px;border:2px solid '+(on?'#0284c7':'#cbd5e1')+';background:'+(on?'#0284c7':'#fff')+';color:#fff;font-size:15px;line-height:20px;text-align:center;flex-shrink:0;font-weight:800;">'+(on?'✓':'')+'</span>'
     +'<span style="flex:1;font-size:14px;font-weight:700;">'+label+'</span>'+(extra||'')+'</div>';
   const recurring=_qjc.freq!=='onetime';
-  let h='<div style="display:flex;gap:7px;margin-bottom:10px;">'+seg('standard','Standard',_qc.service,'qjSetSvc')+seg('deep','Deep',_qc.service,'qjSetSvc')+seg('move','Move In/Out',_qc.service,'qjSetSvc')+'</div>'
+  let h='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;">Package</div>'
+    +_qcPkgCards('qjSetSvc')
     +stepper('bed','Bedrooms',_qc.bed===0?'Studio':_qc.bed)+stepper('bath','Bathrooms',_qc.bath)+stepper('extra','Extra rooms',_qc.extra)
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 6px;">Square footage</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+Object.keys(QC_SQFT).map(k2=>'<button onclick="qjSqft(\''+k2+'\')" style="padding:8px 11px;border-radius:999px;border:1.5px solid '+(_qc.sqft===k2?'#0284c7':'#e2e8f0')+';background:'+(_qc.sqft===k2?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">'+k2.replace(' sq ft','')+'</button>').join('')+'</div>'
@@ -1774,7 +1834,7 @@ function qjRenderBuilder(){
     +tglRow(recurring,'🔁 Recurring service — repeats on a schedule',"qjRecTgl()")
     +(recurring?('<div style="display:flex;gap:6px;margin-top:2px;">'+seg('weekly','Weekly',_qjc.freq,'qjFreq')+seg('biweekly','Bi-Weekly',_qjc.freq,'qjFreq')+seg('custom','Every X wks',_qjc.freq,'qjFreq')+'</div>'
       +(_qjc.freq==='custom'?'<div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 0 2px;font-size:14px;font-weight:700;">Every '+miniN('customN',_qjc.customN,2,12)+' weeks</div>':'')):'');
-  if(recurring&&_qc.service!=='deep'){
+  if(recurring&&(_qc.service==='standard'||_qc.service==='better')){
     h+='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Deep-clean options</div>'
       +tglRow(_qjc.firstDeep,'1st clean is a Deep Clean — $'+_qjDeepPrice(),"qjTgl('firstDeep')")
       +tglRow(_qjc.everyDeep,'Every <b style=\"margin:0 2px;\">'+_qjc.everyN+'th</b> clean is a Deep Clean',"qjTgl('everyDeep')",_qjc.everyDeep?miniN('everyN',_qjc.everyN,2,12):'');
@@ -1784,8 +1844,11 @@ function qjRenderBuilder(){
         +'</div>';
     }
   }
-  h+='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Add-ons</div>'
-    +'<div style="font-size:11.5px;color:#64748b;margin:0 0 7px;">Optional — saved to the customer, billed per visit only when actually done. Not baked into the plan price.</div>'
+  h+='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Customize this package</div>'
+    +'<div style="font-size:11.5px;color:#64748b;margin:0 0 7px;">Bolt a feature from a higher package onto this one — it\'s part of every visit and baked into the plan price.</div>'
+    +_qcFeatureRows('qjFeat')
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Add-ons (per visit)</div>'
+    +'<div style="font-size:11.5px;color:#64748b;margin:0 0 7px;">Optional extras like steam cleans — saved to the customer, billed per visit only when actually done. Not part of the plan price.</div>'
     +_qcAddonChecklist('qjAddon');
   b.innerHTML=h;
 }
