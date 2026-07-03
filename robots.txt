@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /invoice.html
+Disallow: /dispatch.html
+Disallow: /stats.html
+Disallow: /field/
+Disallow: /profile.html
+Disallow: /booked.html
+Disallow: /success.html
+Allow: /
+
+Sitemap: https://evergreencleaningservicesflorida.com/sitemap.xml
