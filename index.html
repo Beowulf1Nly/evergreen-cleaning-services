@@ -1096,6 +1096,7 @@ function openBookModal(presetSvc) {
   renderBuilder();
   document.getElementById('bookModalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  try{ if(typeof trackEvt==='function') trackEvt('/evt/estimate_opened'); }catch(e){}
 }
 function closeBookModal() {
   document.getElementById('bookModalOverlay').classList.remove('open');
@@ -1105,7 +1106,7 @@ function gotoStep(n){
   const s1 = document.getElementById('bookStep1'), s2 = document.getElementById('bookStep2');
   if (s1) s1.style.display = n === 1 ? '' : 'none';
   if (s2) s2.style.display = n === 2 ? '' : 'none';
-  if (n === 2) updateBookSummary();
+  if (n === 2) { updateBookSummary(); try{ if(typeof trackEvt==='function') trackEvt('/evt/estimate_price_viewed'); }catch(e){} }
   const m = document.querySelector('.book-modal'); if (m) m.scrollTop = 0;
 }
 function toggleRecurring(){
@@ -1186,6 +1187,7 @@ function submitQuote() {
   });
   // Fire-and-forget to the Apps Script backend → Bookings sheet + Google Calendar event + emails.
   // keepalive lets the request finish even after we navigate away to /booked.
+  try{ if(typeof trackEvt==='function') trackEvt('/evt/estimate_submitted'); }catch(e){}
   try { fetch(SCRIPT_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors', keepalive: true }); } catch (e) {}
 
   // The GA4 booking conversion (conversion_event_book_appointment) now fires on the
@@ -1506,6 +1508,52 @@ if (window.QUOTE_ONLY_MODE) document.addEventListener('DOMContentLoaded', functi
   window.cqCalPrev=function(){ cqMonth--; if(cqMonth<0){ cqMonth=11; cqYear--; } cqCalRender(); };
   window.cqCalNext=function(){ cqMonth++; if(cqMonth>11){ cqMonth=0; cqYear++; } cqCalRender(); };
   if(typeof window.openBookModal==='function'){ var _o=window.openBookModal; window.openBookModal=function(){ var r=_o.apply(this,arguments); try{ setTimeout(cqCalInit,30); }catch(e){} return r; }; }
+})();
+</script>
+<!-- Full analytics: page engagement + conversion funnel -> analytics sheet -->
+<script>
+(function(){
+var AURL='https://script.google.com/macros/s/AKfycbxkrw4S5fjdvID0RRownPZqh-kQdUQzaNY7Z4CVbGefkyT2ai0IdmQBYR45ooL5fCMl/exec';
+if(!localStorage.getItem('eg_vid')){localStorage.setItem('eg_vid',Math.random().toString(36).slice(2)+Date.now().toString(36));}
+// Conversion funnel events (estimate_opened / price_viewed / submitted)
+window.trackEvt=function(evtPage){try{
+  var vid=localStorage.getItem('eg_vid')||'';var ref='direct';
+  try{if(document.referrer)ref=new URL(document.referrer).hostname;}catch(e){}
+  var p=new URLSearchParams({action:'track_visit',page:evtPage,ref:ref,ua:navigator.userAgent.substring(0,200),vid:vid});
+  fetch(AURL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(function(){});
+}catch(e){}};
+// Page-engagement snapshot (scroll depth, section dwell, hover-exits, CTA clicks, exit section)
+var ANA={startTime:Date.now(),maxScroll:0,scrollMilestones:[],sectionsViewed:new Set(),sectionTimes:{},_sectionEntry:{},ctaClicks:[],hoverExits:[],exitIntent:false,exitSection:'',device:window.innerWidth<=768?'mobile':'desktop',referrer:document.referrer?(function(){try{return new URL(document.referrer).hostname;}catch(e){return document.referrer;}})():'direct',sent:false};
+function updateScroll(){var total=document.body.scrollHeight-window.innerHeight;if(total<=0)return;var pct=Math.round((window.scrollY/total)*100);if(pct>ANA.maxScroll)ANA.maxScroll=pct;[25,50,75,90,100].forEach(function(m){if(pct>=m&&ANA.scrollMilestones.indexOf(m)===-1)ANA.scrollMilestones.push(m);});}
+window.addEventListener('scroll',updateScroll,{passive:true});
+var TRACKED_IDS=['hero','services','service-areas'];
+function onEnter(id){if(!id)return;ANA.sectionsViewed.add(id);ANA.exitSection=id;if(!ANA._sectionEntry[id])ANA._sectionEntry[id]=Date.now();}
+function onExit(id){if(!id||!ANA._sectionEntry[id])return;ANA.sectionTimes[id]=(ANA.sectionTimes[id]||0)+(Date.now()-ANA._sectionEntry[id]);delete ANA._sectionEntry[id];}
+var io=new IntersectionObserver(function(es){es.forEach(function(e){var id=e.target.id;if(e.isIntersecting){onEnter(id);}else{onExit(id);}});},{threshold:0.25});
+document.addEventListener('DOMContentLoaded',function(){
+  TRACKED_IDS.forEach(function(id){var el=document.getElementById(id);if(el)io.observe(el);});
+  var hero=document.querySelector('.hero');if(hero){if(!hero.id)hero.id='hero';io.observe(hero);onEnter('hero');}
+  var HT=[{sel:'.btn-primary, #navBookBtn, #heroBookBtn, #mobBookBtn',label:'cta_btn'},{sel:'.btn-book',label:'service_btn'}];
+  HT.forEach(function(t){document.querySelectorAll(t.sel).forEach(function(el){var et=0,cl=false;
+    el.addEventListener('mouseenter',function(){et=Date.now();cl=false;});
+    el.addEventListener('click',function(){cl=true;});
+    el.addEventListener('mouseleave',function(){if(et&&!cl&&(Date.now()-et)>400){ANA.hoverExits.push(t.label+'@'+Math.round((Date.now()-ANA.startTime)/1000)+'s');}et=0;cl=false;});
+  });});
+  document.addEventListener('mouseleave',function(e){if(e.clientY>5)return;ANA.exitIntent=true;});
+  var op=window.openBookModal;if(typeof op==='function'){window.openBookModal=function(){ANA.ctaClicks.push('estimate_modal@'+Math.round((Date.now()-ANA.startTime)/1000)+'s');return op.apply(this,arguments);};}
+  document.querySelectorAll('[href^="tel:"]').forEach(function(el){el.addEventListener('click',function(){ANA.ctaClicks.push('phone@'+Math.round((Date.now()-ANA.startTime)/1000)+'s');});});
+});
+function flush(){Object.keys(ANA._sectionEntry).forEach(function(id){ANA.sectionTimes[id]=(ANA.sectionTimes[id]||0)+(Date.now()-ANA._sectionEntry[id]);delete ANA._sectionEntry[id];});}
+function stStr(){flush();return Object.keys(ANA.sectionTimes).map(function(id){return id+':'+Math.round(ANA.sectionTimes[id]/1000)+'s';}).join(',');}
+function sendAnalytics(){if(ANA.sent)return;ANA.sent=true;try{
+  var vid=localStorage.getItem('eg_vid')||'';
+  var p=new URLSearchParams({action:'analytics',page:location.pathname,device:ANA.device,ref:ANA.referrer,time_s:Math.round((Date.now()-ANA.startTime)/1000),max_scroll:ANA.maxScroll,milestones:ANA.scrollMilestones.join(','),sections:Array.from(ANA.sectionsViewed).join(','),section_times:stStr(),ctas:ANA.ctaClicks.join('|'),hover_exits:ANA.hoverExits.join('|'),exit_intent:ANA.exitIntent?'1':'0',exit:ANA.exitSection,screen_w:window.innerWidth,vid:vid});
+  fetch(AURL+'?'+p.toString(),{method:'GET',mode:'no-cors',keepalive:true}).catch(function(){});
+}catch(e){}}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')sendAnalytics();});
+window.addEventListener('pagehide',sendAnalytics);
+window.addEventListener('beforeunload',sendAnalytics);
+window._ANA=ANA;
 })();
 </script>
 </body>
