@@ -1192,9 +1192,7 @@ function submitQuote() {
     frequency:      (window.QUOTE_ONLY_MODE ? 'Quote Visit' : (_recurring ? _freq : 'One-time visit')),
     serviceDateRaw: date || '',
     serviceDate:    date || '',
-    notes:          (window.QUOTE_ONLY_MODE
-                       ? ('[Quote request] Interested in: ' + (_recurring ? _freq : 'One-time') + (firstDeep ? ' · wants 1st visit Deep' : '') + (notes ? ' · ' + notes : '')).trim()
-                       : note),
+    notes:          (window.QUOTE_ONLY_MODE ? notes : note),
     payMethod:      'Pay After Service'
   });
   // Fire-and-forget to the Apps Script backend → Bookings sheet + Google Calendar event + emails.
