@@ -748,7 +748,6 @@
       <ul class="nav-links">
         <li><a href="#services">Services</a></li>
         
-        <li><a href="pressure-washing.html">Pressure Washing</a></li>
         <li><a href="/faq.html">FAQ</a></li>
         <li><a href="/about.html">About</a></li>
       </ul>
@@ -759,7 +758,6 @@
   </nav>
   <div class="mobile-nav" id="mobileNav">
     <a href="#services" onclick="closeMobileMenu()">Services</a>
-    <a href="pressure-washing.html">Pressure Washing</a>
     <a href="/faq.html">FAQ</a>
     <a href="/about.html">About</a>
     <a href="profile.html" onclick="closeMobileMenu()">👤 My Account</a>
@@ -805,9 +803,9 @@
 <section id="services" style="background:#fff;padding:96px 48px;">
   <p class="section-label animate-up">What We Do</p>
   <h2 class="section-title animate-up">Ways to a Spotless Property.</h2>
-  <p class="section-sub animate-up">Trained, insured pros and eco-friendly supplies. Pick your service, build your home, and see your price — instantly.</p>
+  <p class="section-sub animate-up">Trained, insured pros and eco-friendly supplies. Pick your service and get a free, no-obligation estimate.</p>
 
-  <div class="services-grid three-up">
+  <div class="services-grid two-up">
     <!-- Interior House Cleaning -->
     <div class="service-card featured reveal">
       <div class="featured-badge">Most Popular</div>
@@ -821,7 +819,7 @@
         <li>Full bathroom clean — toilets, tubs, mirrors</li>
         <li>Deep option adds baseboards, grout, vents &amp; detailing</li>
       </ul>
-      <button class="btn-book" onclick="selectBuilderService('interior')">Build &amp; See Price →</button>
+      <button class="btn-book" onclick="selectBuilderService('interior')">Get a Free Estimate →</button>
     </div>
 
     <!-- Move In/Out -->
@@ -837,24 +835,9 @@
         <li>Spot-clean walls &amp; doors</li>
         <li>Garage &amp; entryway sweep-out</li>
       </ul>
-      <button class="btn-book" onclick="selectBuilderService('move')">Build &amp; See Price →</button>
+      <button class="btn-book" onclick="selectBuilderService('move')">Get a Free Estimate →</button>
     </div>
 
-    <!-- Pressure Washing -->
-    <div class="service-card reveal">
-      <div class="featured-badge" style="background:var(--blue-bright);">Now Booking</div>
-      <div class="service-icon">💦</div>
-      <div class="service-name">Pressure Washing</div>
-      <div class="service-desc">Exterior cleaning that brings curb appeal back fast — blast away years of Florida grime and mildew.</div>
-      <ul class="service-includes">
-        <li>Driveways, walkways &amp; patios</li>
-        <li>House siding &amp; soffits</li>
-        <li>Pool decks &amp; lanais</li>
-        <li>Fences &amp; wood decks</li>
-        <li>Soft-wash roof &amp; gutter cleaning</li>
-      </ul>
-      <a class="btn-book" href="pressure-washing.html" style="text-decoration:none;display:block;">View Pressure Washing →</a>
-    </div>
   </div>
 </section>
 
@@ -1000,7 +983,21 @@
   <p class="section-label animate-up">What You Get</p>
   <h2 class="section-title animate-up">Every Clean. Every Time.</h2>
   <p class="section-sub animate-up">A full checklist on every visit — not a quick once-over. Here's exactly what your flat rate covers.</p>
-  <div class="animate-up" style="max-width:900px;margin:36px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;">
+  <style>.wyg-mobile{display:none;} @media(max-width:680px){.wyg-grid{display:none!important;} .wyg-mobile{display:block!important;}}</style>
+  <div class="wyg-mobile animate-up" style="max-width:520px;margin:36px auto 0;background:#f6fafd;border:1.5px solid #e0ecf5;border-radius:16px;padding:22px 20px;">
+    <div style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue-mid);margin-bottom:12px;">Every visit includes</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="font-size:13.5px;color:var(--blue-deep);line-height:1.5;"><strong>🍳 Kitchen</strong> — counters &amp; backsplash, sink, appliance exteriors, cabinet fronts, floors mopped.</div>
+      <div style="font-size:13.5px;color:var(--blue-deep);line-height:1.5;"><strong>🚿 Bathrooms</strong> — toilets, tubs &amp; showers, streak-free mirrors, counters sanitized, floors mopped.</div>
+      <div style="font-size:13.5px;color:var(--blue-deep);line-height:1.5;"><strong>🛏 Bedrooms &amp; living</strong> — dusted, furniture wiped, beds made, glass cleaned, room reset.</div>
+      <div style="font-size:13.5px;color:var(--blue-deep);line-height:1.5;"><strong>🧹 All floors</strong> — vacuumed &amp; mopped, corners, baseboards &amp; under what we can reach.</div>
+      <div style="font-size:13.5px;color:var(--blue-deep);line-height:1.5;"><strong>🗑 Trash &amp; reset</strong> — trash out, fresh liners, switches &amp; handles sanitized.</div>
+      <div style="font-size:13.5px;color:var(--blue-deep);line-height:1.5;"><strong>✅ Final walkthrough</strong> — anything missed within 48 hours gets re-cleaned free.</div>
+    </div>
+    <div style="font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue-mid);margin:18px 0 9px;">Optional add-ons</div>
+    <div style="font-size:13px;color:var(--text-muted);line-height:1.7;">Interior windows · Inside fridge · Inside oven · Inside cabinets · Sofa steam clean · Carpet steam clean · Laundry (wash &amp; fold) · Ceiling fans &amp; vents · Pets in the home</div>
+  </div>
+  <div class="animate-up wyg-grid" style="max-width:900px;margin:36px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;">
     <div style="background:#f6fafd;border:1.5px solid #e0ecf5;border-radius:14px;padding:18px 20px;"><div style="font-size:15px;font-weight:700;color:var(--blue-deep);margin-bottom:8px;">🍳 Kitchen</div><div style="font-size:13.5px;color:var(--text-muted);line-height:1.7;">Counters &amp; backsplash wiped, sink shined, outside of all appliances, cabinet fronts, floors mopped.</div></div>
     <div style="background:#f6fafd;border:1.5px solid #e0ecf5;border-radius:14px;padding:18px 20px;"><div style="font-size:15px;font-weight:700;color:var(--blue-deep);margin-bottom:8px;">🚿 Bathrooms</div><div style="font-size:13.5px;color:var(--text-muted);line-height:1.7;">Toilets, tubs &amp; showers scrubbed, mirrors streak-free, counters sanitized, floors mopped.</div></div>
     <div style="background:#f6fafd;border:1.5px solid #e0ecf5;border-radius:14px;padding:18px 20px;"><div style="font-size:15px;font-weight:700;color:var(--blue-deep);margin-bottom:8px;">🛏 Bedrooms &amp; Living</div><div style="font-size:13.5px;color:var(--text-muted);line-height:1.7;">Every surface dusted, furniture wiped, beds made, mirrors &amp; glass cleaned, room reset &amp; tidy.</div></div>
@@ -1042,7 +1039,6 @@
   <ul class="footer-links">
     <li><a href="#services">Services</a></li>
     
-    <li><a href="pressure-washing.html">Pressure Washing</a></li>
     <li><a href="/faq.html">FAQ</a></li>
     <li><a href="/about.html">About</a></li>
     <li><a href="refund-policy.html">Refund Policy</a></li>
@@ -1104,7 +1100,7 @@ function gotoStep(n){
   const s1 = document.getElementById('bookStep1'), s2 = document.getElementById('bookStep2');
   if (s1) s1.style.display = n === 1 ? '' : 'none';
   if (s2) s2.style.display = n === 2 ? '' : 'none';
-  if (n === 2) { updateBookSummary(); try{ if(typeof trackEvt==='function') trackEvt('/evt/quote_price_viewed'); }catch(e){} }
+  if (n === 2) updateBookSummary();
   const m = document.querySelector('.book-modal'); if (m) m.scrollTop = 0;
 }
 function toggleRecurring(){
@@ -1540,6 +1536,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.addEventListener('mouseleave',function(e){if(e.clientY>5)return;ANA.exitIntent=true;});
   var op=window.openBookModal;if(typeof op==='function'){window.openBookModal=function(){ANA.ctaClicks.push('estimate_modal@'+Math.round((Date.now()-ANA.startTime)/1000)+'s');return op.apply(this,arguments);};}
   document.querySelectorAll('[href^="tel:"]').forEach(function(el){el.addEventListener('click',function(){ANA.ctaClicks.push('phone@'+Math.round((Date.now()-ANA.startTime)/1000)+'s');try{if(typeof trackEvt==='function')trackEvt('/evt/phone_click');}catch(e){}});});
+  var _fe=false;['q-name','q-email','q-phone','q-address','q-date'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('focus',function(){if(_fe)return;_fe=true;try{if(typeof trackEvt==='function')trackEvt('/evt/quote_price_viewed');}catch(e){}});});
 });
 function flush(){Object.keys(ANA._sectionEntry).forEach(function(id){ANA.sectionTimes[id]=(ANA.sectionTimes[id]||0)+(Date.now()-ANA._sectionEntry[id]);delete ANA._sectionEntry[id];});}
 function stStr(){flush();return Object.keys(ANA.sectionTimes).map(function(id){return id+':'+Math.round(ANA.sectionTimes[id]/1000)+'s';}).join(',');}
