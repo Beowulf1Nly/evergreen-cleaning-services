@@ -1532,7 +1532,7 @@ window.trackEvt=function(evtPage){try{
   var vid=localStorage.getItem('eg_vid')||'';var ref='direct';
   try{if(document.referrer)ref=new URL(document.referrer).hostname;}catch(e){}
   var p=new URLSearchParams({action:'track_visit',page:evtPage,ref:ref,ua:navigator.userAgent.substring(0,200),vid:vid});
-  fetch(AURL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(function(){});
+  (function(u){var n=0;(function go(){fetch(u,{method:'GET',keepalive:true}).then(function(r){if(!r.ok&&n<3){n++;setTimeout(go,500*Math.pow(2,n)+Math.random()*400);}}).catch(function(){if(n<3){n++;setTimeout(go,500*Math.pow(2,n)+Math.random()*400);}});})();})(AURL+'?'+p.toString());
 }catch(e){}};
 // Log the page view immediately on load (homepage previously only logged on exit)
 try{ trackEvt(location.pathname||'/'); }catch(e){}
@@ -1563,7 +1563,7 @@ function stStr(){flush();return Object.keys(ANA.sectionTimes).map(function(id){r
 function sendAnalytics(){if(ANA.sent)return;ANA.sent=true;try{
   var vid=localStorage.getItem('eg_vid')||'';
   var p=new URLSearchParams({action:'analytics',page:location.pathname,device:ANA.device,ref:ANA.referrer,time_s:Math.round((Date.now()-ANA.startTime)/1000),max_scroll:ANA.maxScroll,milestones:ANA.scrollMilestones.join(','),sections:Array.from(ANA.sectionsViewed).join(','),section_times:stStr(),ctas:ANA.ctaClicks.join('|'),hover_exits:ANA.hoverExits.join('|'),exit_intent:ANA.exitIntent?'1':'0',exit:ANA.exitSection,screen_w:window.innerWidth,vid:vid});
-  fetch(AURL+'?'+p.toString(),{method:'GET',mode:'no-cors',keepalive:true}).catch(function(){});
+  (function(u){var n=0;(function go(){fetch(u,{method:'GET',keepalive:true}).then(function(r){if(!r.ok&&n<3){n++;setTimeout(go,500*Math.pow(2,n)+Math.random()*400);}}).catch(function(){if(n<3){n++;setTimeout(go,500*Math.pow(2,n)+Math.random()*400);}});})();})(AURL+'?'+p.toString());
 }catch(e){}}
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')sendAnalytics();});
 window.addEventListener('pagehide',sendAnalytics);

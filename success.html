@@ -180,7 +180,7 @@
   else if(/instagram/i.test(ref)){ref='instagram';}
   else{try{ref=new URL(ref).hostname;}catch(e){}}
   var p=new URLSearchParams({action:'track_visit',page:location.pathname||'/',ref:ref,ua:navigator.userAgent.substring(0,150),vid:vid});
-  fetch(TRACK_URL+'?'+p.toString(),{method:'GET',mode:'no-cors',keepalive:true}).catch(function(){});
+  (function(u){var n=0;(function go(){fetch(u,{method:'GET',keepalive:true}).then(function(r){if(!r.ok&&n<3){n++;setTimeout(go,500*Math.pow(2,n)+Math.random()*400);}}).catch(function(){if(n<3){n++;setTimeout(go,500*Math.pow(2,n)+Math.random()*400);}});})();})(TRACK_URL+'?'+p.toString());
 }catch(e){}})();
 </script>
 </body>

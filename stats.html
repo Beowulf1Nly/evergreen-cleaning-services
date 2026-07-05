@@ -991,7 +991,7 @@ function filterVisits(mode, btn) {
   else if(/facebook/i.test(ref))  ref='facebook';
   else if(/instagram/i.test(ref)) ref='instagram';
   var params = new URLSearchParams({action:'track_visit',page:location.pathname||'/',ref:ref,ua:navigator.userAgent.substring(0,150),vid:vid});
-  navigator.sendBeacon?navigator.sendBeacon(TRACK_URL+'?'+params):fetch(TRACK_URL+'?'+params,{mode:'no-cors'});
+  (function(u){var n=0;(function go(){fetch(u,{method:'GET',keepalive:true}).then(function(r){if(!r.ok&&n<3){n++;setTimeout(go,500*Math.pow(2,n)+Math.random()*400);}}).catch(function(){if(n<3){n++;setTimeout(go,500*Math.pow(2,n)+Math.random()*400);}});})();})(TRACK_URL+'?'+params);
 })();
 </scr'+'ipt>
 ──────────────────────────────────────────────────────────────────────── -->
