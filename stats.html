@@ -296,7 +296,7 @@
            SECTION 3: QUOTE FUNNEL — PRIMARY FOCUS
       ══════════════════════════════════════════════ -->
       <div class="section-block">
-        <div class="section-title">🔍 Quote Funnel — Where Are They Dropping Off?</div>
+        <div class="section-title">🔍 Estimate Funnel — Where Are They Dropping Off?</div>
         <p class="section-sub">Tracks every visitor from first click to confirmed booking. The biggest % drop is your biggest opportunity.</p>
         <div id="funnelAlert"></div>
         <div id="funnelChart"><div class="empty-state">No funnel data yet.<br><small>Events appear once visitors start the quote flow.</small></div></div>
@@ -711,11 +711,10 @@ function renderStats(data) {
 function renderFunnel(E, totalViews, uniqueVis) {
   const STEPS = [
     { key: null,                          label: '0 · Unique Visitors',            color:'#4b5563' },
-    { key: 'quote_opened',                label: '1 · Quote modal opened',         color:'#2d6a2d' },
-    { key: 'quote_price_viewed',          label: '2 · Saw their price (Step 3)',   color:'#3d8c3d' },
-    { key: 'quote_payment_step_reached',  label: '3 · Reached payment (Step 4)',   color:'#4caf50' },
-    { key: 'payment_attempted',           label: '4 · Clicked "Book Now"',         color:'#72c472' },
-    { key: 'booking_completed',           label: '5 · Booking confirmed ✅',        color:'#9edd9e' },
+    { key: 'quote_opened',                label: '1 · Estimate form opened',       color:'#2d6a2d' },
+    { key: 'quote_price_viewed',          label: '2 · Reached the form',           color:'#3d8c3d' },
+    { key: 'payment_attempted',           label: '3 · Submitted request',          color:'#4caf50' },
+    { key: 'booking_completed',           label: '4 · Request received ✅',     color:'#9edd9e' },
   ];
 
   const counts = STEPS.map((s,i) => {
@@ -726,7 +725,7 @@ function renderFunnel(E, totalViews, uniqueVis) {
 
   if (top === 0) {
     document.getElementById('funnelChart').innerHTML =
-      '<div class="empty-state">No funnel data yet. Funnel populates once visitors arrive.</div>';
+      '<div class="empty-state">No funnel data yet — it populates once visitors start the estimate form.</div>';
     return;
   }
 
@@ -773,21 +772,20 @@ function renderFunnel(E, totalViews, uniqueVis) {
 
   // Takeaway
   const opens     = counts[1];
-  const completed = counts[5];
-  const convRate  = pct(completed, opens);
+  const submitted = counts[3];
+  const completed = counts[4];
+  const convRate  = pct(submitted, opens);
   let insight = '';
   if (opens === 0) {
-    insight = '⏳ No quote opens yet — the funnel will appear here once people start the quote flow.';
+    insight = '⏳ No estimate opens yet — the funnel will appear here once people start the estimate form.';
   } else if (counts[2] === 0) {
-    insight = '🛑 Nobody is making it past the address form (Step 1→2). The form may be too confusing or the button isn\'t clear. Try simplifying or moving the CTA higher.';
-  } else if (biggestDropIdx === 2 && biggestDrop >= 50) {
-    insight = `💸 ${biggestDrop}% of people who see their price immediately leave. They may find the price too high, or the plan options confusing. Consider A/B testing a discount or simplifying plan selection.`;
-  } else if (biggestDropIdx === 3 && biggestDrop >= 40) {
-    insight = `📅 ${biggestDrop}% drop off between seeing price and entering payment. The date picker or payment card entry may be causing friction. Try moving the card entry later or making the date picker simpler.`;
-  } else if (counts[4] > 0 && completed < counts[4]) {
-    insight = `💳 People are hitting "Book Now" but not completing. Check for payment errors below — Stripe may be having issues.`;
-  } else if (completed > 0) {
-    insight = `✅ Funnel looks healthy with ${convRate}% conversion (quote opens → bookings). Keep driving quality traffic.`;
+    insight = '🛑 People open the form but don\'t reach it — check that the estimate modal loads correctly.';
+  } else if (biggestDropIdx >= 1 && biggestDrop >= 50) {
+    insight = `💸 ${biggestDrop}% drop at "${STEPS[biggestDropIdx].label.replace(/^[0-9]+ · /,'')}" — that's your biggest leak. Focus there: fewer fields, clearer button, less friction.`;
+  } else if (submitted > 0) {
+    insight = `✅ ${convRate}% of people who open the form submit an estimate request. Keep driving quality traffic.`;
+  } else {
+    insight = 'People are opening the form but not submitting yet — try fewer required fields or a clearer submit button.';
   }
 
   html = `<div class="alert-banner ${completed>0?'green':'yellow'}" style="margin-bottom:20px;">${insight}</div>` + html;
@@ -800,7 +798,7 @@ function renderPlanPref(biweekly, weekly) {
   const el = document.getElementById('planPrefChart');
   const total = biweekly + weekly;
   if (total === 0) {
-    el.innerHTML = '<div class="empty-state">No plan selections tracked yet.<br><small>People select plans when they reach Step 3 of the quote.</small></div>';
+    el.innerHTML = '<div class="empty-state">No plan selections tracked yet.<br><small>People pick a plan when they fill out the estimate form.</small></div>';
     return;
   }
   const bwPct = pct(biweekly, total);
@@ -830,7 +828,7 @@ function renderPlanPref(biweekly, weekly) {
 // ── ABANDONMENT ───────────────────────────────────────────────────────────
 function renderAbandonment(E) {
   const ABANDON = [
-    { key: 'quote_abandoned_step1',      label: 'Closed on Step 1 (address)' },
+    { key: 'quote_abandoned_step1',      label: 'Closed the form without submitting' },
     { key: 'quote_abandoned_step2',      label: 'Closed on Step 2 (analyzing)' },
     { key: 'quote_abandoned_step3',      label: 'Closed on Step 3 (saw price)' },
     { key: 'quote_abandoned_step4',      label: 'Closed on Step 4 (payment)' },

@@ -1092,17 +1092,19 @@ function openBookModal(presetSvc) {
   renderBuilder();
   document.getElementById('bookModalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
-  try{ if(typeof trackEvt==='function') trackEvt('/evt/estimate_opened'); }catch(e){}
+  try{ if(typeof trackEvt==='function') trackEvt('/evt/quote_opened'); }catch(e){}
 }
 function closeBookModal() {
-  document.getElementById('bookModalOverlay').classList.remove('open');
+  var _ov=document.getElementById('bookModalOverlay');
+  if(_ov&&_ov.classList.contains('open')){try{if(typeof trackEvt==='function')trackEvt('/evt/quote_abandoned_step1');}catch(e){}}
+  if(_ov)_ov.classList.remove('open');
   document.body.style.overflow = '';
 }
 function gotoStep(n){
   const s1 = document.getElementById('bookStep1'), s2 = document.getElementById('bookStep2');
   if (s1) s1.style.display = n === 1 ? '' : 'none';
   if (s2) s2.style.display = n === 2 ? '' : 'none';
-  if (n === 2) { updateBookSummary(); try{ if(typeof trackEvt==='function') trackEvt('/evt/estimate_price_viewed'); }catch(e){} }
+  if (n === 2) { updateBookSummary(); try{ if(typeof trackEvt==='function') trackEvt('/evt/quote_price_viewed'); }catch(e){} }
   const m = document.querySelector('.book-modal'); if (m) m.scrollTop = 0;
 }
 function toggleRecurring(){
@@ -1183,7 +1185,7 @@ function submitQuote() {
   });
   // Fire-and-forget to the Apps Script backend → Bookings sheet + Google Calendar event + emails.
   // keepalive lets the request finish even after we navigate away to /booked.
-  try{ if(typeof trackEvt==='function') trackEvt('/evt/estimate_submitted'); }catch(e){}
+  try{ if(typeof trackEvt==='function') trackEvt('/evt/payment_attempted'); }catch(e){}
   try { fetch(SCRIPT_URL + '?' + params.toString(), { method: 'GET', mode: 'no-cors', keepalive: true }); } catch (e) {}
 
   // The GA4 booking conversion (conversion_event_book_appointment) now fires on the
@@ -1537,7 +1539,7 @@ document.addEventListener('DOMContentLoaded',function(){
   });});
   document.addEventListener('mouseleave',function(e){if(e.clientY>5)return;ANA.exitIntent=true;});
   var op=window.openBookModal;if(typeof op==='function'){window.openBookModal=function(){ANA.ctaClicks.push('estimate_modal@'+Math.round((Date.now()-ANA.startTime)/1000)+'s');return op.apply(this,arguments);};}
-  document.querySelectorAll('[href^="tel:"]').forEach(function(el){el.addEventListener('click',function(){ANA.ctaClicks.push('phone@'+Math.round((Date.now()-ANA.startTime)/1000)+'s');});});
+  document.querySelectorAll('[href^="tel:"]').forEach(function(el){el.addEventListener('click',function(){ANA.ctaClicks.push('phone@'+Math.round((Date.now()-ANA.startTime)/1000)+'s');try{if(typeof trackEvt==='function')trackEvt('/evt/phone_click');}catch(e){}});});
 });
 function flush(){Object.keys(ANA._sectionEntry).forEach(function(id){ANA.sectionTimes[id]=(ANA.sectionTimes[id]||0)+(Date.now()-ANA._sectionEntry[id]);delete ANA._sectionEntry[id];});}
 function stStr(){flush();return Object.keys(ANA.sectionTimes).map(function(id){return id+':'+Math.round(ANA.sectionTimes[id]/1000)+'s';}).join(',');}
