@@ -1516,6 +1516,8 @@ window.trackEvt=function(evtPage){try{
   var p=new URLSearchParams({action:'track_visit',page:evtPage,ref:ref,ua:navigator.userAgent.substring(0,200),vid:vid});
   fetch(AURL+'?'+p.toString(),{method:'GET',mode:'no-cors'}).catch(function(){});
 }catch(e){}};
+// Log the page view immediately on load (homepage previously only logged on exit)
+try{ trackEvt(location.pathname||'/'); }catch(e){}
 // Page-engagement snapshot (scroll depth, section dwell, hover-exits, CTA clicks, exit section)
 var ANA={startTime:Date.now(),maxScroll:0,scrollMilestones:[],sectionsViewed:new Set(),sectionTimes:{},_sectionEntry:{},ctaClicks:[],hoverExits:[],exitIntent:false,exitSection:'',device:window.innerWidth<=768?'mobile':'desktop',referrer:document.referrer?(function(){try{return new URL(document.referrer).hostname;}catch(e){return document.referrer;}})():'direct',sent:false};
 function updateScroll(){var total=document.body.scrollHeight-window.innerHeight;if(total<=0)return;var pct=Math.round((window.scrollY/total)*100);if(pct>ANA.maxScroll)ANA.maxScroll=pct;[25,50,75,90,100].forEach(function(m){if(pct>=m&&ANA.scrollMilestones.indexOf(m)===-1)ANA.scrollMilestones.push(m);});}
