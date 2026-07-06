@@ -1837,7 +1837,14 @@ function qcBookNow(){
   try{
     var p=document.getElementById('nc-price'); if(p) p.value=price;
     var fr=document.getElementById('nc-freq'); if(fr) fr.value='Bi-Weekly Plan';
-    var n=document.getElementById('nc-notes'); if(n&&!n.value) n.value='Quoted on route: '+summary;
+    var TM={standard:'Standard Clean',better:'Better — Detail Clean',deep:'Deep Clean',move:'Move In/Out Clean'};
+    var sv=document.getElementById('nc-service'); if(sv) sv.value=TM[_qc.service]||'Standard Clean';
+    var bd=document.getElementById('nc-bed'); if(bd) bd.value=_qc.bed;
+    var ba=document.getElementById('nc-bath'); if(ba) ba.value=_qc.bath;
+    var ex=document.getElementById('nc-extra'); if(ex) ex.value=_qc.extra;
+    var sq=document.getElementById('nc-sqft'); if(sq) sq.value=_qc.sqft;
+    var _an=QC_ADDONS.filter(function(a){return _qc.addons[a.id];}).map(function(a){return a.name;});
+    var n=document.getElementById('nc-notes'); if(n&&!n.value&&_an.length) n.value='Add-ons: '+_an.join(', ');
   }catch(e){}
   showToast('Add the customer\u2019s details to book \u2014 you get the lead');
 }
@@ -1908,6 +1915,9 @@ function ncOpen(){
       +'<div style="'+lab+'">Street address *</div><input id="nc-addr" style="'+inp+'" placeholder="123 Oak St, Inverness">'
       +'<div style="'+lab+'">Zip</div><input id="nc-zip" inputmode="numeric" maxlength="5" style="'+inp+'" placeholder="34450">'
       +'<div style="'+lab+'">Plan *</div><select id="nc-freq" style="'+inp+'">'+NC_FREQS.map(function(f){return '<option>'+f+'</option>';}).join('')+'</select>'
+      +'<div style="'+lab+'">Type of clean *</div><select id="nc-service" style="'+inp+'"><option>Standard Clean</option><option>Better — Detail Clean</option><option>Deep Clean</option><option>Move In/Out Clean</option></select>'
+      +'<div style="display:flex;gap:8px;"><div style="flex:1;"><div style="'+lab+'">Beds</div><input id="nc-bed" type="number" inputmode="numeric" min="0" max="10" value="2" style="'+inp+'"></div><div style="flex:1;"><div style="'+lab+'">Baths</div><input id="nc-bath" type="number" inputmode="numeric" min="0" max="10" value="1" style="'+inp+'"></div><div style="flex:1;"><div style="'+lab+'">Extra rms</div><input id="nc-extra" type="number" inputmode="numeric" min="0" max="10" value="0" style="'+inp+'"></div></div>'
+      +'<div style="'+lab+'">Home size</div><select id="nc-sqft" style="'+inp+'"><option>Under 1,000 sq ft</option><option selected>1,000–2,000 sq ft</option><option>2,000–3,000 sq ft</option><option>3,000+ sq ft</option></select>'
       +'<div style="'+lab+'">Price per visit ($)</div><input id="nc-price" type="number" inputmode="decimal" style="'+inp+'" placeholder="leave blank for a quote visit">'
       +'<div style="'+lab+'">First service date *</div><input id="nc-date" type="date" style="'+inp+'">'
       +'<div style="'+lab+'">Payment</div><select id="nc-pay" style="'+inp+'"><option value="card">💳 Card</option><option value="cash">💵 Cash</option></select>'
@@ -1924,6 +1934,8 @@ function ncOpen(){
 function ncSubmit(){
   const v=function(id){ return String((document.getElementById(id)||{}).value||'').trim(); };
   const name=v('nc-name'), phone=v('nc-phone'), email=v('nc-email').toLowerCase(), addr=v('nc-addr'), zip=v('nc-zip'), freq=v('nc-freq'), price=v('nc-price'), date=v('nc-date'), pay=v('nc-pay'), notes=v('nc-notes');
+  const svc=v('nc-service')||'Standard Clean', hbed=v('nc-bed')||'0', hbath=v('nc-bath')||'0', hextra=parseInt(v('nc-extra')||'0')||0, hsqft=v('nc-sqft')||'';
+  const homeSummary=svc+' \u00b7 '+hbed+'bd/'+hbath+'ba'+(hextra?(' \u00b7 +'+hextra+' room'+(hextra>1?'s':'')):'')+(hsqft?(' \u00b7 '+hsqft):'');
   if(!name){ showToast('Name is required'); return; }
   if(!addr){ showToast('Address is required'); return; }
   if(email&&(email.indexOf('@')<1||email.indexOf('.')<0)){ showToast('That email looks wrong'); return; }
@@ -1932,7 +1944,7 @@ function ncSubmit(){
   if(!isQuote&&pay==='card'&&!email){ showToast('Card customers need an email (or switch to Cash)'); return; }
   if(!isQuote&&!price){ showToast('Set a price — or pick Quote Visit'); return; }
   if(!confirm('Add '+name+'?\n'+freq+(price?(' · $'+price):'')+' · first visit '+date+'\n'+addr)) return;
-  _fmEnqueue({ kind:'newcust', idemKey:'nc:'+_uuid(), method:'GET', params:{ action:'manual_schedule', name:name, email:email, phone:phone, address:addr, zip:zip, frequency:freq, price:price, serviceDate:date, notes:(notes?notes+' — ':'')+'Added on route by '+(adminName||'crew'), payMethod:pay||'card', adminToken:adminToken } });
+  _fmEnqueue({ kind:'newcust', idemKey:'nc:'+_uuid(), method:'GET', params:{ action:'manual_schedule', name:name, email:email, phone:phone, address:addr, zip:zip, frequency:freq, service:svc, price:price, serviceDate:date, notes:homeSummary+(notes?(' — '+notes):'')+' — Added on route by '+(adminName||'crew'), payMethod:pay||'card', adminToken:adminToken } });
   if(!isQuote&&parseFloat(price)>0){
     // crew sourced AND closed this one on the spot → 80% of the first job
     const _ncNames=[adminName||'Crew'].concat((_helpers||[]).map(function(h){ return (typeof h==='string')?h:((h&&h.name)||''); })).filter(Boolean);
