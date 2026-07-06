@@ -177,7 +177,6 @@
   #toast.show{ opacity:1; }
 </style>
 
-<!-- deploy-retrigger 20260706-045405 -->
 </head>
 <body>
 <div id="netBanner"></div>
@@ -2057,8 +2056,8 @@ function _fmheStepper(k,label,val){
     +'<b style="min-width:30px;text-align:center;font-size:17px;">'+val+'</b>'
     +'<button onclick="fmheStep(\''+k+'\',1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:18px;cursor:pointer;">＋</button></span></div>';
 }
-function _fmheChips(list){
-  return '<div style="display:flex;gap:7px;flex-wrap:wrap;">'+list.map(function(a){ var on=!!_fmhe.addons[a.id]; return '<button onclick="fmheToggleAddon(\''+a.id+'\')" style="display:inline-flex;align-items:center;gap:7px;padding:9px 12px;border-radius:11px;border:1.5px solid '+(on?'#16a34a':'#e2e8f0')+';background:'+(on?'rgba(22,163,74,.10)':'#f8fafc')+';font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;color:'+(on?'#15803d':'#334155')+';"><span style="width:16px;height:16px;border-radius:5px;border:1.5px solid '+(on?'#16a34a':'#cbd5e1')+';background:'+(on?'#16a34a':'#fff')+';color:#fff;font-size:11px;line-height:13px;text-align:center;">'+(on?'\u2713':'')+'</span>'+esc(a.name)+(a.price?'<span style="color:#94a3b8;font-weight:600;margin-left:2px;">$'+a.price+'</span>':'')+'</button>'; }).join('')+'</div>';
+function _fmheChips(list, kind){
+  return '<div style="display:flex;gap:7px;flex-wrap:wrap;">'+list.map(function(a){ var inc=(kind==='feat')&&_qcFeatIncluded(a,_fmhe.tier); var on=inc||!!_fmhe.addons[a.id]; return '<button'+(inc?'':' onclick="fmheToggleAddon(\''+a.id+'\')"')+' style="display:inline-flex;align-items:center;gap:7px;padding:9px 12px;border-radius:11px;border:1.5px solid '+(on?'#16a34a':'#e2e8f0')+';background:'+(on?'rgba(22,163,74,.10)':'#f8fafc')+';font-family:inherit;font-size:12.5px;font-weight:700;cursor:'+(inc?'default':'pointer')+';color:'+(on?'#15803d':'#334155')+';"><span style="width:16px;height:16px;border-radius:5px;border:1.5px solid '+(on?'#16a34a':'#cbd5e1')+';background:'+(on?'#16a34a':'#fff')+';color:#fff;font-size:11px;line-height:13px;text-align:center;">'+(on?'\u2713':'')+'</span>'+esc(a.name)+(inc?'<span style="color:#15803d;font-weight:800;font-size:10px;margin-left:3px;letter-spacing:.04em;">INCLUDED</span>':(a.price?'<span style="color:#94a3b8;font-weight:600;margin-left:2px;">$'+a.price+'</span>':''))+'</button>'; }).join('')+'</div>';
 }
 function fmheRender(){
   var b=document.getElementById('fmheBody'); if(!b) return; var est=_fmheEstMins();
@@ -2073,8 +2072,8 @@ function fmheRender(){
     +_fmheStepper('extra','Extra rooms',_fmhe.extra)
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Home size</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+_FMHE_SQFT.map(function(s){ var on=_fmhe.sqft===s; return '<button onclick="fmheSetSqft(\''+s+'\')" style="padding:8px 11px;border-radius:999px;border:1.5px solid '+(on?'#0284c7':'#e2e8f0')+';background:'+(on?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;color:#10233a;">'+s.replace(' sq ft','')+'</button>'; }).join('')+'</div>'
-    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px;">✨ Upgrades</div>'+_fmheChips(QC_FEATURES)
-    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px;">🧺 As-needed add-ons</div>'+_fmheChips(QC_ADDONS)
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px;">✨ Upgrades</div>'+_fmheChips(QC_FEATURES,'feat')
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px;">🧺 As-needed add-ons</div>'+_fmheChips(QC_ADDONS,'addon')
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 4px;">Price per visit ($)</div>'
     +'<input id="fmhe-price" value="'+esc(_fmhe.price||'')+'" oninput="_fmhe.price=this.value" placeholder="leave blank to keep current" inputmode="decimal" style="'+_in+'">'
     +'<div style="margin-top:14px;padding:12px 14px;background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:12px;font-size:15px;font-weight:800;color:#075985;">⏱ Estimated time: '+Math.floor(est/60)+'h '+String(est%60).padStart(2,'0')+'m <span style="font-weight:500;color:#64748b;">· ~$50/hr</span></div>';
@@ -2084,7 +2083,7 @@ function fmheStep(k,d){ var lim={bed:[0,10],bath:[0,10],extra:[0,10]}[k]; _fmhe[
 function fmheSetTier(t){ _fmhe.tier=t; fmheRender(); }
 function fmheSetSqft(s){ _fmhe.sqft=s; fmheRender(); }
 function fmheToggleAddon(id){ _fmhe.addons[id]=!_fmhe.addons[id]; fmheRender(); }
-function _fmheAddonNames(){ return QC_FEATURES.concat(QC_ADDONS).filter(function(a){ return _fmhe.addons[a.id]; }).map(function(a){ return a.name; }); }
+function _fmheAddonNames(){ return QC_FEATURES.concat(QC_ADDONS).filter(function(a){ if(!_fmhe.addons[a.id]) return false; if(a.tier && _qcFeatIncluded(a,_fmhe.tier)) return false; return true; }).map(function(a){ return a.name; }); }
 function _fmheSummary(){
   var lbl={standard:'Standard Clean',better:'Better — Detail Clean',deep:'Deep Clean',move:'Move In/Out Clean'}[_fmhe.tier];
   var an=_fmheAddonNames();
