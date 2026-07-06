@@ -7927,6 +7927,8 @@ function haversineMiles(lat1, lon1, lat2, lon2) {
 
 // ── Clean time estimate from booking notes (looks for Yard: size) ──────────
 // ── Estimated CLEANING time for a job, from service + rooms + size + add-ons ──
+function _custTierText(bk){ try{ var em=String((bk&&bk.email)||'').toLowerCase().trim(); if(!em) return ''; var c=(allCustomers||[]).find(function(x){ return String(x.Email||'').toLowerCase().trim()===em; }); if(!c) return ''; return ' '+String(c.Plan||'')+' '+String(c.Service||c.serviceType||'')+' '+String(c.Notes||''); }catch(e){ return ''; } }
+function _tierOf(bk){ var raw=String((bk&&bk.service)||(bk&&bk.serviceType)||'')+' '+String((bk&&bk.frequency)||'')+' '+String((bk&&bk.notes)||'')+_custTierText(bk); raw=raw.replace(/\[deep-every[^\]]*\]/ig,'').replace(/first[^.;,|]*deep\s*clean[^.;,|]*/ig,'').replace(/deep\s*clean\s*every[^.;,|]*/ig,'').toLowerCase(); if(/move/.test(raw)) return 'move'; if(/deep|best/.test(raw)) return 'deep'; if(/better|detail/.test(raw)) return 'better'; return 'standard'; }
 function mowMinutes(bk) {
   // Owner-set custom time overrides everything
   const custom = parseInt(String(bk.mowMinutes || bk.customMowMins || ''));
@@ -7962,10 +7964,7 @@ function mowMinutes(bk) {
   else { const sm = n.match(/([\d,]{3,})\s*sq/i); if (sm) sqft = parseInt(sm[1].replace(/,/g,'')) || 1500; }
 
   // Tier rates — minutes calibrated to ~$50/hr (mirrors the price rate card, not the charged $).
-  let tier = 'standard';
-  if (svc.includes('move')) tier = 'move';
-  else if (svc.includes('deep') || svc.includes('best')) tier = 'deep';
-  else if (svc.includes('better') || svc.includes('detail')) tier = 'better';
+  let tier = _tierOf(bk);
   let rooms = 0; const rmm = n.match(/\+\s*(\d+)\s*room|(\d+)\s*(?:extra|bonus|add-?on)\s*room/i); if (rmm) rooms = parseInt(rmm[1]||rmm[2]||'0');
   const R = {standard:{base:54,bed:30,bath:18,room:30},better:{base:70,bed:40,bath:24,room:40},deep:{base:86,bed:50,bath:32,room:50},move:{base:107,bed:60,bath:36,room:60}}[tier];
   const sqftAdd = sqft < 2000 ? 0 : sqft < 3000 ? 30 : 60;
@@ -8553,114 +8552,16 @@ async function buildRoute() {
       }
       // ── End saved-order path ─────────────────────────────────────────────
 
-      const anchored = validStops.filter(s => s.bk.jobTime);
-      const floating = validStops.filter(s => !s.bk.jobTime);
-
-      // No anchors → pure nearest-neighbour
-      if (!anchored.length) {
-        const ordered = floating.length
-          ? nearestNeighbour(startCoord || floating[0] || {}, floating)
-          : [];
-        _calcDist(ordered);
-        for (const fs of failedStops) ordered.push({ bk: fs.bk, lat:null, lon:null, distFromPrev:0, geocodeFailed:true }), allFailedStops.push(fs);
-        return ordered;
-      }
-
-      anchored.sort((a, b) => toMin(a.bk.jobTime) - toMin(b.bk.jobTime));
-
-      // Build time windows: W[0]=start→anchor[0], W[1]=anchor[0]→anchor[1], …, W[n]=anchor[n-1]→∞
-      // Each window knows: startMin, endMin (anchor's fixed time), startCoord, endCoord
-      const [sH, sM] = startTime.split(':').map(Number);
-      const dayStartMin = sH * 60 + sM;
-
-      const windows = anchored.map((anch, i) => ({
-        endMin:    toMin(anch.bk.jobTime),
-        startMin:  i === 0 ? dayStartMin : toMin(anchored[i-1].bk.jobTime) + mowMinutes(anchored[i-1].bk),
-        startCoord: i === 0 ? (startCoord || null) : anchored[i-1],
-        endCoord:  anch,
-        anchor:    anch,
-      }));
-      // Final window after last anchor
-      windows.push({
-        startMin:  toMin(anchored[anchored.length-1].bk.jobTime) + mowMinutes(anchored[anchored.length-1].bk),
-        endMin:    Infinity,
-        startCoord: anchored[anchored.length-1],
-        endCoord:  null,
-        anchor:    null,
-      });
-
-      // Assign each floating stop to the best window.
-      // Score = detour distance: dist(windowStart→stop) + dist(stop→windowEnd)
-      // weighted by whether the stop actually fits time-wise in the window.
-      const windowStops = windows.map(() => []);
-      // Deferral penalty per window level (miles): keeps nearby stops in early windows
-      // while letting far stops slide to later windows where they don't need a return trip
-      const DEFER_COST = 5.0;
-
-      for (const stop of floating) {
-        let bestW = windows.length - 1;
-        let bestScore = Infinity;
-
-        for (let wi = 0; wi < windows.length; wi++) {
-          const w = windows[wi];
-          const isLastWindow = wi === windows.length - 1;
-
-          // Time feasibility: skip if clearly not enough slack (non-last windows)
-          const availMin = w.endMin - w.startMin;
-          if (!isLastWindow && availMin < mowMinutes(stop.bk) + 10) continue;
-
-          const fromCoord = w.startCoord;
-          const toCoord   = w.endCoord;
-
-          // distFromStart: cost to reach this stop from window start
-          const dFS = (fromCoord?.lat != null && stop.lat != null)
-            ? haversineMiles(fromCoord.lat, fromCoord.lon, stop.lat, stop.lon) : 50;
-
-          // distToEnd: cost to continue to the window's anchor after this stop.
-          // Last window has no fixed end → 0 (no forced return trip).
-          // This is the key: a far stop in an early window pays BOTH legs (out + back),
-          // but in the last window only pays the outbound leg.
-          const dTE = (!isLastWindow && toCoord?.lat != null && stop.lat != null)
-            ? haversineMiles(stop.lat, stop.lon, toCoord.lat, toCoord.lon) : 0;
-
-          // Total route cost + deferral penalty (each later window costs DEFER_COST extra)
-          const score = dFS + dTE + wi * DEFER_COST;
-
-          if (score < bestScore) { bestScore = score; bestW = wi; }
-        }
-        windowStops[bestW].push(stop);
-      }
-
-      // Within each window, sort assigned stops by NN from window's start coord
-      const ordered = [];
-      for (let wi = 0; wi < windows.length; wi++) {
-        const w     = windows[wi];
-        const stops = windowStops[wi];
-        if (stops.length) {
-          const origin = w.startCoord || stops[0];
-          const nn     = nearestNeighbour(origin, stops);
-          // Re-check time: if stops don't fit even after assignment, push overflow to next window
-          let curMin = w.startMin;
-          const overflow = [];
-          for (const s of nn) {
-            const dur = mowMinutes(s.bk);
-            if (wi < windows.length - 1 && curMin + dur + 10 > w.endMin) {
-              overflow.push(s); // doesn't fit — defer to next window
-            } else {
-              ordered.push(s);
-              curMin += dur + 20;
-            }
-          }
-          // Prepend overflow to next window's stops
-          if (overflow.length && wi + 1 < windows.length) {
-            windowStops[wi + 1].unshift(...overflow);
-          } else {
-            ordered.push(...overflow); // last window — just append
-          }
-        }
-        // Place anchor after its window's stops
-        if (w.anchor) ordered.push(w.anchor);
-      }
+      // -- Tight geographic optimization (matches the /field crew app + lawn) --
+      // Synthetic jobTimes are ignored - customers never pick a time, so we do not
+      // scatter stops into time windows. Owner-pinned stops (re-stamped with
+      // sequential slot times above) hold their order; everything else is reordered
+      // into the shortest loop from the start point. nearestNeighbour() runs 2-opt + Or-opt.
+      const _pinned   = validStops.filter(s => s.bk && s.bk._routePinned)
+                                  .sort((a, b) => toMin(a.bk.jobTime || '99:99') - toMin(b.bk.jobTime || '99:99'));
+      const _unpinned = validStops.filter(s => !(s.bk && s.bk._routePinned));
+      const _origin   = _pinned.length ? _pinned[_pinned.length - 1] : (startCoord || _unpinned[0]);
+      const ordered   = _pinned.concat(_unpinned.length ? nearestNeighbour(_origin, _unpinned) : []);
 
       _calcDist(ordered);
 
