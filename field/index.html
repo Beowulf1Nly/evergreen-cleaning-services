@@ -1853,10 +1853,17 @@ function qcRender(){
   document.getElementById('qcCompare').textContent='Good $'+_qcPurePkg('standard')+' · Better $'+_qcPurePkg('better')+' · Best $'+_qcPurePkg('deep');
 }
 function qcEmail(){
-  const adds=QC_ADDONS.filter(a=>_qc.addons[a.id]).map(a=>a.name).join(', ');
-  const xtra=_qcExtraFeats().map(f=>f.name).join(', ');
-  const msg='Hi!\n\nHere\u2019s your cleaning quote from Evergreen Cleaning Services:\n\n'+QC_TIER_LABEL[_qc.service]+' \u2014 '+(_qc.bed===0?'Studio':_qc.bed+' bed')+'/'+_qc.bath+' bath, '+_qc.sqft+(xtra?('\n+ '+xtra):'')+(adds?('\nAs-needed add-ons: '+adds):'')+'\n\nTotal: $'+qcPrice()+'\n\nBook online: https://evergreencleaningservicesflorida.com\nOr call/text (352) 462-0627';
-  location.href='mailto:?subject='+encodeURIComponent('Your cleaning quote \u2014 Evergreen Cleaning Services')+'&body='+encodeURIComponent(msg);
+  var nm=prompt('Customer name for the estimate:',''); if(nm===null) return; nm=nm.trim();
+  if(!nm){ showToast('Enter the customer name'); return; }
+  var em=prompt('Email the estimate to:',''); if(em===null) return; em=em.trim().toLowerCase();
+  if(!em||em.indexOf('@')<1||em.indexOf('.')<0){ showToast('Enter a valid email'); return; }
+  var summary=QC_TIER_LABEL[_qc.service]+' \u2014 '+(_qc.bed===0?'Studio':_qc.bed+' bed')+'/'+_qc.bath+' bath'+(_qc.extra?(' +'+_qc.extra+' room'+(_qc.extra>1?'s':'')):'')+', '+_qc.sqft;
+  var items=[{desc:summary, price:qcPrice(null,true), included:'false'}];
+  QC_ADDONS.filter(function(a){ return _qc.addons[a.id]; }).forEach(function(a){ items.push({desc:a.name, price:a.price, included:'false'}); });
+  var vt=new Date(); vt.setDate(vt.getDate()+14); var pad=function(n){ return String(n).padStart(2,'0'); };
+  _fmEnqueue({ kind:'quoteest', idemKey:'qe:calc:'+em+'|'+Date.now(), method:'GET', params:{ action:'send_quote_email', submittedBy:adminName||'Crew', name:nm, email:em, phone:'', address:'', summary:summary, items:JSON.stringify(items), notes:'[]', estimateDate:todayISOStr(), validThru:vt.getFullYear()+'-'+pad(vt.getMonth()+1)+'-'+pad(vt.getDate()), frequency:QC_TIER_LABEL[_qc.service], adminToken:adminToken } });
+  _fmFlushQueue();
+  qcClose(); showToast('\u2709\ufe0f Estimate emailed to '+em);
 }
 
 
