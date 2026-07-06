@@ -7961,13 +7961,15 @@ function mowMinutes(bk) {
   else if (/1,?000\s*[–-]\s*2,?000/i.test(n)) sqft = 1500;
   else { const sm = n.match(/([\d,]{3,})\s*sq/i); if (sm) sqft = parseInt(sm[1].replace(/,/g,'')) || 1500; }
 
-  // Service factor: deep/move take longer
-  let factor = 1.0;
-  if (svc.includes('deep')) factor = 1.4;
-  else if (svc.includes('move')) factor = 1.6;
-
-  const sqftAdd = sqft < 1000 ? 0 : sqft < 2000 ? 10 : sqft < 3000 ? 25 : 40;
-  let mins = Math.round((30 + beds * 12 + baths * 15 + sqftAdd) * factor);
+  // Tier rates — minutes calibrated to ~$50/hr (mirrors the price rate card, not the charged $).
+  let tier = 'standard';
+  if (svc.includes('move')) tier = 'move';
+  else if (svc.includes('deep') || svc.includes('best')) tier = 'deep';
+  else if (svc.includes('better') || svc.includes('detail')) tier = 'better';
+  let rooms = 0; const rmm = n.match(/\+\s*(\d+)\s*room|(\d+)\s*(?:extra|bonus|add-?on)\s*room/i); if (rmm) rooms = parseInt(rmm[1]||rmm[2]||'0');
+  const R = {standard:{base:54,bed:30,bath:18,room:30},better:{base:70,bed:40,bath:24,room:40},deep:{base:86,bed:50,bath:32,room:50},move:{base:107,bed:60,bath:36,room:60}}[tier];
+  const sqftAdd = sqft < 2000 ? 0 : sqft < 3000 ? 30 : 60;
+  let mins = R.base + beds * R.bed + baths * R.bath + rooms * R.room + sqftAdd;
 
   // Add-on time
   const ADDON_MIN = {
