@@ -2027,6 +2027,7 @@ function _fmheParse(bk){
   if(/move/.test(nl)) o.tier='move'; else if(/deep|best/.test(nl)) o.tier='deep'; else if(/better|detail/.test(nl)) o.tier='better';
   if(/under\s*1,?000/i.test(n)) o.sqft='Under 1,000 sq ft'; else if(/3,?000\s*\+/i.test(n)) o.sqft='3,000+ sq ft'; else if(/2,?000\s*[–-]\s*3,?000/i.test(n)) o.sqft='2,000–3,000 sq ft';
   try{ QC_FEATURES.concat(QC_ADDONS).forEach(function(a){ if(nl.indexOf(a.name.toLowerCase())>=0) o.addons[a.id]=true; }); }catch(e){}
+  try{ (customerServicesFor(bk.email)||[]).forEach(function(sv){ var sn=String(sv.name||'').toLowerCase(); QC_ADDONS.forEach(function(a){ var an=a.name.toLowerCase(); if(sn && (sn.indexOf(an)>=0||an.indexOf(sn)>=0)) o.addons[a.id]=true; }); }); }catch(e){}
   return o;
 }
 function fmEditHome(bk){
@@ -2101,6 +2102,8 @@ function fmheSave(){
   var _ph=(_fmhe.phone||'').trim(); _p.phone=_ph; bk.phone=_ph;
   var _em=(_fmhe.email||'').trim().toLowerCase(); _p.email=_em; bk.email=_em;
   var _pr=String(_fmhe.price||'').replace(/[^0-9.]/g,''); if(_pr){ _p.price=_pr; bk.price='$'+parseFloat(_pr).toFixed(0); }
+  var _svc=QC_ADDONS.filter(function(a){ return _fmhe.addons[a.id]; }).map(function(a){ return a.name+': $'+a.price; }).join('; ');
+  _p.services=_svc;
   _fmEnqueue({ kind:'homeedit', idemKey:'home:'+_stopKey(bk)+':'+Date.now(), method:'GET', params:_p });
   _fmFlushQueue();
   var est=_fmheEstMins(); fmheClose(); showToast('🏠 Saved — job time is now '+Math.floor(est/60)+'h '+String(est%60).padStart(2,'0')+'m'); _fmRender();

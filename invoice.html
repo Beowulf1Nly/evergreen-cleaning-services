@@ -1479,7 +1479,7 @@
             <input type="checkbox" id="routeAutoSync" style="width:14px;height:14px;accent-color:#4285f4;cursor:pointer;">
             Auto-sync cal
           </label>
-          <button id="routeCalSyncBtn" onclick="syncRouteToCalendar(false)" style="display:none;padding:7px 13px;background:#4285f4;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">📅 Sync Calendar</button>
+          <button id="routeCalSyncBtn" onclick="syncRouteToCalendar(false)" style="display:none;padding:7px 13px;background:#4285f4;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">📅 Push to Calendar &amp; HQ</button>
           <button class="route-range-btn" id="routeClearSavedBtn" onclick="clearSavedRoute()" style="display:none;background:#fff1f2;border-color:#fca5a5;color:#dc2626;padding:6px 12px;font-size:12px;">🗑 Clear</button>
           <!-- DEV button: tucked away, minimal -->
           <button id="devScanBtn" onclick="devScanAllLots(this)" title="Force re-scan lot sizes" style="padding:6px 10px;background:transparent;color:#94a3b8;border:1px dashed #cbd5e1;border-radius:7px;font-family:inherit;font-size:11px;cursor:pointer;margin-left:auto;">🔬 Scan lots</button>
@@ -8694,7 +8694,7 @@ async function buildRoute() {
     if (_calBtn && !document.getElementById('routeAutoSync')?.checked) {
       _calBtn.style.display = '';
       _calBtn.disabled = false;
-      _calBtn.textContent = '📅 Sync to Google Calendar';
+      _calBtn.textContent = '📅 Push to Calendar & HQ';
     }
 
     if (sortedDates.length > 1) {
@@ -8746,13 +8746,81 @@ async function buildRoute() {
 }
 
 // ── Sync optimized route times to Google Calendar ───────────────────────
+/* ── Route push to crews (HQ) — put_route; mirrors lawn ── */
+const _routePushTimers = {};
+let   _routePushSeq    = 0;
+
+function _routePushStatus(msg, ok) {
+  let el = document.getElementById('routePushStatus');
+  if (!el) {
+    const nav = document.getElementById('routeStatsBar') || document.getElementById('routeTimeline');
+    if (!nav || !nav.parentNode) return;
+    el = document.createElement('div');
+    el.id = 'routePushStatus';
+    el.style.cssText = 'font-size:12.5px;font-weight:700;margin:8px 0 2px;padding:8px 12px;border-radius:9px;display:inline-flex;align-items:center;gap:7px;';
+    nav.parentNode.insertBefore(el, nav.nextSibling);
+  }
+  el.style.background = ok ? 'rgba(34,197,94,.1)'  : 'rgba(251,191,36,.12)';
+  el.style.color      = ok ? '#15803d'             : '#92400e';
+  el.style.border     = ok ? '1px solid rgba(34,197,94,.35)' : '1px solid rgba(251,191,36,.4)';
+  el.textContent = msg;
+}
+
+function pushRouteToCrews(dateStr) {
+  if (adminRole !== 'owner' && adminRole !== 'manager') return;   // crews can't overwrite the canonical route
+  const dayOrder = _routeCustomOrder[dateStr];
+  if (!dayOrder) return;
+  const crews = Array.isArray(dayOrder) ? { '': dayOrder } : dayOrder;
+  const seq = ++_routePushSeq;
+  const reqs = [];
+  for (const [crewKey, order] of Object.entries(crews)) {
+    if (!Array.isArray(order)) continue;
+    const crew = (crewKey === '_legacy' || crewKey === 'unassigned') ? '' : crewKey;
+    const stops = order.map((s, i) => {
+      const b = (s && s.bk) || {};
+      return {
+        order: i + 1,
+        email: String(b.email || '').toLowerCase().trim(),
+        serviceDate: dateStr,
+        name: b.name || '', address: b.address || '', zip: b.zip || '',
+        crew: crew || String(b.crew || ''), jobTime: b.jobTime || ''
+      };
+    }).filter(st => st.email);
+    const p = new URLSearchParams({
+      action: 'put_route', date: dateStr, crew: crew,
+      stops: JSON.stringify(stops),
+      updatedBy: adminName || 'Owner',
+      idemKey: 'route:' + dateStr + ':' + crew + ':' + Date.now() + ':' + seq,
+      adminToken
+    });
+    reqs.push(fetch(SCRIPT_URL + '?' + p).then(r => r.json()).catch(() => null));
+  }
+  if (!reqs.length) return;
+  _routePushStatus('📲 Sending route order to crews…', true);
+  Promise.all(reqs).then(results => {
+    if (seq !== _routePushSeq) return;   // a newer push superseded this one
+    const allOk = results.every(d => d && d.success);
+    const t = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    if (allOk) _routePushStatus('📲 Crews see this order · synced ' + t, true);
+    else {
+      _routePushStatus('⚠ Route didn\'t reach the crews — retrying…', false);
+      setTimeout(() => { if (seq === _routePushSeq) pushRouteToCrews(dateStr); }, 8000);
+    }
+  });
+}
+
+
 async function syncRouteToCalendar(silent) {
+  const calBtn = document.getElementById('routeCalSyncBtn');
+  if (calBtn) { calBtn.disabled = true; calBtn.textContent = '📅 Pushing…'; }
+  // HQ half of the button: recompute each stop's time from the optimized order, then push
+  // that exact order + times to the crews (/field) and /hq Dispatch via put_route.
+  try { Object.keys(_routeCustomOrder||{}).forEach(function(ds){ _syncRouteOrderToDispatch(ds); pushRouteToCrews(ds); }); } catch(e){}
   if (!_lastCalendarUpdates.length) {
-    showToast('No route to sync — optimize first');
+    showToast('📲 Route pushed to the crews · optimize to also refresh the calendar');
+    if (calBtn) { calBtn.disabled = false; calBtn.textContent = '✅ Pushed — push again'; }
     return;
   }
-  const calBtn = document.getElementById('routeCalSyncBtn');
-  if (calBtn) { calBtn.disabled = true; calBtn.textContent = '📅 Syncing…'; }
   try {
     const syncParams = new URLSearchParams({
       action:  'sync_route_to_calendar',
@@ -8765,7 +8833,7 @@ async function syncRouteToCalendar(silent) {
       if (data.updated) parts.push(data.updated + ' updated');
       if (data.created) parts.push(data.created + ' created');
       if (data.failed)  parts.push(data.failed + ' failed');
-      const msg = '📅 Google Calendar synced — ' + (parts.join(' · ') || 'no changes');
+      const msg = '📅 Pushed to HQ + Google Calendar — ' + (parts.join(' · ') || 'no changes');
       showToast(msg);
       if (!silent) {
         const tl = document.getElementById('routeTimeline');
@@ -8777,14 +8845,14 @@ async function syncRouteToCalendar(silent) {
           setTimeout(() => b.remove(), 5000);
         }
       }
-      if (calBtn) calBtn.style.display = 'none'; // hide after sync
+      if (calBtn) { calBtn.disabled = false; calBtn.textContent = '✅ Pushed — push again'; }
     } else {
       showToast('❌ Calendar sync failed: ' + (data.error || 'unknown error'));
-      if (calBtn) { calBtn.disabled = false; calBtn.textContent = '📅 Sync to Google Calendar'; }
+      if (calBtn) { calBtn.disabled = false; calBtn.textContent = '📅 Push to Calendar & HQ'; }
     }
   } catch(err) {
     showToast('❌ Calendar sync error: ' + err.message);
-    if (calBtn) { calBtn.disabled = false; calBtn.textContent = '📅 Sync to Google Calendar'; }
+    if (calBtn) { calBtn.disabled = false; calBtn.textContent = '📅 Push to Calendar & HQ'; }
   }
 }
 
