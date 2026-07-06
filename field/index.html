@@ -127,6 +127,7 @@
   .fm-sheet{ background:#fff; color:#12293e; border-radius:24px 24px 0 0; width:100%; max-width:520px; padding:24px 20px max(28px,env(safe-area-inset-bottom)); box-shadow:0 -10px 50px rgba(0,0,0,.3); max-height:92vh; overflow-y:auto; }
   .fm-sheet-title{ font-size:22px; font-weight:800; margin-bottom:2px; }
   .fm-sheet-sub{ color:#64748b; font-size:14px; margin-bottom:18px; }
+  .fm-sheet-foot{ position:sticky; bottom:0; background:#fff; margin:14px -20px 0; padding:12px 20px calc(8px + env(safe-area-inset-bottom)); border-top:1px solid #eef2f6; box-shadow:0 -10px 18px rgba(0,0,0,.06); }
   .fm-block{ border:1.5px solid #e2e8f0; border-radius:14px; padding:14px; margin-bottom:14px; }
   .fm-block-label{ font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:#94a3b8; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
   .fm-block-label .req{ color:#b45309; }
@@ -322,12 +323,14 @@
       <textarea class="fm-textarea" id="fmcOwnerNote" placeholder="Anything Hunter should know about this yard…"></textarea>
     </div>
     <div class="fm-block">
-      <div class="fm-block-label"><span>Before you leave</span><span id="fmcCheckState" class="req">required</span></div>
+      <div class="fm-block-label"><span id="fmcCheckTitle">Before you leave</span><span id="fmcCheckState" class="req">required</span></div>
       <div class="fm-checklist" id="fmcChecklist"></div>
     </div>
     <div class="fm-err" id="fmcErr"></div>
+    <div class="fm-sheet-foot">
     <button class="fm-btn fm-btn-xl fm-btn-done" id="fmcSubmitBtn" onclick="fmSubmitComplete()" disabled>Take payment to finish</button>
     <button class="fm-mini-link" onclick="fmCloseComplete()">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -1461,7 +1464,7 @@ function fmOpenComplete(){
   _fmcStop=stop; _fmcRowIdx=(allBookings||[]).indexOf(bk); _fmcPayType=_payType(bk);
   _fmcCash=false; _fmcInvoiceSent=false; _fmcChargeChosen=false; _fmcBase=_fmAmt(bk); _fmcPhotos=[];
   _fmcAddons=(customerServicesFor(bk.email)||[]).map(s=>({name:s.name,price:+s.price||0,on:!!((_fmAddonSel[_stopKey(bk)]||{})[s.name])}));
-  _fmcEndChk={}; END_CHECKLIST.forEach(l=>_fmcEndChk[l]=false);
+  _fmcEndChk={}; _fmcBuildChecklist(bk);
   if(_fmcPayType==='cash') _fmcEndChk['Collected cash']=false;
   document.getElementById('fmcTitle').textContent='Finish '+(bk.name||'job');
   document.getElementById('fmcErr').style.display='none';
@@ -1528,11 +1531,19 @@ function fmToggleCash(){ _fmcCash=!_fmcCash; if('Collected cash' in _fmcEndChk) 
 // completion submit (fmSubmitComplete), guarded by an idempotency key + backend.
 function fmToggleCharge(){ _fmcChargeChosen=!_fmcChargeChosen; _fmcRenderPay(); }
 function fmToggleInvoice(){ _fmcInvoiceSent=!_fmcInvoiceSent; _fmcRenderPay(); }
+function _fmVisitTier(bk){ var t=(String((bk&&bk.service)||(bk&&bk.serviceType)||'')+' '+String((bk&&bk.frequency)||'')+' '+String((bk&&bk.notes)||'')).toLowerCase(); if(/move/.test(t)) return 'move'; if(/deep|best/.test(t)) return 'deep'; if(/detail|better/.test(t)) return 'better'; return 'standard'; }
+function _fmcBuildChecklist(bk){
+  var tier=_fmVisitTier(bk);
+  ['🚪 Final walkthrough — every room checked','🍽 Kitchen — counters, sink, stovetop & appliance fronts','🚿 Bathrooms — toilets, tubs/showers, mirrors, floors','🧽 Dusting — all surfaces, sills & reachable ledges','🧹 All floors vacuumed & mopped','🗑 Trash out & liners replaced','💡 Lights off · doors locked (or key returned)','🧴 Supplies & equipment packed up','📸 Photos taken of finished rooms'].forEach(function(l){ _fmcEndChk[l]=false; });
+  try{ QC_FEATURES.forEach(function(fe){ if(QC_TIER_RANK[tier]>=QC_TIER_RANK[fe.tier]) _fmcEndChk['✨ '+fe.name]=false; }); }catch(e){}
+  (_fmcAddons||[]).forEach(function(a){ if(a&&a.name && _fmcEndChk['✨ '+a.name]===undefined) _fmcEndChk['➕ '+a.name+' (add-on)']=false; });
+}
 function _fmcRenderEndChk(){
   const wrap=document.getElementById('fmcChecklist'); const items=Object.keys(_fmcEndChk);
   wrap.innerHTML=items.map(l=>'<button class="fm-check'+(_fmcEndChk[l]?' on':'')+'" onclick="fmToggleEndChk(\''+l.replace(/'/g,"\\'")+'\')"><span class="box">✓</span><span>'+esc(l)+'</span></button>').join('');
   const allChecked=items.every(l=>_fmcEndChk[l]);
   const st=document.getElementById('fmcCheckState'); if(st){ st.textContent=allChecked?'✓ done':'required'; st.className=allChecked?'ok':'req'; }
+  const ct=document.getElementById('fmcCheckTitle'); if(ct){ var _b=_fmcStop&&_fmcStop.bk; ct.textContent='Before you leave'+(_b?(' · '+String(QC_TIER_LABEL[_fmVisitTier(_b)]||'Standard Clean').replace(/^[^—]*— /,'')):''); }
   _fmcUpdateSubmit();
 }
 function fmToggleEndChk(label){ _fmcEndChk[label]=!_fmcEndChk[label]; if(label==='Collected cash') _fmcCash=_fmcEndChk[label], _fmcRenderPay(); _fmcRenderEndChk(); }
