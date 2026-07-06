@@ -382,7 +382,7 @@ let adminToken='', adminName='', adminEmail='', adminRole='employee', adminCrews
 let allBookings=[], allCustomers=[], _savedOrderKeys=null, _optOrderKeys=null;
 let _startPoint=null, _crewSel=null;   // employee-chosen route origin + crew override
 let _clockInTime=null, _clockOutTime=null, _clockedOut=false, _fmTimerInt=null, _fmSyncInt=null, _fmPollInt=null, _geoWatch=null, _lastPos=null, _wakeLock=null;
-let _fmStarted=false, _fmViewIdx=null, _fmCashTotal=0, _fmBilledTotal=0, _fmSkipped={}, _startChkState=[], _jobTimers={}, _helpers=[]; let _lastSync={ok:null,ts:0,msg:''};
+let _fmStarted=false, _fmViewIdx=null, _fmCashTotal=0, _fmBilledTotal=0, _fmSkipped={}, _fmDoneLocal={}, _startChkState=[], _jobTimers={}, _helpers=[]; let _lastSync={ok:null,ts:0,msg:''};
 let _fmAtBase=false, _homeBase='', _homeBaseGeo=null, _fmBasePoll=null;
 let _savedTimes={};   // key → planned HH:MM from the owner's push
 function _fmIsBoss(){ const r=String(adminRole||'').toLowerCase().trim(); return r==='owner'||r==='manager'; }
@@ -658,7 +658,7 @@ function _persist(){
   try{ localStorage.setItem(_stateKey(), JSON.stringify({
     dayISO: todayISOStr(), started:_fmStarted, viewIdx:_fmViewIdx,
     clockInTime:_clockInTime?_clockInTime.toISOString():null, clockOutTime:_clockOutTime?_clockOutTime.toISOString():null, clockedOut:_clockedOut,
-    cashTotal:_fmCashTotal, billedTotal:_fmBilledTotal, skipped:_fmSkipped, startChk:_startChkState, jobTimers:_jobTimers, helpers:_helpers, atBase:_fmAtBase
+    cashTotal:_fmCashTotal, billedTotal:_fmBilledTotal, skipped:_fmSkipped, doneLocal:_fmDoneLocal, startChk:_startChkState, jobTimers:_jobTimers, helpers:_helpers, atBase:_fmAtBase
   })); }catch(e){}
 }
 function _restoreState(){
@@ -668,7 +668,7 @@ function _restoreState(){
     if(s.dayISO!==todayISOStr()){ localStorage.removeItem(_stateKey()); return; }  // new day → fresh start
     _fmStarted=!!s.started; _fmViewIdx=(s.viewIdx==null?null:s.viewIdx);
     _clockInTime=s.clockInTime?new Date(s.clockInTime):null; _clockOutTime=s.clockOutTime?new Date(s.clockOutTime):null; _clockedOut=!!s.clockedOut;
-    _fmCashTotal=+s.cashTotal||0; _fmBilledTotal=+s.billedTotal||0; _fmSkipped=s.skipped||{}; _startChkState=Array.isArray(s.startChk)?s.startChk:[]; _jobTimers=s.jobTimers||{}; _helpers=Array.isArray(s.helpers)?s.helpers:[]; _fmAtBase=!!s.atBase;
+    _fmCashTotal=+s.cashTotal||0; _fmBilledTotal=+s.billedTotal||0; _fmSkipped=s.skipped||{}; _fmDoneLocal=s.doneLocal||{}; _startChkState=Array.isArray(s.startChk)?s.startChk:[]; _jobTimers=s.jobTimers||{}; _helpers=Array.isArray(s.helpers)?s.helpers:[]; _fmAtBase=!!s.atBase;
   }catch(e){}
 }
 
@@ -682,7 +682,7 @@ async function loadData(refreshToast){
       fetch(SCRIPT_URL+'?action=customers_list&'+authParam()).then(r=>r.json()).catch(()=>null),
       fetch(SCRIPT_URL+'?action=get_route&date='+todayISOStr()+crewQ+'&'+authParam()).then(r=>r.json()).catch(()=>null)
     ]);
-    if(bRes&&bRes.success&&Array.isArray(bRes.bookings)){ allBookings=bRes.bookings; try{ localStorage.setItem('evg_field_bookings', JSON.stringify(allBookings)); }catch(e){} }
+    if(bRes&&bRes.success&&Array.isArray(bRes.bookings)){ allBookings=bRes.bookings; try{ allBookings.forEach(function(b){ if(isDone(b)&&_fmDoneLocal[_stopKey(b)]) delete _fmDoneLocal[_stopKey(b)]; }); }catch(e){} try{ localStorage.setItem('evg_field_bookings', JSON.stringify(allBookings)); }catch(e){} }
     else if(Array.isArray(bRes)){ allBookings=bRes; }
     // Refresh role + crew assignment LIVE from the server (the booking fetch returns them),
     // so editing the Crews column in the sheet takes effect on next refresh — no re-login needed.
@@ -1202,7 +1202,8 @@ function _fmStops(){
   return jobs;
 }
 function _fmIsSkipped(bk){ return !!_fmSkipped[_stopKey(bk)]; }
-function _fmResolved(s){ return isDone(s.bk)||_fmIsSkipped(s.bk); }
+function _fmIsLocalDone(bk){ return !!_fmDoneLocal[_stopKey(bk)]; }
+function _fmResolved(s){ return isDone(s.bk)||_fmIsSkipped(s.bk)||_fmIsLocalDone(s.bk); }
 function _fmOpenStops(){ return _fmStops().filter(s=>!_fmResolved(s)); }
 // True only when the stop being completed is the LAST open stop. A "Skip for now"
 // stop is still open, so being on the last stop by position is NOT the finish.
@@ -1709,7 +1710,7 @@ window.addEventListener('focus', function(){ _fmResume(); });
 // Good / Better / Best packages — each tier bundles the features below at a
 // discount vs à la carte. Crew can bolt any higher-tier feature onto a lower
 // package for its listed price ("Better, plus the fridge from Best").
-const QC_RATES={ standard:{base:45,bed:25,bath:15,room:15}, better:{base:58,bed:33,bath:20,room:18}, deep:{base:72,bed:42,bath:27,room:25}, move:{base:89,bed:50,bath:30,room:30} }; // ~$50/hr — 3/2: Good $149 · Better $199 · Best $249
+const QC_RATES={ standard:{base:45,bed:25,bath:15,room:25}, better:{base:58,bed:33,bath:20,room:33}, deep:{base:72,bed:42,bath:27,room:42}, move:{base:89,bed:50,bath:30,room:50} }; // ~$50/hr — 3/2: Good $149 · Better $199 · Best $249
 const QC_SQFT={ 'Under 1,000 sq ft':0, '1,000–2,000 sq ft':0, '2,000–3,000 sq ft':25, '3,000+ sq ft':50 };
 const QC_FLOOR=75;
 const QC_TIER_RANK={ standard:0, better:1, deep:2, move:3 };
@@ -1800,7 +1801,10 @@ function qcOpen(){
       +'<div style="display:flex;align-items:baseline;justify-content:space-between;"><span style="font-size:13px;font-weight:700;color:#64748b;" id="qcSvcName"></span>'
       +'<span style="font-size:34px;font-weight:800;color:#0369a1;" id="qcTotal">$0</span></div>'
       +'<div id="qcCompare" style="font-size:12px;color:#64748b;margin-top:2px;"></div>'
-      +'<button onclick="qcEmail()" style="width:100%;margin-top:10px;padding:13px;border:none;border-radius:12px;background:#0284c7;color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;">✉️ Email this quote</button>'
+      +'<div style="display:flex;gap:8px;margin-top:10px;">'
+      +'<button onclick="qcBookNow()" style="flex:1;padding:13px;border:none;border-radius:12px;background:#16a34a;color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;">📅 Book now</button>'
+      +'<button onclick="qcEmail()" style="flex:1;padding:13px;border:none;border-radius:12px;background:#0284c7;color:#fff;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;">✉️ Email quote</button>'
+      +'</div>'
       +'</div></div>';
     document.body.appendChild(o);
   }
@@ -1808,6 +1812,17 @@ function qcOpen(){
   document.getElementById('qcOverlay').style.display='flex';
 }
 function qcClose(){ const o=document.getElementById('qcOverlay'); if(o) o.style.display='none'; }
+function qcBookNow(){
+  var price=qcPrice();
+  var summary=QC_TIER_LABEL[_qc.service]+' \u2014 '+(_qc.bed===0?'Studio':_qc.bed+' bed')+'/'+_qc.bath+' bath'+(_qc.extra?(' +'+_qc.extra+' room'+(_qc.extra>1?'s':'')):'')+', '+_qc.sqft;
+  qcClose(); ncOpen();
+  try{
+    var p=document.getElementById('nc-price'); if(p) p.value=price;
+    var fr=document.getElementById('nc-freq'); if(fr) fr.value='Bi-Weekly Plan';
+    var n=document.getElementById('nc-notes'); if(n&&!n.value) n.value='Quoted on route: '+summary;
+  }catch(e){}
+  showToast('Add the customer\u2019s details to book \u2014 you get the lead');
+}
 function qcSet(k,v){ _qc[k]=v; qcRender(); }
 function qcSvc(v){ _qc.service=v; qcRender(); }
 function qcStep(k,d){ const lim={bed:[0,8],bath:[0,6],extra:[0,6]}[k]; _qc[k]=Math.max(lim[0],Math.min(lim[1],_qc[k]+d)); qcRender(); }
@@ -1935,14 +1950,27 @@ let _qjBookedStore={}; try{ _qjBookedStore=JSON.parse(localStorage.getItem('evg_
 let _qjSourced=false;
 function qjSrcTgl(){ _qjSourced=!_qjSourced; qjRefresh(); }
 function _qjCommNames(){ return [adminName||'Crew'].concat((_helpers||[]).map(function(h){ return (typeof h==='string')?h:((h&&h.name)||''); })).filter(Boolean); }
+function _qjSourceName(bk){ var m=String((bk&&bk.notes)||'').match(/added on route by\s+([^\u2014|\n]+)/i); return m?m[1].trim():''; } // who added the lead on /field (blank = office/website lead)
 function _qjCommLine(firstPrice){
-  const pct=_qjSourced?80:40, names=_qjCommNames();
-  const amt=Math.round(firstPrice*pct)/100;
-  return '\n💰 Commission: '+pct+'% of $'+firstPrice+' = $'+amt.toFixed(2)+(names.length>1?(' — split '+names.length+' ways ($'+(Math.round(amt/names.length*100)/100).toFixed(2)+' each)'):'');
+  const closers=_qjCommNames(), src=_qjSourceName(_qjBk);
+  const money=function(p){ return '$'+(Math.round(firstPrice*p)/100).toFixed(2); };
+  const closerIsSource = src && closers.some(function(n){ return String(n).toLowerCase()===String(src).toLowerCase(); });
+  if(src && closerIsSource) return '\n💰 Commission: 80% ('+money(80)+') — you found AND closed it'+(closers.length>1?(' · split '+closers.length+' ways'):'');
+  if(src) return '\n💰 Commission: 40% close ('+money(40)+') to '+closers.join(', ')+' + 40% lead ('+money(40)+') to '+src;
+  return '\n💰 Commission: 40% close ('+money(40)+')'+(closers.length>1?(' · split '+closers.length+' ways'):'');
 }
 function _qjLogCommission(base,firstPrice,bk,date){
-  const pct=_qjSourced?80:40, names=_qjCommNames();
-  _fmEnqueue({ kind:'comm', idemKey:'cm:'+base, method:'GET', params:{ action:'log_commission', key:'cm:'+base, date:todayISOStr(), names:names.join(', '), jobName:bk.name||'', email:String(bk.email||'').toLowerCase(), jobDate:date, base:String(firstPrice), pct:String(pct), type:(_qjSourced?'lead + close (80%)':'quote close (40%)'), adminToken } });
+  const closers=_qjCommNames(), src=_qjSourceName(bk);
+  const closerIsSource = src && closers.some(function(n){ return String(n).toLowerCase()===String(src).toLowerCase(); });
+  if(src && closerIsSource){
+    // same person(s) found AND closed → 80%
+    _fmEnqueue({ kind:'comm', idemKey:'cm:'+base, method:'GET', params:{ action:'log_commission', key:'cm:'+base, date:todayISOStr(), names:closers.join(', '), jobName:bk.name||'', email:String(bk.email||'').toLowerCase(), jobDate:date, base:String(firstPrice), pct:'80', type:'lead + close (80%)', adminToken } });
+  } else {
+    // close credit → 40% to whoever closed it
+    _fmEnqueue({ kind:'comm', idemKey:'cm:'+base+':c', method:'GET', params:{ action:'log_commission', key:'cm:'+base+':c', date:todayISOStr(), names:closers.join(', '), jobName:bk.name||'', email:String(bk.email||'').toLowerCase(), jobDate:date, base:String(firstPrice), pct:'40', type:'quote close (40%)', adminToken } });
+    // source credit → 40% to whoever added the lead (different person)
+    if(src) _fmEnqueue({ kind:'comm', idemKey:'cm:'+base+':s', method:'GET', params:{ action:'log_commission', key:'cm:'+base+':s', date:todayISOStr(), names:src, jobName:bk.name||'', email:String(bk.email||'').toLowerCase(), jobDate:date, base:String(firstPrice), pct:'40', type:'lead source (40%)', adminToken } });
+  }
 }
 
 function _qjBookedSave(){ try{ localStorage.setItem('evg_qj_booked',JSON.stringify(_qjBookedStore)); }catch(e){} }
@@ -2014,7 +2042,7 @@ function _qjFinish(toastMsg,note){
   _fmEnqueue({ kind:'quotenote', idemKey:'qn:'+base, method:'GET', params:{ action:'set_employee_note', rowIndex:(bk._rowIndex||0), email:bk.email||'', serviceDate:dateOf(bk), note:note, markedBy:adminName||'Crew', adminToken } });
   _fmEnqueue({ kind:'quotedone', idemKey:'qd:'+base, method:'GET', params:{ action:'mark_done', rowIndex:(bk._rowIndex||0), email:bk.email||'', serviceDate:dateOf(bk), amount:'0', markedBy:adminName||'Crew', adminToken } });
   _fmFlushQueue();
-  bk.done='✓ Done';
+  bk.done='✓ Done'; _fmDoneLocal[base]=Date.now();
   qjClose(); showToast(toastMsg); _persist(); _fmRender();
 }
 
@@ -2084,9 +2112,7 @@ function qjRenderBuilder(){
         +'</div>';
     }
   }
-  h+='<div onclick="qjSrcTgl()" style="display:flex;align-items:center;gap:11px;padding:11px 13px;border:1.5px solid '+(_qjSourced?'#f59e0b':'#e2e8f0')+';border-radius:12px;background:'+(_qjSourced?'#fffbeb':'#fff')+';margin:10px 0 4px;cursor:pointer;">'
-    +'<span style="width:23px;height:23px;border-radius:7px;border:2px solid '+(_qjSourced?'#f59e0b':'#cbd5e1')+';background:'+(_qjSourced?'#f59e0b':'#fff')+';color:#fff;font-size:15px;line-height:20px;text-align:center;flex-shrink:0;font-weight:800;">'+(_qjSourced?'✓':'')+'</span>'
-    +'<span style="flex:1;font-size:14px;font-weight:700;">💰 We found this lead ourselves <span style="font-size:11px;color:#94a3b8;font-weight:800;">'+(_qjSourced?'80% commission':'40% — office lead')+'</span></span></div>'
+  h+=(_qjSourced?'<div style="display:flex;align-items:center;gap:9px;padding:10px 13px;border:1.5px solid #fde68a;border-radius:12px;background:#fffbeb;margin:10px 0 4px;font-size:13px;font-weight:700;color:#92400e;">💰 Lead added on route — you get lead + close (80%) when you book it</div>':'')
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">Package</div>'
     +_qcPkgCards('qjSetSvc','qjFeat','qjCustTgl')
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px;">As-needed add-ons</div>'
