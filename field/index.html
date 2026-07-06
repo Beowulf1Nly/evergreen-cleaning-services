@@ -619,7 +619,7 @@ function mowMinutes(bk){
   if(/3,?000\s*\+|3k\+/i.test(n)) mins+=60; else if(/2,?000\s*[\u2013-]\s*3,?000|2[\u2013-]3k/i.test(n)) mins+=30;
   const ADD={'interior windows':25,'inside refrigerator':20,'inside oven':20,'inside cabinets':25,'tile & grout':20,'sofa steam':30,'carpet steam':35,'laundry':20,'dishes':15,'linens':10,'wall spot':15,'patio':20,'lanai':20,'garage':25,'ceiling fans':12,'baseboards':15};
   Object.keys(ADD).forEach(k=>{ if(nl.indexOf(k)>=0) mins+=ADD[k]; });
-  return Math.max(45, Math.min(360, Math.round(mins/5)*5));
+  return Math.max(45, Math.min(600, Math.round(mins/5)*5));
 }
 function parseServices(str){ return String(str||'').split(';').map(s=>s.trim()).filter(Boolean).map(s=>{ const m=s.match(/^(.*?):\s*\$?([\d.]+)\s*$/); return m?{name:m[1].trim(),price:parseFloat(m[2])||0}:null; }).filter(s=>s&&s.name&&s.price>0); }
 function customerServicesFor(email){ const em=String(email||'').toLowerCase().trim(); if(!em) return []; const c=(allCustomers||[]).find(x=>String(x.Email||'').toLowerCase().trim()===em); return parseServices(c?(c.Services||''):''); }
