@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.40 */
+/* APP_VER:2026-07-08.41 */
 (function(){
-  var V='2026-07-08.40'; window.__APP_VER=V;
+  var V='2026-07-08.41'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2610,11 +2610,11 @@ function qjCustTgl(){ _qc.custOpen=!_qc.custOpen; qjRefresh(); }
    cleans at the lower price — the recurring rate self-corrects via Following:).
    Every number is tappable. Aim: ~$50/hr of work, pretty to the customer. */
 const QC2_ROOMS=[
-  { id:'bed',    icon:'🛏', label:'Bedrooms (extra)' },
-  { id:'bath',   icon:'🚿', label:'Bathrooms' },
-  { id:'living', icon:'🛋', label:'Extra rooms' }
+  { id:'bed',    icon:'🛏', label:'Bedrooms (extra)', unit:15 },
+  { id:'bath',   icon:'🚿', label:'Bathrooms',        unit:25 },
+  { id:'living', icon:'🛋', label:'Extra rooms',      unit:15 }
 ];
-const QC2_ROOM_UNIT=15;      // every room type — same price
+const QC2_ROOM_UNIT=15;      // beds + extra rooms; bathrooms carry their own
 const QC2_DEEP_UNIT=15;      // deep-clean upcharge per room (tappable)
 const QC2_ADDONS=[
   { id:'grout',   icon:'🧽', label:'Grout scrub',      price:50 },
@@ -2628,7 +2628,7 @@ const QC2_ADDONS=[
 ];
 let _qc2={ rooms:{bed:0,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, roomP:{}, addons:{}, addonP:{}, deepAll:false, firstOnly:false, deepU:0 };
 function qc2Reset(){ _qc2={ rooms:{bed:0,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, roomP:{}, addons:{}, addonP:{}, deepAll:false, firstOnly:false, deepU:0 }; }
-function qc2RoomUnit(id){ return (_qc2.roomP[id]>0)?_qc2.roomP[id]:QC2_ROOM_UNIT; }
+function qc2RoomUnit(id){ if(_qc2.roomP[id]>0) return _qc2.roomP[id]; const r=QC2_ROOMS.find(function(x){return x.id===id;}); return (r&&r.unit)||QC2_ROOM_UNIT; }
 function qc2DeepUnit(){ return (_qc2.deepU>0)?_qc2.deepU:QC2_DEEP_UNIT; }
 function qc2AddonPrice(id){ const a=QC2_ADDONS.find(function(x){return x.id===id;}); return (_qc2.addonP[id]>0)?_qc2.addonP[id]:(a?a.price:0); }
 function qc2RoomCount(){ let n=0; QC2_ROOMS.forEach(function(r){ n+=(_qc2.rooms[r.id]||0); }); return n; }
@@ -2646,7 +2646,7 @@ function qc2DeepBump(id,d){ _qc2.deep[id]=Math.max(0,Math.min((_qc2.rooms[id]||0
 function qc2Tgl(id){ _qc2.addons[id]=!_qc2.addons[id]; qcRender(); }
 function qc2DeepAllTgl(){ _qc2.deepAll=!_qc2.deepAll; qcRender(); }
 function qc2FirstTgl(){ _qc2.firstOnly=!_qc2.firstOnly; qcRender(); }
-function qc2EditRoom(id){ const v=prompt('Price per room? (all rooms $'+QC2_ROOM_UNIT+' unless you say otherwise)',String(qc2RoomUnit(id))); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.roomP[id]=n; qcRender(); }
+function qc2EditRoom(id){ const r=QC2_ROOMS.find(function(x){return x.id===id;}); const v=prompt('Price per '+(r?r.label.replace(' (extra)','').toLowerCase().replace(/s$/,''):'room')+'?',String(qc2RoomUnit(id))); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.roomP[id]=n; qcRender(); }
 function qc2EditDeep(){ const v=prompt('Deep-clean upcharge per room? (an hour of extra work = $'+CLEAN_MIN_RATE+'+ total)',String(qc2DeepUnit())); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.deepU=n; qcRender(); }
 function qc2EditAddon(id){ const a=QC2_ADDONS.find(function(x){return x.id===id;}); const v=prompt('Price for '+a.label+'? (an hour of work should be $'+CLEAN_MIN_RATE+'+)',String(qc2AddonPrice(id))); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.addonP[id]=n; qcRender(); }
 function qc2Lines(){
@@ -2710,13 +2710,13 @@ function qcRender(){
     '<div style="background:#f0f9ff;border:2px solid #7dd3fc;border-radius:16px;padding:14px;margin-bottom:12px;">'
       +'<div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-size:16px;font-weight:800;">$'+CLEAN_MIN_JOB+' base price</span><span style="font-size:12px;font-weight:800;color:#0369a1;">every visit</span></div>'
       +'<div style="font-size:13px;color:#0f2740;font-weight:600;margin-top:3px;">Includes 1 Bedroom · 1 Kitchen · 1 Living Room</div></div>'
-    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:4px 0 8px;">More rooms — $'+QC2_ROOM_UNIT+' each</div>'
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:4px 0 8px;">More rooms</div>'
     +QC2_ROOMS.map(function(r){
       const n=_qc2.rooms[r.id]||0, dn=Math.min(_qc2.deep[r.id]||0,n);
       return '<div style="border:1.5px solid '+(n>0?'#7dd3fc':'#e2e8f0')+';border-radius:14px;background:'+(n>0?'#f0f9ff':'#fff')+';padding:10px 12px;margin-bottom:8px;">'
         +'<div style="display:flex;align-items:center;gap:10px;">'
         +'<span style="font-size:24px;">'+r.icon+'</span>'
-        +'<span style="flex:1;font-size:15px;font-weight:800;">'+r.label+'</span>'
+        +'<span style="flex:1;"><span style="font-size:15px;font-weight:800;">'+r.label+'</span><button onclick="event.stopPropagation();qc2EditRoom(\''+r.id+'\')" style="display:block;background:none;border:none;padding:0;font-size:12px;color:#0369a1;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:underline;">$'+qc2RoomUnit(r.id)+' each — tap to change</button></span>'
         +stepBtn('qc2Bump(\''+r.id+'\',-1)',-1,'−')
         +'<span style="width:36px;text-align:center;font-size:24px;font-weight:800;">'+n+'</span>'
         +stepBtn('qc2Bump(\''+r.id+'\',1)',1,'+')
