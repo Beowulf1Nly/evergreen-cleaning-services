@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.48 */
+/* APP_VER:2026-07-08.49 */
 (function(){
-  var V='2026-07-08.48'; window.__APP_VER=V;
+  var V='2026-07-08.49'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2779,17 +2779,17 @@ function qcRender(){
     +(function(){
       // the close: stack EVERYTHING they get, fluffed — then the price, then the ask
       const dr=qc2DeepRooms(), first=qc2Total(), spot=qc2Spot();
-      const FLUFF={ grout:'Grout scrubbed back to its original color', dishes:'Dishes done and put away', oven:'Inside of the oven degreased like new', fridge:'Fridge cleaned out inside, shelf by shelf', windows:'Interior windows crystal clear', laundry:'Laundry washed, dried & folded', base:'Every baseboard wiped down', pet:'Pet hair gone — furniture, corners, everywhere' };
+      const FLUFF={ grout:'Grout scrub', dishes:'Dishes', oven:'Inside of oven', fridge:'Inside of fridge', windows:'Interior windows', laundry:'Laundry', base:'Baseboards', pet:'Pet hair removal' };
       const inc=[];
-      inc.push('Kitchen scrubbed top to bottom — counters, sink, stovetop');
-      inc.push('Living room dusted, vacuumed & reset');
-      const nb=_qc2.rooms.bed||0; if(nb>0) inc.push(nb+' bedroom'+(nb>1?'s':'')+' freshened & made up');
-      const na=_qc2.rooms.bath||0; if(na>0) inc.push(na+' bathroom'+(na>1?'s':'')+' — toilets, showers & mirrors shining');
-      const nx=_qc2.rooms.living||0; if(nx>0) inc.push(nx+' extra room'+(nx>1?'s':'')+' fully cleaned');
-      if(_qc2.deepAll) inc.push('DEEP cleaned wall to wall'+(_qc2.firstOnly?' on the first visit — a total reset':' every single visit'));
-      else if(dr>0) inc.push(dr+' room'+(dr>1?'s':'')+' DEEP cleaned'+(_qc2.firstOnly?' on the first visit':''));
+      inc.push('Kitchen — counters, sink, stovetop, floors');
+      inc.push('Living room — dust, vacuum, surfaces');
+      const nb=_qc2.rooms.bed||0; if(nb>0) inc.push(nb+' bedroom'+(nb>1?'s':'')+' — dust, vacuum, surfaces');
+      const na=_qc2.rooms.bath||0; if(na>0) inc.push(na+' bathroom'+(na>1?'s':'')+' — toilet, shower, sink, mirror');
+      const nx=_qc2.rooms.living||0; if(nx>0) inc.push(nx+' extra room'+(nx>1?'s':''));
+      if(_qc2.deepAll) inc.push('Deep clean — every room'+(_qc2.firstOnly?' (first visit)':' (every visit)'));
+      else if(dr>0) inc.push('Deep clean — '+dr+' room'+(dr>1?'s':'')+(_qc2.firstOnly?' (first visit)':''));
       QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) inc.push(FLUFF[a.id]||a.label); });
-      inc.push('Same trusted cleaner, every time — supplies included');
+      inc.push('Supplies included · same cleaner each visit');
       return '<div style="margin-top:10px;padding:12px 14px;background:#fdf4ff;border:1.5px solid #e9d5ff;border-radius:14px;">'
         +'<div style="font-size:11px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">Everything they get</div>'
         +inc.map(function(p){ return '<div style="display:flex;gap:8px;font-size:13.5px;line-height:1.75;font-weight:600;color:#3b0764;"><span style="color:#16a34a;font-weight:800;">✓</span><span>'+esc(p)+'</span></div>'; }).join('')
