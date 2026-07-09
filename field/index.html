@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.43 */
+/* APP_VER:2026-07-08.44 */
 (function(){
-  var V='2026-07-08.43'; window.__APP_VER=V;
+  var V='2026-07-08.44'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2634,7 +2634,7 @@ function qc2RoomUnit(id){ if(_qc2.roomP[id]>0) return _qc2.roomP[id]; const r=QC
 function qc2DeepUnit(){ return (_qc2.deepU>0)?_qc2.deepU:QC2_DEEP_UNIT; }
 function qc2AddonPrice(id){ const a=QC2_ADDONS.find(function(x){return x.id===id;}); return (_qc2.addonP[id]>0)?_qc2.addonP[id]:(a?a.price:0); }
 function qc2RoomCount(){ let n=0; QC2_ROOMS.forEach(function(r){ n+=(_qc2.rooms[r.id]||0); }); return n; }
-function qc2DeepRooms(){ if(_qc2.deepAll) return 2+qc2RoomCount(); let n=0;   // kitchen+living + every counted room (incl. the base bedroom) QC2_ROOMS.forEach(function(r){ n+=Math.min(_qc2.deep[r.id]||0,_qc2.rooms[r.id]||0); }); return n; }
+function qc2DeepRooms(){ if(_qc2.deepAll) return 2+qc2RoomCount(); let n=0; QC2_ROOMS.forEach(function(r){ n+=Math.min(_qc2.deep[r.id]||0,_qc2.rooms[r.id]||0); }); return n; }
 function qc2Spot(){
   let t=CLEAN_MIN_JOB;
   QC2_ROOMS.forEach(function(r){ t+=qc2Charged(r.id)*qc2RoomUnit(r.id); });
@@ -2653,7 +2653,7 @@ function qc2EditDeep(){ const v=prompt('Deep-clean upcharge per room? (an hour o
 function qc2EditAddon(id){ const a=QC2_ADDONS.find(function(x){return x.id===id;}); const v=prompt('Price for '+a.label+'? (an hour of work should be $'+CLEAN_MIN_RATE+'+)',String(qc2AddonPrice(id))); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.addonP[id]=n; qcRender(); }
 function qc2Lines(){
   const L=[{desc:'Base — 1 Bedroom · 1 Kitchen · 1 Living Room',price:CLEAN_MIN_JOB}];
-  QC2_ROOMS.forEach(function(r){ const ch=qc2Charged(r.id); if(ch>0) L.push({desc:ch+'× '+(r.id==='bed'?'extra bedroom'+(ch>1?'s':''):r.label.toLowerCase()),price:ch*qc2RoomUnit(r.id)}); });
+  QC2_ROOMS.forEach(function(r){ const ch=qc2Charged(r.id); if(ch>0) L.push({desc:ch+'× '+(r.id==='bed'?('extra bedroom'+(ch>1?'s':'')):r.label.toLowerCase()),price:ch*qc2RoomUnit(r.id)}); });
   const dr=qc2DeepRooms(); if(dr>0) L.push({desc:'🧼 Deep clean — '+(_qc2.deepAll?'whole home ('+dr+' rooms)':dr+' room'+(dr>1?'s':''))+(_qc2.firstOnly?' · FIRST visit only':''),price:qc2DeepAmt()});
   QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) L.push({desc:a.label,price:qc2AddonPrice(a.id)}); });
   return L;
@@ -2735,10 +2735,11 @@ function qcRender(){
     +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:4px 0 8px;">More rooms</div>'
     +QC2_ROOMS.map(function(r){
       const n=_qc2.rooms[r.id]||0, dn=Math.min(_qc2.deep[r.id]||0,n);
+      const _sub=(r.id==='bed')?('1st included \u00b7 $'+qc2RoomUnit(r.id)+' each after'):('$'+qc2RoomUnit(r.id)+' each');
       return '<div style="border:1.5px solid '+(n>0?'#7dd3fc':'#e2e8f0')+';border-radius:14px;background:'+(n>0?'#f0f9ff':'#fff')+';padding:10px 12px;margin-bottom:8px;">'
         +'<div style="display:flex;align-items:center;gap:10px;">'
         +'<span style="font-size:24px;">'+r.icon+'</span>'
-        +'<span style="flex:1;"><span style="font-size:15px;font-weight:800;">'+r.label+'</span><button onclick="event.stopPropagation();qc2EditRoom(\''+r.id+'\')" style="display:block;background:none;border:none;padding:0;font-size:12px;color:#0369a1;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:underline;">'+(r.id==='bed'?'1st included · $'+qc2RoomUnit(r.id)+' each after':'$'+qc2RoomUnit(r.id)+' each')+' — tap to change</button></span>'
+        +'<span style="flex:1;"><span style="font-size:15px;font-weight:800;">'+r.label+'</span><button onclick="event.stopPropagation();qc2EditRoom(\''+r.id+'\')" style="display:block;background:none;border:none;padding:0;font-size:12px;color:#0369a1;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:underline;">'+_sub+' — tap to change</button></span>'
         +stepBtn('qc2Bump(\''+r.id+'\',-1)',-1,'−')
         +'<span style="width:36px;text-align:center;font-size:24px;font-weight:800;">'+n+'</span>'
         +stepBtn('qc2Bump(\''+r.id+'\',1)',1,'+')
