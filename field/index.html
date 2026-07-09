@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.35 */
+/* APP_VER:2026-07-08.36 */
 (function(){
-  var V='2026-07-08.35'; window.__APP_VER=V;
+  var V='2026-07-08.36'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -1752,14 +1752,14 @@ function _fmRenderJobList(stops){
   stops=stops||_fmStops();
   const done=stops.filter(function(x){ return isDone(x.bk); }).length;
   const skip=stops.filter(function(x){ return !isDone(x.bk)&&_fmIsSkipped(x.bk); }).length;
-  document.getElementById('fmJobListMeta').textContent=done+' of '+stops.length+' done'+(skip?(' · '+skip+' skipped'):'')+' — tap any home to open it';
+  const togo=stops.length-done-skip;
+  document.getElementById('fmJobListMeta').textContent=done+' of '+stops.length+' done'+(skip?(' · '+skip+' skipped'):'')+(togo>0?(' · '+togo+' to go'):' · all done 🎉')+' — numbered by shortest drive, go in any order';
   document.getElementById('fmJobListBody').innerHTML=stops.map(function(st,i){
     const bk=st.bk, dn=isDone(bk), sk=!dn&&_fmIsSkipped(bk);
     const badge=dn?'<span style="color:#16a34a;font-weight:800;">✓ Done</span>':(sk?'<span style="color:#b45309;font-weight:800;">⚠ Skipped</span>':'<span style="color:#0369a1;font-weight:800;">▢ Open</span>');
-    const t=String(bk.jobTime||'').trim();
     return '<button onclick="fmOpenJob('+i+')" style="display:block;width:100%;text-align:left;background:'+(dn?'rgba(22,163,74,.08)':'#fff')+';border:1.5px solid '+(dn?'#bbf7d0':(sk?'#fde68a':'#dbe6ef'))+';border-radius:14px;padding:13px 14px;margin-bottom:9px;font-family:inherit;cursor:pointer;'+(dn?'opacity:.75;':'')+'">'
-      +'<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;"><span style="font-size:16px;font-weight:800;color:#12293e;">'+esc(bk.name||'?')+'</span>'+badge+'</div>'
-      +'<div style="font-size:12.5px;color:#64748b;margin-top:3px;">'+(t?('🕐 '+t+' · '):'')+esc(bk.address||'')+(_seeMoney(bk)&&bk.price?(' · '+esc(String(bk.price))):'')+'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;"><span style="font-size:16px;font-weight:800;color:#12293e;">'+(i+1)+'. '+esc(bk.name||'?')+'</span>'+badge+'</div>'
+      +'<div style="font-size:12.5px;color:#64748b;margin-top:3px;">'+esc(bk.address||'')+(_seeMoney(bk)&&bk.price?(' · '+esc(String(bk.price))):'')+'</div>'
       +'</button>';
   }).join('');
 }
@@ -2005,19 +2005,12 @@ function _fmRenderJob(stops,idx){
   (function(){
     const el=document.getElementById('fmDoneCount'); if(!el) return;
     const base=doneCount+' done'+(skippedCount?' · '+skippedCount+' skipped':'');
-    const p=_fmPace(stops);
-    if(!p){ el.textContent=base; return; }
-    const fin=p.fin.getHours(), fm2=String(p.fin.getMinutes()).padStart(2,'0');
-    const finStr=((fin%12)||12)+':'+fm2+(fin<12?'a':'p');
-    // Anchor to the DAY, not the clock-in: a noon start with 8h of yards left is
-    // WAY behind even if you've been quick since clocking in.
-    const t19=new Date(); t19.setHours(19,0,0,0);
-    const late=Math.round((p.fin.getTime()-t19.getTime())/60000);
-    const slip=p.behind>10?' <span style="opacity:.7;">· '+p.behind+'m slower than plan</span>':'';
-    const chip=late<=0?'<span style="color:#4ade80;font-weight:800;">🟢 on track · ~'+finStr+' finish</span>'
-             :late<=60?'<span style="color:#fbbf24;font-weight:800;">🟡 finishing ~'+finStr+' — '+late+'m past 7p</span>'
-             :'<span style="color:#f87171;font-weight:800;">🔴 finishing ~'+finStr+' — '+(late>=120?(Math.round(late/6)/10+'h'):late+'m')+' past 7p</span>';
-    el.innerHTML=base+' · '+chip+slip;
+    // Cleaning is paid PER JOB — no clock schedule, no "finish by". The tracker
+    // is jobs left, so the crew keeps sight of finishing the DAY'S LIST.
+    const togo=total-doneCount-skippedCount;
+    const chip=togo<=0?'<span style="color:#16a34a;font-weight:800;">🎉 List done!</span>'
+             :'<span style="color:#0369a1;font-weight:800;">'+togo+' to go</span>';
+    el.innerHTML=base+' · '+chip;
   })();
   document.getElementById('fmProgressFill').style.width=Math.round(((doneCount+skippedCount)/total)*100)+'%';
   _fmUpdateTotalsChip();
