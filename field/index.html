@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.37 */
+/* APP_VER:2026-07-08.38 */
 (function(){
-  var V='2026-07-08.37'; window.__APP_VER=V;
+  var V='2026-07-08.38'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -239,8 +239,8 @@
         <button onclick="fmApplyStartAddr()" style="width:100%;margin-top:9px;background:rgba(255,255,255,.12);color:#e0f2fe;border:none;border-radius:12px;padding:11px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">Set start &amp; optimize route</button>
         <div id="fmStartPtNote" style="font-size:12.5px;color:#9cc8e3;margin-top:9px;line-height:1.4;"></div>
       </div>
-      <button class="fm-btn fm-btn-xl fm-btn-start" id="fmStartBtn" onclick="fmStartTapped()" style="min-width:260px;">🟢 Start My Route</button>
-      <button class="fm-skip" id="fmStartEndBtn" style="color:#fca5a5;display:none;margin-top:12px;" onclick="fmEmergencyEnd()">🏁 End route &amp; clock out</button>
+      <button class="fm-btn fm-btn-xl fm-btn-start" id="fmStartBtn" onclick="fmStartTapped()" style="min-width:260px;">🟢 Start Working</button>
+      <button class="fm-skip" id="fmStartEndBtn" style="color:#fca5a5;display:none;margin-top:12px;" onclick="fmEmergencyEnd()">🏁 Done for the day</button>
       <div style="display:flex;gap:10px;width:100%;max-width:380px;margin:18px auto 0;"><button onclick="qcOpen()" style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:13px 8px;color:#fff;font-family:inherit;font-weight:800;font-size:13.5px;cursor:pointer;line-height:1.5;">🧮 Quote calc<br><span style="font-weight:600;font-size:11px;color:#9cc8e3;">price a clean</span></button><button onclick="ncOpen()" style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:13px 8px;color:#fff;font-family:inherit;font-weight:800;font-size:13.5px;cursor:pointer;line-height:1.5;">➕ New customer<br><span style="font-weight:600;font-size:11px;color:#9cc8e3;">book on the spot</span></button></div>
     </div>
   </div>
@@ -1791,7 +1791,7 @@ function _fmRenderStart(){
   const total=raw.reduce((s,b)=>s+_fmAmt(b),0), cashN=raw.filter(b=>_payType(b)==='cash').length;
   const moneyPart=_isMoneyRole()?('~$'+total.toFixed(0)+' on the books'):(n+' stop'+(n!==1?'s':''));
   document.getElementById('fmStartSub').textContent=n?(moneyPart+(cashN?' · '+cashN+' cash stop'+(cashN!==1?'s':''):'')):'No jobs scheduled'+(adminCrews?(' for crew '+adminCrews):'')+' today.';
-  const btn=document.getElementById('fmStartBtn'); if(btn){ btn.style.display=n?'':'none'; btn.textContent=_clockInTime&&!_clockedOut?'▶ Continue Route':'🟢 Start My Route'; }
+  const btn=document.getElementById('fmStartBtn'); if(btn){ btn.style.display=n?'':'none'; btn.textContent=_clockInTime&&!_clockedOut?'▶ Keep Working':'🟢 Start Working'; }
   const _eb=document.getElementById('fmStartEndBtn'); if(_eb) _eb.style.display=(_clockInTime&&!_clockedOut)?'':'none';
   _fmRenderRouteSetup();
   _fmSyncTimerSlots();
@@ -2084,7 +2084,7 @@ function _fmRenderJob(stops,idx){
     '<div class="fm-card" style="'+(done?'opacity:.5;filter:grayscale(.6);':'')+'"><div class="fm-card-stopno">'+(idx+1)+'</div><div class="fm-card-name">'+esc(bk.name||'Customer')+'</div>'+
     '<div class="fm-card-addr">📍 '+esc(bk.address||'—')+(bk.zip?', '+esc(bk.zip):'')+'</div><div class="fm-pills">'+pills+'</div>'+noteHtml+pkgHtml+addonHtml+
     '<div class="fm-card-actions">'+_navBtn+
-    '<div class="fm-secondary-row">'+phoneRow+(!_isQuoteJob(bk)?'<button class="fm-btn fm-btn-sm fm-btn-ghost" onclick="fmEditHome(window._fmCurBk)">✏️ Edit</button>':'')+(_isQuoteJob(bk)&&isDone(bk)&&_qjBookedStore[_stopKey(bk)]?'<button class="fm-btn fm-btn-sm fm-btn-ghost" style="border-color:#fdba74;color:#9a3412;" onclick="fmQuoteCloser(window._fmCurBk)">✏️ Edit booked plan</button>':'')+(_fmIsBoss()?'<button class="fm-btn fm-btn-sm fm-btn-ghost" onclick="fmEditNotes()">✏️ Notes</button><button class="fm-btn fm-btn-sm fm-btn-ghost" onclick="fmRemainingMap()">🗺 Remaining</button>':'')+'</div></div></div>'+
+    '<div class="fm-secondary-row">'+phoneRow+(!_isQuoteJob(bk)?'<button class="fm-btn fm-btn-sm fm-btn-ghost" style="border-color:#7dd3fc;color:#0369a1;" onclick="fmAdjustPrice()">💲 Price</button>':'')+(!_isQuoteJob(bk)?'<button class="fm-btn fm-btn-sm fm-btn-ghost" onclick="fmEditHome(window._fmCurBk)">✏️ Edit</button>':'')+(_isQuoteJob(bk)&&isDone(bk)&&_qjBookedStore[_stopKey(bk)]?'<button class="fm-btn fm-btn-sm fm-btn-ghost" style="border-color:#fdba74;color:#9a3412;" onclick="fmQuoteCloser(window._fmCurBk)">✏️ Edit booked plan</button>':'')+(_fmIsBoss()?'<button class="fm-btn fm-btn-sm fm-btn-ghost" onclick="fmEditNotes()">✏️ Notes</button><button class="fm-btn fm-btn-sm fm-btn-ghost" onclick="fmRemainingMap()">🗺 Remaining</button>':'')+'</div></div></div>'+
     '<div class="fm-jobnav"><button onclick="fmPrevStop()" '+(idx===0?'disabled':'')+'>‹ Prev</button>'
     +'<button onclick="fmRerouteFromHere()" title="Re-optimize remaining stops from where you are now">📍 Re-route</button>'
     +(_fmIsOwner()?'<button onclick="fmLockStop()" title="Pin this stop to an exact position — the optimizer routes around it">'+((_stopLocks&&_stopLocks[_stopKey(bk)])?('🔒 #'+_stopLocks[_stopKey(bk)]):'🔓 Lock')+'</button>':'')
@@ -2193,6 +2193,73 @@ function fmOpenComplete(){
 function fmCloseComplete(){ document.getElementById('fmCompleteSheet').style.display='none'; }
 function _fmcAddonTotal(){ return (_fmcAddons||[]).filter(a=>a.on).reduce((s,a)=>s+(+a.price||0),0); }
 function _fmcGrand(){ return (_fmcBase||0)+_fmcAddonTotal(); }
+/* ── 💲 PRICING GUARDRAILS ────────────────────────────────────────────────────
+   $79 minimum to step foot inside · aim ≥ $50/hr of estimated work.
+   The calculator and the booked price are STARTING POINTS — the cleaner adjusts
+   on-site, but payment physically can't complete under the floor (boss can). */
+const CLEAN_MIN_JOB=79, CLEAN_MIN_RATE=50;
+function _clnFloorCheck(amount,bk){
+  if(bk&&_isQuoteJob(bk)) return { ok:true };
+  if(_fmIsBoss()) return { ok:true };
+  if(amount<CLEAN_MIN_JOB) return { ok:false, msg:'$'+CLEAN_MIN_JOB+' minimum to step inside — this is at $'+Math.round(amount)+'. Raise the price (💲 Adjust) or call the office.' };
+  return { ok:true };
+}
+function fmAdjustPrice(){
+  const st=_fmStops()[_fmViewIdx]; if(!st) return; const bk=st.bk;
+  let ov=document.getElementById('fmPriceSheet');
+  if(!ov){ ov=document.createElement('div'); ov.id='fmPriceSheet'; document.body.appendChild(ov); }
+  ov.style.cssText='position:fixed;inset:0;z-index:3400;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,22,30,.55);';
+  const cur=Math.round(_fmAmt(bk))||0;
+  ov.innerHTML='<div class="fm-sheet">'
+    +'<div class="fm-sheet-title">💲 Price — '+esc(bk.name||'')+'</div>'
+    +'<div class="fm-sheet-sub">Scope changed? Set what it actually costs. The booked number is a starting point, not law.</div>'
+    +'<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin:6px 0 12px;"><span style="font-size:30px;font-weight:800;">$</span><input id="fmPriceNew" type="number" inputmode="decimal" value="'+cur+'" style="width:130px;padding:12px;border:2px solid #cbd5e1;border-radius:14px;font-size:30px;font-weight:800;text-align:center;font-family:inherit;" oninput="_fmPriceHint()"></div>'
+    +'<div style="display:flex;gap:7px;margin-bottom:12px;">'
+    +[-20,-10,10,20,40].map(function(d){ return '<button onclick="var e=document.getElementById(\'fmPriceNew\');e.value=Math.max(0,(parseFloat(e.value)||0)+'+d+');_fmPriceHint()" style="flex:1;padding:10px 4px;border:1.5px solid #cbd5e1;border-radius:10px;background:#f8fafc;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;color:'+(d<0?'#b91c1c':'#15803d')+';">'+(d>0?'+':'')+d+'</button>'; }).join('')
+    +'</div>'
+    +'<div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:12px;padding:10px 12px;margin-bottom:10px;">'
+    +'<div style="font-size:11px;font-weight:800;color:#0369a1;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">⏱ Rough it — how long will this take?</div>'
+    +'<div style="display:flex;gap:6px;">'+[1,1.5,2,2.5,3,4].map(function(h2){ return '<button onclick="_fmPriceHrs('+h2+')" style="flex:1;padding:8px 2px;border:1.5px solid #bae6fd;border-radius:9px;background:#fff;font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer;">'+h2+'h</button>'; }).join('')+'</div>'
+    +'<div id="fmPriceHint" style="font-size:12.5px;font-weight:700;color:#0369a1;margin-top:8px;">At $'+CLEAN_MIN_RATE+'/hr minimum: pick hours above.</div>'
+    +'</div>'
+    +'<input id="fmPriceWhy" class="login-input" placeholder="Why? (e.g. floors way worse than quoted)" style="border-radius:12px;">'
+    +'<button class="fm-btn fm-btn-lg" style="width:100%;margin-top:10px;" onclick="fmPriceSave()">💾 Set price</button>'
+    +'<button class="fm-skip" onclick="document.getElementById(\'fmPriceSheet\').style.display=\'none\'">Cancel</button>'
+    +'</div>';
+  ov.onmousedown=function(e){ ov._dsd=(e.target===ov); };
+  ov.onclick=function(e){ if(ov._dsd&&e.target===ov) ov.style.display='none'; };
+  _fmPriceHint();
+}
+function _fmPriceHrs(h2){ window._fmPriceEstH=h2; const el=document.getElementById('fmPriceNew'); const min=Math.max(CLEAN_MIN_JOB,Math.round(h2*CLEAN_MIN_RATE)); if((parseFloat(el.value)||0)<min) el.value=min; _fmPriceHint(); }
+function _fmPriceHint(){
+  const el=document.getElementById('fmPriceHint'); if(!el) return;
+  const v=parseFloat((document.getElementById('fmPriceNew')||{}).value)||0;
+  const h2=window._fmPriceEstH||0;
+  let m='';
+  if(v<CLEAN_MIN_JOB) m='🔴 Under the $'+CLEAN_MIN_JOB+' step-inside minimum.';
+  else if(h2&&v<h2*CLEAN_MIN_RATE) m='🟡 '+h2+'h at this price = $'+Math.round(v/h2)+'/hr — under the $'+CLEAN_MIN_RATE+'/hr floor. Needs $'+Math.round(h2*CLEAN_MIN_RATE)+'+.';
+  else if(h2) m='🟢 '+h2+'h → $'+Math.round(v/h2)+'/hr. Solid.';
+  else m='Pick rough hours above to sanity-check the rate.';
+  el.innerHTML=m;
+}
+async function fmPriceSave(){
+  const st=_fmStops()[_fmViewIdx]; if(!st) return; const bk=st.bk;
+  const v=Math.round(parseFloat((document.getElementById('fmPriceNew')||{}).value)||0);
+  const chk=_clnFloorCheck(v,bk);
+  if(!chk.ok){ showToast('🚫 '+chk.msg,7000); return; }
+  const h2=window._fmPriceEstH||0;
+  if(h2&&v<h2*CLEAN_MIN_RATE&&!_fmIsBoss()){ showToast('🚫 '+h2+'h needs $'+Math.round(h2*CLEAN_MIN_RATE)+'+ ($'+CLEAN_MIN_RATE+'/hr floor). Shorten the scope or raise the price.',7000); return; }
+  const why=String((document.getElementById('fmPriceWhy')||{}).value||'').trim();
+  const old=Math.round(_fmAmt(bk))||0;
+  bk.price='$'+v.toFixed(0);
+  try{ localStorage.setItem('evg_field_bookings', JSON.stringify(allBookings)); }catch(e){}
+  document.getElementById('fmPriceSheet').style.display='none';
+  _fmRender(); showToast('💲 $'+old+' → $'+v+' — saved & syncing');
+  const note='💲 Price on-site $'+old+'→$'+v+(h2?(' (~'+h2+'h est)'):'')+(why?(' — '+why):'')+' — '+(adminName||'crew');
+  _fmEnqueue({ kind:'price', idemKey:'price:'+_stopKey(bk)+':'+Date.now(), method:'GET', params:{ action:'owner_update_booking', rowIndex:bk._rowIndex||0, matchEmail:String(bk.email||'').toLowerCase().trim(), matchDate:dateOf(bk), price:String(v), notes:(String(bk.notes||'').trim()?bk.notes+' | ':'')+note, adminToken } });
+  bk.notes=(String(bk.notes||'').trim()?bk.notes+' | ':'')+note;
+  _fmFlushQueue();
+}
 function _fmcRenderAddons(){
   const block=document.getElementById('fmcAddonsBlock'), wrap=document.getElementById('fmcAddons');
   if(!_fmcAddons.length){ block.style.display='none'; wrap.innerHTML=''; return; }
@@ -2307,6 +2374,9 @@ async function fmSubmitComplete(){
   const bk=_fmcStop&&_fmcStop.bk; const errEl=document.getElementById('fmcErr'); const submitBtn=document.getElementById('fmcSubmitBtn');
   if(!bk){ fmCloseComplete(); return; }
   if(!_fmcCanFinish()){ errEl.textContent='Take payment and finish the checklist first.'; errEl.style.display='block'; return; }
+  // 🚧 hard floor — a $15 floor-cleaning can never happen again
+  const _fchk=_clnFloorCheck(_fmcGrand(),bk);
+  if(!_fchk.ok){ errEl.textContent='🚫 '+_fchk.msg; errEl.style.display='block'; return; }
   submitBtn.disabled=true; submitBtn.textContent='Saving…'; errEl.style.display='none';
   const rowIndex=bk._rowIndex||((_fmcRowIdx>=0?_fmcRowIdx:0)+2), email=bk.email||'', svcDate=dateOf(bk), base=rowIndex+':'+svcDate;
   const selAddons=(_fmcAddons||[]).filter(a=>a.on&&a.price>0).map(a=>({name:a.name,price:a.price}));
