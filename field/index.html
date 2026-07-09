@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.47 */
+/* APP_VER:2026-07-08.48 */
 (function(){
-  var V='2026-07-08.47'; window.__APP_VER=V;
+  var V='2026-07-08.48'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2777,22 +2777,26 @@ function qcRender(){
       +qc2Lines().map(function(l){ return '<div style="display:flex;justify-content:space-between;font-size:13px;line-height:1.9;"><span>'+esc(l.desc)+'</span><b>$'+l.price+'</b></div>'; }).join('')
     +'</div>'
     +(function(){
-      // the close — short lines she reads off, top to bottom
+      // the close: stack EVERYTHING they get, fluffed — then the price, then the ask
       const dr=qc2DeepRooms(), first=qc2Total(), spot=qc2Spot();
-      const rooms=[]; if((_qc2.rooms.bed||0)>0) rooms.push(_qc2.rooms.bed+' bedroom'+(_qc2.rooms.bed>1?'s':'')); if((_qc2.rooms.bath||0)>0) rooms.push(_qc2.rooms.bath+' bath'+(_qc2.rooms.bath>1?'s':'')); if((_qc2.rooms.living||0)>0) rooms.push(_qc2.rooms.living+' extra room'+(_qc2.rooms.living>1?'s':''));
-      const nice=[]; QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) nice.push(a.label.toLowerCase()); });
-      const pts=[];
-      pts.push('Whole place covered — kitchen, living room'+(rooms.length?(', '+rooms.join(', ')):''));
-      if(_qc2.deepAll) pts.push('Every room deep cleaned'+(_qc2.firstOnly?' on the first visit — full reset':' every visit'));
-      else if(dr>0) pts.push(dr+' room'+(dr>1?'s':'')+' deep cleaned'+(_qc2.firstOnly?' first visit':''));
-      if(nice.length) pts.push('Plus '+nice.join(', '));
-      pts.push('Same cleaner every time');
-      if(_qc2.firstOnly&&dr>0) pts.push('$'+first+' today · $'+spot+' a visit after that');
-      else pts.push('$'+first+' a visit');
+      const FLUFF={ grout:'Grout scrubbed back to its original color', dishes:'Dishes done and put away', oven:'Inside of the oven degreased like new', fridge:'Fridge cleaned out inside, shelf by shelf', windows:'Interior windows crystal clear', laundry:'Laundry washed, dried & folded', base:'Every baseboard wiped down', pet:'Pet hair gone — furniture, corners, everywhere' };
+      const inc=[];
+      inc.push('Kitchen scrubbed top to bottom — counters, sink, stovetop');
+      inc.push('Living room dusted, vacuumed & reset');
+      const nb=_qc2.rooms.bed||0; if(nb>0) inc.push(nb+' bedroom'+(nb>1?'s':'')+' freshened & made up');
+      const na=_qc2.rooms.bath||0; if(na>0) inc.push(na+' bathroom'+(na>1?'s':'')+' — toilets, showers & mirrors shining');
+      const nx=_qc2.rooms.living||0; if(nx>0) inc.push(nx+' extra room'+(nx>1?'s':'')+' fully cleaned');
+      if(_qc2.deepAll) inc.push('DEEP cleaned wall to wall'+(_qc2.firstOnly?' on the first visit — a total reset':' every single visit'));
+      else if(dr>0) inc.push(dr+' room'+(dr>1?'s':'')+' DEEP cleaned'+(_qc2.firstOnly?' on the first visit':''));
+      QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) inc.push(FLUFF[a.id]||a.label); });
+      inc.push('Same trusted cleaner, every time — supplies included');
       return '<div style="margin-top:10px;padding:12px 14px;background:#fdf4ff;border:1.5px solid #e9d5ff;border-radius:14px;">'
-        +'<div style="font-size:11px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">The close — read down the list</div>'
-        +pts.map(function(p){ return '<div style="display:flex;gap:8px;font-size:13.5px;line-height:1.8;font-weight:600;color:#3b0764;"><span style="color:#a855f7;">›</span><span>'+esc(p)+'</span></div>'; }).join('')
-        +'<div style="margin-top:7px;padding-top:7px;border-top:1px dashed #e9d5ff;font-size:14px;font-weight:800;color:#6d28d9;">“Want me to get started today?”</div>'
+        +'<div style="font-size:11px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">Everything they get</div>'
+        +inc.map(function(p){ return '<div style="display:flex;gap:8px;font-size:13.5px;line-height:1.75;font-weight:600;color:#3b0764;"><span style="color:#16a34a;font-weight:800;">✓</span><span>'+esc(p)+'</span></div>'; }).join('')
+        +'<div style="margin-top:9px;padding-top:9px;border-top:1px dashed #e9d5ff;display:flex;justify-content:space-between;align-items:baseline;">'
+          +'<span style="font-size:13px;font-weight:800;color:#6d28d9;">All of it:</span>'
+          +'<span style="font-size:17px;font-weight:800;color:#3b0764;">'+((_qc2.firstOnly&&dr>0)?('$'+first+' today · $'+spot+'/visit after'):('$'+first+(qc2RoomCount()||dr||1?'':'')+' a visit'))+'</span></div>'
+        +'<div style="margin-top:7px;font-size:14.5px;font-weight:800;color:#6d28d9;">“Want me to get started today?”</div>'
         +'</div>';
     })();
   const tot=document.getElementById('qcTotal');
