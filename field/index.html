@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.38 */
+/* APP_VER:2026-07-08.39 */
 (function(){
-  var V='2026-07-08.38'; window.__APP_VER=V;
+  var V='2026-07-08.39'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2603,6 +2603,49 @@ function qcFeat(id){ _qc.feats[id]=!_qc.feats[id]; qcRender(); }
 function qjFeat(id){ _qc.feats[id]=!_qc.feats[id]; qjRefresh(); }
 function qcCustTgl(){ _qc.custOpen=!_qc.custOpen; qcRender(); }
 function qjCustTgl(){ _qc.custOpen=!_qc.custOpen; qjRefresh(); }
+
+/* ── 🧮 ESTIMATE BUILDER — dumb-easy by design ──────────────────────────────
+   Walk in → it already says $79 (1 bed · kitchen · living room, spot clean).
+   Customer adds rooms/extras → tap + → price grows. EVERY line's price is
+   tappable ("grout's an hour of work" → make grout $60). Total can never sit
+   below the $79 step-inside floor because the base IS the floor. */
+const QC2_ROOMS=[
+  { id:'bed',    icon:'🛏', label:'Extra bedrooms',  unit:15 },
+  { id:'bath',   icon:'🚿', label:'Bathrooms',       unit:20 },
+  { id:'living', icon:'🛋', label:'Extra rooms',     unit:12 }
+];
+const QC2_ADDONS=[
+  { id:'grout',   icon:'🧽', label:'Grout scrub',        price:50 },
+  { id:'dishes',  icon:'🍽', label:'Dishes',             price:15 },
+  { id:'oven',    icon:'🔥', label:'Inside oven',        price:25 },
+  { id:'fridge',  icon:'🧊', label:'Inside fridge',      price:25 },
+  { id:'windows', icon:'🪟', label:'Interior windows',   price:30 },
+  { id:'laundry', icon:'🧺', label:'Laundry',            price:20 },
+  { id:'base',    icon:'📏', label:'Baseboards',         price:25 },
+  { id:'pet',     icon:'🐾', label:'Pet hair (heavy)',   price:20 }
+];
+let _qc2={ rooms:{bed:0,bath:0,living:0}, roomP:{}, addons:{}, addonP:{} };
+function qc2Reset(){ _qc2={ rooms:{bed:0,bath:0,living:0}, roomP:{}, addons:{}, addonP:{} }; }
+function qc2RoomUnit(id){ const r=QC2_ROOMS.find(function(x){return x.id===id;}); return (_qc2.roomP[id]>0)?_qc2.roomP[id]:(r?r.unit:0); }
+function qc2AddonPrice(id){ const a=QC2_ADDONS.find(function(x){return x.id===id;}); return (_qc2.addonP[id]>0)?_qc2.addonP[id]:(a?a.price:0); }
+function qc2Total(){
+  let t=CLEAN_MIN_JOB;
+  QC2_ROOMS.forEach(function(r){ t+=(_qc2.rooms[r.id]||0)*qc2RoomUnit(r.id); });
+  QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) t+=qc2AddonPrice(a.id); });
+  return Math.round(t);
+}
+function qc2Bump(id,d){ _qc2.rooms[id]=Math.max(0,(_qc2.rooms[id]||0)+d); qcRender(); }
+function qc2Tgl(id){ _qc2.addons[id]=!_qc2.addons[id]; qcRender(); }
+function qc2EditRoom(id){ const r=QC2_ROOMS.find(function(x){return x.id===id;}); const v=prompt('Price per '+r.label.toLowerCase().replace(/s$/,'')+'? (taking longer = charge more)',String(qc2RoomUnit(id))); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.roomP[id]=n; qcRender(); }
+function qc2EditAddon(id){ const a=QC2_ADDONS.find(function(x){return x.id===id;}); const v=prompt('Price for '+a.label+'? (an hour of work should be $'+CLEAN_MIN_RATE+'+)',String(qc2AddonPrice(id))); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.addonP[id]=n; qcRender(); }
+function qc2Lines(){
+  const L=[{desc:'Base visit — 1 bed · kitchen · living room (spot clean)',price:CLEAN_MIN_JOB}];
+  QC2_ROOMS.forEach(function(r){ const n=_qc2.rooms[r.id]||0; if(n>0) L.push({desc:n+'× '+r.label.toLowerCase(),price:n*qc2RoomUnit(r.id)}); });
+  QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) L.push({desc:a.label,price:qc2AddonPrice(a.id)}); });
+  return L;
+}
+function qc2Summary(){ return qc2Lines().map(function(l){ return l.desc; }).join(' + '); }
+
 function qcOpen(){
   if(!document.getElementById('qcOverlay')){
     const o=document.createElement('div');
@@ -2630,22 +2673,17 @@ function qcOpen(){
 }
 function qcClose(){ const o=document.getElementById('qcOverlay'); if(o) o.style.display='none'; }
 function qcBookNow(){
-  var price=qcPrice();
-  var summary=QC_TIER_LABEL[_qc.service]+' \u2014 '+(_qc.bed===0?'Studio':_qc.bed+' bed')+'/'+_qc.bath+' bath'+(_qc.extra?(' +'+_qc.extra+' room'+(_qc.extra>1?'s':'')):'')+', '+_qc.sqft;
+  var price=qc2Total();
+  var summary=qc2Summary();
   qcClose(); ncOpen();
   try{
     var p=document.getElementById('nc-price'); if(p) p.value=price;
-    var fr=document.getElementById('nc-freq'); if(fr) fr.value='Bi-Weekly Plan';
-    var TM={standard:'Standard Clean',better:'Better — Detail Clean',deep:'Deep Clean',move:'Move In/Out Clean'};
-    var sv=document.getElementById('nc-service'); if(sv) sv.value=TM[_qc.service]||'Standard Clean';
-    var bd=document.getElementById('nc-bed'); if(bd) bd.value=_qc.bed;
-    var ba=document.getElementById('nc-bath'); if(ba) ba.value=_qc.bath;
-    var ex=document.getElementById('nc-extra'); if(ex) ex.value=_qc.extra;
-    var sq=document.getElementById('nc-sqft'); if(sq) sq.value=_qc.sqft;
-    var _an=QC_ADDONS.filter(function(a){return _qc.addons[a.id];}).map(function(a){return a.name;});
-    var n=document.getElementById('nc-notes'); if(n&&!n.value&&_an.length) n.value='Add-ons: '+_an.join(', ');
+    var bd=document.getElementById('nc-bed'); if(bd) bd.value=1+(_qc2.rooms.bed||0);
+    var ba=document.getElementById('nc-bath'); if(ba) ba.value=(_qc2.rooms.bath||0);
+    var ex=document.getElementById('nc-extra'); if(ex) ex.value=(_qc2.rooms.living||0);
+    var n=document.getElementById('nc-notes'); if(n&&!n.value) n.value=summary;
   }catch(e){}
-  showToast('Add the customer\u2019s details to book \u2014 you get the lead');
+  showToast('📋 Estimate carried over — finish booking them');
 }
 function qcSet(k,v){ _qc[k]=v; qcRender(); }
 function qcSvc(v){ _qc.service=v; qcRender(); }
@@ -2653,47 +2691,53 @@ function qcStep(k,d){ const lim={bed:[0,8],bath:[0,6],extra:[0,6]}[k]; _qc[k]=Ma
 function qcAddon(id){ _qc.addons[id]=!_qc.addons[id]; qcRender(); }
 function qcRender(){
   const b=document.getElementById('qcBody'); if(!b) return;
-  const seg=(v,l)=>'<button onclick="qcSet(\'service\',\''+v+'\')" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid '+(_qc.service===v?'#0284c7':'#e2e8f0')+';background:'+(_qc.service===v?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12.5px;font-weight:800;color:#0f2740;cursor:pointer;">'+l+'</button>';
-  const stepper=(k,l,val)=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f1f5f9;">'
-    +'<span style="font-size:14px;font-weight:700;">'+l+'</span>'
-    +'<span style="display:flex;align-items:center;gap:14px;">'
-    +'<button onclick="qcStep(\''+k+'\',-1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:18px;cursor:pointer;">−</button>'
-    +'<b style="min-width:44px;text-align:center;font-size:16px;">'+val+'</b>'
-    +'<button onclick="qcStep(\''+k+'\',1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #cbd5e1;background:#fff;font-size:18px;cursor:pointer;">＋</button></span></div>';
-  b.innerHTML='<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">🏠 The home</div>'
-    +stepper('bed','Bedrooms',_qc.bed===0?'Studio':_qc.bed)
-    +stepper('bath','Bathrooms',_qc.bath)
-    +stepper('extra','Extra rooms',_qc.extra)
-    +'<div style="font-size:11.5px;color:#64748b;margin:6px 0 2px;">Living room &amp; kitchen are already included — <b>never count them</b>. Extra rooms = office, den, bonus room, loft, etc.</div>'
-    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 7px;">Square footage</div>'
-    +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+Object.keys(QC_SQFT).map(k2=>'<button onclick="qcSet(\'sqft\',\''+k2+'\')" style="padding:8px 11px;border-radius:999px;border:1.5px solid '+(_qc.sqft===k2?'#0284c7':'#e2e8f0')+';background:'+(_qc.sqft===k2?'#e0f2fe':'#fff')+';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">'+k2.replace(' sq ft','')+'</button>').join('')+'</div>'
-    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px;">Package</div>'
-    +_qcPkgCards('qcSvc','qcFeat','qcCustTgl')
-    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 7px;">As-needed add-ons</div>'
-    +'<div style="font-size:11.5px;color:#64748b;margin:0 0 7px;">Things the customer wants occasionally — done &amp; charged only when requested, never in the plan price.</div>'
-    +_qcAddonChecklist('qcAddon');
-  document.getElementById('qcSvcName').textContent=QC_TIER_LABEL[_qc.service]+' · '+(_qc.bed===0?'Studio':_qc.bed+' bed')+' / '+_qc.bath+' bath';
-  document.getElementById('qcTotal').textContent='$'+qcPrice();
-  document.getElementById('qcCompare').textContent='Good $'+_qcPurePkg('standard')+' · Better $'+_qcPurePkg('better')+' · Best $'+_qcPurePkg('deep');
+  const stepBtn=function(id,d,sym){ return '<button onclick="qc2Bump(\''+id+'\','+d+')" style="width:52px;height:52px;border-radius:14px;border:2px solid '+(d<0?'#fecaca':'#bbf7d0')+';background:'+(d<0?'#fef2f2':'#f0fdf4')+';font-size:26px;font-weight:800;color:'+(d<0?'#b91c1c':'#15803d')+';font-family:inherit;cursor:pointer;">'+sym+'</button>'; };
+  b.innerHTML=
+    '<div style="background:#f0f9ff;border:2px solid #7dd3fc;border-radius:16px;padding:14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">'
+      +'<div><div style="font-size:15px;font-weight:800;">🧹 Base visit</div><div style="font-size:12px;color:#0369a1;font-weight:600;">1 bed · kitchen · living room — spot clean</div></div>'
+      +'<div style="font-size:24px;font-weight:800;color:#0369a1;">$'+CLEAN_MIN_JOB+'</div></div>'
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:4px 0 8px;">They have more rooms? Tap +</div>'
+    +QC2_ROOMS.map(function(r){
+      const n=_qc2.rooms[r.id]||0;
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid '+(n>0?'#7dd3fc':'#e2e8f0')+';border-radius:14px;background:'+(n>0?'#f0f9ff':'#fff')+';margin-bottom:8px;">'
+        +'<span style="font-size:24px;">'+r.icon+'</span>'
+        +'<span style="flex:1;"><span style="font-size:15px;font-weight:800;">'+r.label+'</span>'
+        +'<button onclick="qc2EditRoom(\''+r.id+'\')" style="display:block;background:none;border:none;padding:0;font-size:12px;color:#0369a1;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:underline;">+$'+qc2RoomUnit(r.id)+' each — tap to change</button></span>'
+        +stepBtn(r.id,-1,'−')
+        +'<span style="width:40px;text-align:center;font-size:24px;font-weight:800;">'+n+'</span>'
+        +stepBtn(r.id,1,'+')
+        +'</div>';
+    }).join('')
+    +'<div style="font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 8px;">They want extras? Tap it</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
+    +QC2_ADDONS.map(function(a){
+      const on=!!_qc2.addons[a.id];
+      return '<div onclick="qc2Tgl(\''+a.id+'\')" style="border:2px solid '+(on?'#16a34a':'#e2e8f0')+';border-radius:14px;background:'+(on?'#f0fdf4':'#fff')+';padding:11px 10px;cursor:pointer;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:20px;">'+a.icon+(on?' ✓':'')+'</span>'
+        +'<button onclick="event.stopPropagation();qc2EditAddon(\''+a.id+'\')" style="background:'+(on?'#dcfce7':'#f1f5f9')+';border:none;border-radius:8px;padding:3px 9px;font-size:14px;font-weight:800;color:'+(on?'#15803d':'#475569')+';font-family:inherit;cursor:pointer;">$'+qc2AddonPrice(a.id)+'</button></div>'
+        +'<div style="font-size:13.5px;font-weight:800;margin-top:4px;">'+a.label+'</div>'
+        +'</div>';
+    }).join('')
+    +'</div>'
+    +'<div style="margin-top:14px;padding:12px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;">'
+      +'<div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">🧾 What they\'re paying for</div>'
+      +qc2Lines().map(function(l){ return '<div style="display:flex;justify-content:space-between;font-size:13px;line-height:1.9;"><span>'+esc(l.desc)+'</span><b>$'+l.price+'</b></div>'; }).join('')
+    +'</div>';
+  document.getElementById('qcTotal').textContent='$'+qc2Total();
+  const sn=document.getElementById('qcSvcName'); if(sn) sn.textContent='Estimate';
+  const cp=document.getElementById('qcCompare'); if(cp) cp.textContent='Prices are tappable — longer job, bigger number. $'+CLEAN_MIN_RATE+'/hr of work minimum.';
 }
 function qcEmail(){
   var nm=prompt('Customer name for the estimate:',''); if(nm===null) return; nm=nm.trim();
   if(!nm){ showToast('Enter the customer name'); return; }
   var em=prompt('Email the estimate to:',''); if(em===null) return; em=em.trim().toLowerCase();
   if(!em||em.indexOf('@')<1||em.indexOf('.')<0){ showToast('Enter a valid email'); return; }
-  var summary=QC_TIER_LABEL[_qc.service]+' \u2014 '+(_qc.bed===0?'Studio':_qc.bed+' bed')+'/'+_qc.bath+' bath'+(_qc.extra?(' +'+_qc.extra+' room'+(_qc.extra>1?'s':'')):'')+', '+_qc.sqft;
-  var items=[{desc:summary, price:qcPrice(null,true), included:'false'}];
-  QC_ADDONS.filter(function(a){ return _qc.addons[a.id]; }).forEach(function(a){ items.push({desc:a.name, price:a.price, included:'false'}); });
+  var items=qc2Lines().map(function(l){ return {desc:l.desc, price:l.price, included:'false'}; });
   var vt=new Date(); vt.setDate(vt.getDate()+14); var pad=function(n){ return String(n).padStart(2,'0'); };
-  _fmEnqueue({ kind:'quoteest', idemKey:'qe:calc:'+em+'|'+Date.now(), method:'GET', params:{ action:'send_quote_email', submittedBy:adminName||'Crew', name:nm, email:em, phone:'', address:'', summary:summary, items:JSON.stringify(items), notes:'[]', estimateDate:todayISOStr(), validThru:vt.getFullYear()+'-'+pad(vt.getMonth()+1)+'-'+pad(vt.getDate()), frequency:QC_TIER_LABEL[_qc.service], adminToken:adminToken } });
+  _fmEnqueue({ kind:'quoteest', idemKey:'qe:calc:'+em+'|'+Date.now(), method:'GET', params:{ action:'send_quote_email', submittedBy:adminName||'Crew', name:nm, email:em, phone:'', address:'', summary:qc2Summary(), items:JSON.stringify(items), notes:'[]', estimateDate:todayISOStr(), validThru:vt.getFullYear()+'-'+pad(vt.getMonth()+1)+'-'+pad(vt.getDate()), frequency:'Cleaning estimate', adminToken:adminToken } });
   _fmFlushQueue();
   qcClose(); showToast('\u2709\ufe0f Estimate emailed to '+em);
 }
-
-
-const NC_FREQS=['📋 Quote Visit','Bi-Weekly Plan','Weekly Plan','One-Time Visit'];
-
-/* ═══════════ NEW CUSTOMER — add a client from the truck (mirrors /invoice Add Client) ═══════════ */
 function ncClose(){ const o=document.getElementById('ncOverlay'); if(o) o.style.display='none'; }
 function ncOpen(){
   if(!document.getElementById('ncOverlay')){
