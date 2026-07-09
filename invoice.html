@@ -1479,7 +1479,7 @@
             <input type="checkbox" id="routeAutoSync" style="width:14px;height:14px;accent-color:#4285f4;cursor:pointer;">
             Auto-sync cal
           </label>
-          <button id="routeCalSyncBtn" onclick="syncRouteToCalendar(false)" style="display:none;padding:7px 13px;background:#4285f4;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">📅 Push to Calendar &amp; HQ</button>
+          <button id="routeCalSyncBtn" onclick="syncRouteToCalendar(false)" style="display:none;padding:7px 13px;background:#4285f4;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">📅 Push to Google Calendar</button>
           <button class="route-range-btn" id="routeClearSavedBtn" onclick="clearSavedRoute()" style="display:none;background:#fff1f2;border-color:#fca5a5;color:#dc2626;padding:6px 12px;font-size:12px;">🗑 Clear</button>
           <!-- DEV button: tucked away, minimal -->
           <button id="devScanBtn" onclick="devScanAllLots(this)" title="Force re-scan lot sizes" style="padding:6px 10px;background:transparent;color:#94a3b8;border:1px dashed #cbd5e1;border-radius:7px;font-family:inherit;font-size:11px;cursor:pointer;margin-left:auto;">🔬 Scan lots</button>
@@ -8702,7 +8702,7 @@ async function buildRoute() {
     if (_calBtn && !document.getElementById('routeAutoSync')?.checked) {
       _calBtn.style.display = '';
       _calBtn.disabled = false;
-      _calBtn.textContent = '📅 Push to Calendar & HQ';
+      _calBtn.textContent = '📅 Push to Google Calendar';
     }
 
     if (sortedDates.length > 1) {
@@ -8857,11 +8857,11 @@ async function syncRouteToCalendar(silent) {
       if (calBtn) { calBtn.disabled = false; calBtn.textContent = '✅ Pushed — push again'; }
     } else {
       showToast('❌ Calendar sync failed: ' + (data.error || 'unknown error'));
-      if (calBtn) { calBtn.disabled = false; calBtn.textContent = '📅 Push to Calendar & HQ'; }
+      if (calBtn) { calBtn.disabled = false; calBtn.textContent = '📅 Push to Google Calendar'; }
     }
   } catch(err) {
     showToast('❌ Calendar sync error: ' + err.message);
-    if (calBtn) { calBtn.disabled = false; calBtn.textContent = '📅 Push to Calendar & HQ'; }
+    if (calBtn) { calBtn.disabled = false; calBtn.textContent = '📅 Push to Google Calendar'; }
   }
 }
 
