@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.41 */
+/* APP_VER:2026-07-08.42 */
 (function(){
-  var V='2026-07-08.41'; window.__APP_VER=V;
+  var V='2026-07-08.42'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -1776,6 +1776,7 @@ function _fmRenderJobList(stops){
     return '<button onclick="fmOpenJob('+i+')" style="display:block;width:100%;text-align:left;background:'+(dn?'rgba(22,163,74,.08)':'#fff')+';border:1.5px solid '+(dn?'#bbf7d0':(sk?'#fde68a':'#dbe6ef'))+';border-radius:14px;padding:13px 14px;margin-bottom:9px;font-family:inherit;cursor:pointer;'+(dn?'opacity:.75;':'')+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;"><span style="font-size:16px;font-weight:800;color:#12293e;">'+(i+1)+'. '+esc(bk.name||'?')+'</span>'+badge+'</div>'
       +'<div style="font-size:12.5px;color:#64748b;margin-top:3px;">'+esc(bk.address||'')+(_seeMoney(bk)&&bk.price?(' · '+esc(String(bk.price))):'')+'</div>'
+      +(_fmPrefOf(bk)?('<div style="display:inline-block;margin-top:6px;background:#fff7ed;border:1.5px solid #fdba74;border-radius:8px;padding:2px 9px;font-size:11.5px;font-weight:800;color:#9a3412;">⏰ '+esc(_fmPrefOf(bk))+'</div>'):'')
       +'</button>';
   }).join('');
 }
@@ -2677,6 +2678,7 @@ function qcOpen(){
       +'<button onclick="qcBookNow()" style="flex:1;padding:13px;border:none;border-radius:12px;background:#16a34a;color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;">📅 Book now</button>'
       +'<button onclick="qcEmail()" style="flex:1;padding:13px;border:none;border-radius:12px;background:#0284c7;color:#fff;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;">✉️ Email quote</button>'
       +'</div>'
+      +'<button onclick="qcNotInterested()" style="width:100%;margin-top:8px;padding:11px;border:1.5px solid #fecaca;border-radius:12px;background:#fef2f2;color:#b91c1c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;">🚫 Not interested</button>'
       +'</div></div>';
     document.body.appendChild(o);
   }
@@ -2684,10 +2686,23 @@ function qcOpen(){
   document.getElementById('qcOverlay').style.display='flex';
 }
 function qcClose(){ const o=document.getElementById('qcOverlay'); if(o) o.style.display='none'; }
+function qcNotInterested(){
+  const why=prompt('They passed at $'+qc2Total()+' — why? (optional, helps the office)','');
+  if(why===null) return;
+  const st=_fmStops()[_fmViewIdx]; const bk=st&&st.bk;
+  const note='🚫 Quoted $'+qc2Total()+' — not interested'+(why.trim()?(': '+why.trim()):'')+' — '+(adminName||'crew');
+  if(bk&&bk._rowIndex>0){
+    _fmEnqueue({ kind:'note', idemKey:'ni:'+_stopKey(bk)+':'+Date.now(), method:'GET', params:{ action:'set_employee_note', rowIndex:bk._rowIndex, email:bk.email||'', serviceDate:dateOf(bk), note:(String(bk.employeeNotes||'').trim()?bk.employeeNotes+' | ':'')+note, adminToken } });
+    bk.employeeNotes=(String(bk.employeeNotes||'').trim()?bk.employeeNotes+' | ':'')+note;
+    _fmFlushQueue();
+  }
+  qcClose(); qc2Reset(); showToast('Logged — on to the next one 💪');
+}
 function qcBookNow(){
   var first=qc2Total(), spot=qc2Spot();
   var summary=qc2Summary();
-  qcClose(); ncOpen();
+  try{ ncOpen(); }catch(e){ console.warn('ncOpen failed',e); showToast('⚠ Could not open the booking form — tell the office'); return; }
+  qcClose();
   try{
     var p=document.getElementById('nc-price'); if(p) p.value=first;
     var bd=document.getElementById('nc-bed'); if(bd) bd.value=1+(_qc2.rooms.bed||0);
@@ -2697,6 +2712,12 @@ function qcBookNow(){
     if(n&&!n.value) n.value=summary+((_qc2.firstOnly&&qc2DeepRooms()>0)?(' | First visit deep $'+first+'. Following: $'+spot):'');
   }catch(e){}
   showToast('📋 Estimate carried over — finish booking them');
+}
+/* ⏰ preferred time — picked at booking, tagged into notes ('⏰ Prefers: …') so it
+   shows on the route list, the job screen, HQ job cards and dispatch tooltips */
+function _fmPrefOf(bk){
+  const m=String((bk&&bk.notes)||'').match(/⏰\s*Prefers:\s*([^|·]+)/i);
+  return m?m[1].trim():'';
 }
 function qcSet(k,v){ _qc[k]=v; qcRender(); }
 function qcSvc(v){ _qc.service=v; qcRender(); }
@@ -2753,7 +2774,24 @@ function qcRender(){
     +'<div style="margin-top:14px;padding:12px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;">'
       +'<div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">🧾 What they\'re paying for</div>'
       +qc2Lines().map(function(l){ return '<div style="display:flex;justify-content:space-between;font-size:13px;line-height:1.9;"><span>'+esc(l.desc)+'</span><b>$'+l.price+'</b></div>'; }).join('')
-    +'</div>';
+    +'</div>'
+    +(function(){
+      // 💬 the close, written for non-salesmen — read it word for word
+      const dr=qc2DeepRooms(), first=qc2Total(), spot=qc2Spot();
+      const nice=[]; QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) nice.push(a.label.toLowerCase()); });
+      let pitch;
+      if(_qc2.firstOnly&&dr>0){
+        pitch='“So here\'s what I\'d do — first visit we deep clean everything'+(nice.length?(', including the '+nice.join(' and ')):'')+' and get the whole place reset for $'+first+'. After that it\'s just $'+spot+' a visit to keep it looking exactly like this. Want me to get started today?”';
+      } else if(dr>0){
+        pitch='“For $'+first+' a visit we keep every room deep-cleaned'+(nice.length?(' plus the '+nice.join(' and ')):'')+' — you never think about it again. Want me to get started today?”';
+      } else {
+        pitch='“So that\'s $'+first+' a visit — whole place kept clean'+(nice.length?(', plus the '+nice.join(' and ')):'')+', same person every time. Want me to get started today?”';
+      }
+      return '<div style="margin-top:10px;padding:12px 14px;background:#fdf4ff;border:1.5px solid #e9d5ff;border-radius:14px;">'
+        +'<div style="font-size:11px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">💬 Say this — word for word</div>'
+        +'<div style="font-size:14px;line-height:1.6;font-weight:600;color:#3b0764;">'+pitch+'</div>'
+        +'<div style="font-size:11.5px;color:#7c3aed;margin-top:6px;">…then stop talking. Let them answer.</div></div>';
+    })();
   const tot=document.getElementById('qcTotal');
   const sn=document.getElementById('qcSvcName'); const cp=document.getElementById('qcCompare');
   if(_qc2.firstOnly&&qc2DeepRooms()>0){
@@ -2798,6 +2836,7 @@ function ncOpen(){
       +'<div style="'+lab+'">Street address *</div><input id="nc-addr" style="'+inp+'" placeholder="123 Oak St, Inverness">'
       +'<div style="'+lab+'">Zip</div><input id="nc-zip" inputmode="numeric" maxlength="5" style="'+inp+'" placeholder="34450">'
       +'<div style="'+lab+'">Plan *</div><select id="nc-freq" style="'+inp+'">'+NC_FREQS.map(function(f){return '<option>'+f+'</option>';}).join('')+'</select>'
+      +'<div style="'+lab+'">⏰ Preferred time</div><select id="nc-pref" style="'+inp+'"><option value="">No preference</option><option>Mornings (8–11)</option><option>Midday (11–2)</option><option>Afternoons (2–5)</option><option>Exact time — put it in notes</option></select>'
       +'<div style="'+lab+'">Type of clean *</div><select id="nc-service" style="'+inp+'"><option>Standard Clean</option><option>Better — Detail Clean</option><option>Deep Clean</option><option>Move In/Out Clean</option></select>'
       +'<div style="display:flex;gap:8px;"><div style="flex:1;"><div style="'+lab+'">Beds</div><input id="nc-bed" type="number" inputmode="numeric" min="0" max="10" value="2" style="'+inp+'"></div><div style="flex:1;"><div style="'+lab+'">Baths</div><input id="nc-bath" type="number" inputmode="numeric" min="0" max="10" value="1" style="'+inp+'"></div><div style="flex:1;"><div style="'+lab+'">Extra rms</div><input id="nc-extra" type="number" inputmode="numeric" min="0" max="10" value="0" style="'+inp+'"></div></div>'
       +'<div style="'+lab+'">Home size</div><select id="nc-sqft" style="'+inp+'"><option>Under 1,000 sq ft</option><option selected>1,000–2,000 sq ft</option><option>2,000–3,000 sq ft</option><option>3,000+ sq ft</option></select>'
@@ -2818,6 +2857,7 @@ function ncSubmit(){
   const v=function(id){ return String((document.getElementById(id)||{}).value||'').trim(); };
   const name=v('nc-name'), phone=v('nc-phone'), email=v('nc-email').toLowerCase(), addr=v('nc-addr'), zip=v('nc-zip'), freq=v('nc-freq'), price=v('nc-price'), date=v('nc-date'), pay=v('nc-pay'), notes=v('nc-notes');
   const svc=v('nc-service')||'Standard Clean', hbed=v('nc-bed')||'0', hbath=v('nc-bath')||'0', hextra=parseInt(v('nc-extra')||'0')||0, hsqft=v('nc-sqft')||'';
+  const _pref=v('nc-pref'); if(_pref){ const _ne=document.getElementById('nc-notes'); if(_ne) _ne.value='⏰ Prefers: '+_pref+(String(_ne.value||'').trim()?' | '+_ne.value:''); }
   const homeSummary=svc+' \u00b7 '+hbed+'bd/'+hbath+'ba'+(hextra?(' \u00b7 +'+hextra+' room'+(hextra>1?'s':'')):'')+(hsqft?(' \u00b7 '+hsqft):'');
   if(!name){ showToast('Name is required'); return; }
   if(!addr){ showToast('Address is required'); return; }
