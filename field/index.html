@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.31 */
+/* APP_VER:2026-07-08.32 */
 (function(){
-  var V='2026-07-08.31'; window.__APP_VER=V;
+  var V='2026-07-08.32'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -129,6 +129,10 @@
   .fm-jobnav button{ background:rgba(255,255,255,.12); color:#e0f2fe; border:none; border-radius:10px; padding:8px 14px; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; }
   .fm-jobnav button:disabled{ opacity:.3; }
   #fmCompleteSheet,#fmSkipSheet{ display:none; position:fixed; inset:0; z-index:3100; background:rgba(0,0,0,.55); align-items:flex-end; justify-content:center; }
+  /* finish-job is a full PAGE — the popup style clipped the top on long jobs */
+  #fmCompleteSheet{ background:#eef4f8; align-items:stretch; }
+  #fmCompleteSheet .fm-sheet{ height:100dvh; max-height:100dvh; border-radius:0; box-shadow:none; padding-top:max(18px, env(safe-area-inset-top)); }
+  .fm-block{ border:1.5px solid #e2e9f0; box-shadow:0 1px 4px rgba(14,32,46,.05); background:#fff; }
   .fm-sheet{ background:#fff; color:#12293e; border-radius:24px 24px 0 0; width:100%; max-width:520px; padding:24px 20px max(28px,env(safe-area-inset-bottom)); box-shadow:0 -10px 50px rgba(0,0,0,.3); max-height:92vh; overflow-y:auto; }
   .fm-sheet-title{ font-size:22px; font-weight:800; margin-bottom:2px; }
   .fm-sheet-sub{ color:#64748b; font-size:14px; margin-bottom:18px; }
@@ -344,11 +348,11 @@
       <div class="fm-block-label"><span>Notes</span><span style="color:#94a3b8;">optional</span></div>
       <div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">🗒 This visit only — one-time note to the office</div>
       <textarea class="fm-textarea" id="fmcOwnerNote" placeholder="Just about today (e.g. 'ran 20 min late, extra dusty')…"></textarea>
-      <div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 5px;">📌 Customer note — sticks on their profile until changed</div>
+      <div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 5px;" id="fmcCustNoteLbl">📌 Customer note — sticks on their profile until changed</div>
       <textarea class="fm-textarea" id="fmcCustNote" placeholder="Gate code, pets, where the key is…"></textarea>
     </div>
     <div class="fm-block">
-      <div class="fm-block-label"><span id="fmcCheckTitle">Before you leave</span><span id="fmcCheckState" class="req">required</span></div>
+      <div class="fm-block-label"><span id="fmcCheckTitle">Before you leave</span><span style="display:flex;align-items:center;gap:8px;"><button onclick="fmcCheckAll()" style="background:#eff8ff;border:1.5px solid #bae6fd;color:#0369a1;border-radius:9px;padding:4px 11px;font-family:inherit;font-weight:800;font-size:12px;cursor:pointer;">✓ Check all</button><span id="fmcCheckState" class="req">required</span></span></div>
       <div class="fm-checklist" id="fmcChecklist"></div>
     </div>
     <div class="fm-err" id="fmcErr"></div>
@@ -2135,6 +2139,11 @@ function fmOpenComplete(){
     const cust0=em0?(allCustomers||[]).find(c=>String(c.Email||'').toLowerCase().trim()===em0):null;
     _fmcCustNote0=(cust0&&String(cust0.Notes||'').trim())||'';
     cn.value=_fmcCustNote0;
+    // Crews can READ the sticky profile note but not rewrite it — only the
+    // one-time note to the office is theirs. Owners/managers still edit.
+    const _lbl=document.getElementById('fmcCustNoteLbl');
+    if(!_fmIsBoss()){ cn.disabled=true; cn.style.background='#f1f5f9'; cn.style.color='#475569'; if(_lbl) _lbl.textContent='📌 Customer note (view only — put changes in the note to the office above)'; }
+    else { cn.disabled=false; cn.style.background=''; cn.style.color=''; if(_lbl) _lbl.textContent='📌 Customer note — sticks on their profile until changed'; }
     cn.disabled=!em0;
     cn.placeholder=em0?'Gate code, pets, where the key is…':'(needs a customer email on file)';
   })();
@@ -2215,6 +2224,7 @@ function _fmcRenderEndChk(){
   const ct=document.getElementById('fmcCheckTitle'); if(ct){ var _b=_fmcStop&&_fmcStop.bk; ct.textContent='Before you leave'+(_b?(' · '+String(QC_TIER_LABEL[_fmVisitTier(_b)]||'Standard Clean').replace(/^[^—]*— /,'')):''); }
   _fmcUpdateSubmit();
 }
+function fmcCheckAll(){ Object.keys(_fmcEndChk).forEach(function(l){ _fmcEndChk[l]=true; }); _fmcRenderCheck(); _fmcRefreshSubmit(); }
 function fmToggleEndChk(label){ _fmcEndChk[label]=!_fmcEndChk[label]; if(label==='Collected cash') _fmcCash=_fmcEndChk[label], _fmcRenderPay(); _fmcRenderEndChk(); }
 function _fmcEndChkDone(){ return Object.keys(_fmcEndChk).every(l=>_fmcEndChk[l]); }
 function _fmcCanFinish(){ return _fmcPayResolved()&&_fmcEndChkDone(); }
