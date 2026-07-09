@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.46 */
+/* APP_VER:2026-07-08.47 */
 (function(){
-  var V='2026-07-08.46'; window.__APP_VER=V;
+  var V='2026-07-08.47'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2777,20 +2777,22 @@ function qcRender(){
       +qc2Lines().map(function(l){ return '<div style="display:flex;justify-content:space-between;font-size:13px;line-height:1.9;"><span>'+esc(l.desc)+'</span><b>$'+l.price+'</b></div>'; }).join('')
     +'</div>'
     +(function(){
-      // 💬 the close, written for non-salesmen — read it word for word
+      // the close — short lines she reads off, top to bottom
       const dr=qc2DeepRooms(), first=qc2Total(), spot=qc2Spot();
+      const rooms=[]; if((_qc2.rooms.bed||0)>0) rooms.push(_qc2.rooms.bed+' bedroom'+(_qc2.rooms.bed>1?'s':'')); if((_qc2.rooms.bath||0)>0) rooms.push(_qc2.rooms.bath+' bath'+(_qc2.rooms.bath>1?'s':'')); if((_qc2.rooms.living||0)>0) rooms.push(_qc2.rooms.living+' extra room'+(_qc2.rooms.living>1?'s':''));
       const nice=[]; QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) nice.push(a.label.toLowerCase()); });
-      let pitch;
-      if(_qc2.firstOnly&&dr>0){
-        pitch='“So here\'s what I\'d do — first visit we deep clean everything'+(nice.length?(', including the '+nice.join(' and ')):'')+' and get the whole place reset for $'+first+'. After that it\'s just $'+spot+' a visit to keep it looking exactly like this. Want me to get started today?”';
-      } else if(dr>0){
-        pitch='“For $'+first+' a visit we keep every room deep-cleaned'+(nice.length?(' plus the '+nice.join(' and ')):'')+' — you never think about it again. Want me to get started today?”';
-      } else {
-        pitch='“So that\'s $'+first+' a visit — whole place kept clean'+(nice.length?(', plus the '+nice.join(' and ')):'')+', same person every time. Want me to get started today?”';
-      }
+      const pts=[];
+      pts.push('Whole place covered — kitchen, living room'+(rooms.length?(', '+rooms.join(', ')):''));
+      if(_qc2.deepAll) pts.push('Every room deep cleaned'+(_qc2.firstOnly?' on the first visit — full reset':' every visit'));
+      else if(dr>0) pts.push(dr+' room'+(dr>1?'s':'')+' deep cleaned'+(_qc2.firstOnly?' first visit':''));
+      if(nice.length) pts.push('Plus '+nice.join(', '));
+      pts.push('Same cleaner every time');
+      if(_qc2.firstOnly&&dr>0) pts.push('$'+first+' today · $'+spot+' a visit after that');
+      else pts.push('$'+first+' a visit');
       return '<div style="margin-top:10px;padding:12px 14px;background:#fdf4ff;border:1.5px solid #e9d5ff;border-radius:14px;">'
-        +'<div style="font-size:11px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;">Suggested close — read it as written</div>'
-        +'<div style="font-size:14px;line-height:1.6;font-weight:600;color:#3b0764;">'+pitch+'</div>'
+        +'<div style="font-size:11px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">The close — read down the list</div>'
+        +pts.map(function(p){ return '<div style="display:flex;gap:8px;font-size:13.5px;line-height:1.8;font-weight:600;color:#3b0764;"><span style="color:#a855f7;">›</span><span>'+esc(p)+'</span></div>'; }).join('')
+        +'<div style="margin-top:7px;padding-top:7px;border-top:1px dashed #e9d5ff;font-size:14px;font-weight:800;color:#6d28d9;">“Want me to get started today?”</div>'
         +'</div>';
     })();
   const tot=document.getElementById('qcTotal');
