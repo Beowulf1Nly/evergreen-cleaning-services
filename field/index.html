@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.65 */
+/* APP_VER:2026-07-08.66 */
 (function(){
-  var V='2026-07-08.65'; window.__APP_VER=V;
+  var V='2026-07-08.66'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2863,12 +2863,12 @@ function qcDeepInfoOpen(){
     +'<div style="font-size:12.5px;line-height:1.5;color:#475569;"><b style="color:#334155;">Standard:</b> '+std+'</div>'
     +'<div style="font-size:12.5px;line-height:1.5;color:#475569;"><b style="color:#0369a1;">Deep adds:</b> '+deep+'</div></div>'; };
   ov.innerHTML='<div style="background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:82vh;overflow-y:auto;padding:18px 16px 28px;" onclick="event.stopPropagation()">'
-    +'<div style="font-size:17px;font-weight:900;margin-bottom:6px;">\U0001f9fc Standard vs. Deep clean</div>'
+    +'<div style="font-size:17px;font-weight:900;margin-bottom:6px;">🧼 Standard vs. Deep clean</div>'
     +'<div style="font-size:13px;color:#475569;line-height:1.55;margin-bottom:12px;"><b>Standard</b> is the upkeep clean \u2014 surfaces, floors, the things you touch every week. <b>Deep</b> gets a room back under control \u2014 the buildup, grease and scale an upkeep clean doesn\u2019t touch.</div>'
-    +row('\U0001f373','Kitchen','counters, sink, stovetop, floors','backsplash & hood degreased, cabinet fronts, appliance exteriors, floors by hand',qc2DeepUnitFor('kit'))
-    +row('\U0001f6bf','Bathroom','toilet, shower, sink, mirror','soap scum & hard-water scale removed, grout lines, behind the toilet, vents',qc2DeepUnitFor('bath'))
-    +row('\U0001f6cb','Living room','dust, vacuum, surfaces','blinds, under the cushions, furniture moved & cleaned behind, vents',qc2DeepUnitFor('liv'))
-    +row('\U0001f6cf','Bedroom / extra room','dust, vacuum, surfaces','blinds, under the bed, doors & switch plates, every surface top to bottom',qc2DeepUnitFor('bed'))
+    +row('🍳','Kitchen','counters, sink, stovetop, floors','backsplash & hood degreased, cabinet fronts, appliance exteriors, floors by hand',qc2DeepUnitFor('kit'))
+    +row('🚿','Bathroom','toilet, shower, sink, mirror','soap scum & hard-water scale removed, grout lines, behind the toilet, vents',qc2DeepUnitFor('bath'))
+    +row('🛋','Living room','dust, vacuum, surfaces','blinds, under the cushions, furniture moved & cleaned behind, vents',qc2DeepUnitFor('liv'))
+    +row('🛏','Bedroom / extra room','dust, vacuum, surfaces','blinds, under the bed, doors & switch plates, every surface top to bottom',qc2DeepUnitFor('bed'))
     +'<div style="background:#fffbeb;border:1.5px solid #fde047;border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.55;color:#713f12;font-weight:600;">Most homes: <b>deep clean the first visit</b> to reset the house, then standard visits keep it that way \u2014 so the regular price stays low.</div>'
     +'<button onclick="document.getElementById(\'qcDeepInfoOv\').remove()" style="width:100%;margin-top:12px;padding:14px;border-radius:13px;border:none;background:#0f172a;color:#fff;font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;">Got it</button></div>';
 }
