@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.99 */
+/* APP_VER:2026-07-08.100 */
 (function(){
-  var V='2026-07-08.99'; window.__APP_VER=V;
+  var V='2026-07-08.100'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -3164,7 +3164,20 @@ function _qc2Prefill(bk){
     } else _qc2.customs.push({name:sv.name,price:+sv.price||10});
   });
 }
-function fmEditPlan(){ const bk=window._fmCurBk; if(!bk) return; qcOpenForEdit(bk); }
+async function fmEditPlan(){
+  const bk=window._fmCurBk; if(!bk) return;
+  // just-booked customers aren't in the local list yet — pull fresh so the
+  // calculator opens with THEIR plan instead of blank defaults
+  if(!(customerServicesFor(bk.email,bk.name)||[]).length){
+    showToast('\u23f3 Loading their saved plan\u2026');
+    try{
+      const d=await fetch(SCRIPT_URL+'?action=customers_list&'+authParam()).then(function(r){ return r.json(); });
+      if(d&&d.success&&Array.isArray(d.customers)&&d.customers.length){ allCustomers=d.customers; try{ localStorage.setItem('evg_field_customers',JSON.stringify(allCustomers)); }catch(e){} }
+    }catch(e){}
+  }
+  if(!/(\d+)\s*bd\s*\//i.test(String(bk.notes||''))&&bk._localTemp){ showToast('\u26a0 This booking is still syncing \u2014 give it a minute and try again',5000); }
+  qcOpenForEdit(bk);
+}
 function qcOpenForEdit(bk){ _qc2Prefill(bk); qcOpen(); _qcEditBk=bk; _syncEditFooter(); showToast('\u270f\ufe0f Editing '+(bk.name||'their')+' plan \u2014 change anything, then Save'); }
 function _syncEditFooter(){
   try{
