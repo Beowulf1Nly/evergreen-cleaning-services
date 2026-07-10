@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.100 */
+/* APP_VER:2026-07-08.101 */
 (function(){
-  var V='2026-07-08.100'; window.__APP_VER=V;
+  var V='2026-07-08.101'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -3620,6 +3620,11 @@ function ncSubmit(){
   if(!confirm('Add '+name+'?\n'+freq+(price?(' · $'+price):'')+' · first visit '+date+'\n'+addr)) return;
   _fmEnqueue({ kind:'newcust', idemKey:'nc:'+_uuid(), method:'GET', params:{ action:'manual_schedule', name:name, email:email, phone:phone, address:addr, zip:zip, frequency:freq, service:svc, price:price, serviceDate:date, notes:homeSummary+(notes?(' — '+notes):'')+' — Added on route by '+(adminName||'crew'), payMethod:pay||'card', services:(window._ncServices||''), crew:(String(adminCrews||'').toUpperCase().split(/[^A-Z0-9]+/)[0]||''), adminToken:adminToken } });
   window._ncServices='';
+  // chaser: current backend ignores manual_schedule's crew param — set_crew re-finds
+  // the fresh row by email+date and stamps the booking employee's crew
+  (function(){ const _cw=String(adminCrews||'').toUpperCase().split(/[^A-Z0-9]+/)[0]||''; if(!_cw||!email) return;
+    _fmEnqueue({ kind:'setcrew', idemKey:'sc:'+email+'|'+date, method:'GET', params:{ action:'set_crew', rowIndex:2, email:email, serviceDate:date, crew:_cw, adminToken } });
+  })();
   if(!isQuote&&parseFloat(price)>0){
     // crew sourced AND closed this one on the spot → 80% of the first job
     const _ncNames=[adminName||'Crew'].concat((_helpers||[]).map(function(h){ return (typeof h==='string')?h:((h&&h.name)||''); })).filter(Boolean);
