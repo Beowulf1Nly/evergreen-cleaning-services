@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.72 */
+/* APP_VER:2026-07-08.73 */
 (function(){
-  var V='2026-07-08.72'; window.__APP_VER=V;
+  var V='2026-07-08.73'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2719,6 +2719,8 @@ function qc2DeepAmt(){
   return t;
 }
 function qc2Total(){ return qc2Spot()+qc2DeepAmt(); }
+function qc2CoreAmt(){ let t=CLEAN_MIN_JOB; QC2_ROOMS.forEach(function(r){ t+=qc2Charged(r.id)*qc2RoomUnit(r.id); }); return Math.round(t); }
+function qc2AddonsAmt(){ let t=0; QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) t+=qc2AddonPrice(a.id); }); return Math.round(t); }
 function qc2Bump(id,d){ _qc2.rooms[id]=Math.max(0,(_qc2.rooms[id]||0)+d); _qc2.deep[id]=Math.min(_qc2.deep[id]||0,_qc2.rooms[id]); qcRender(); }
 function qc2DeepBump(id,d){ _qc2.deep[id]=Math.max(0,Math.min((_qc2.rooms[id]||0)+(id==='baseRooms'?0:0),(_qc2.deep[id]||0)+d)); if(_qc2.deep[id]>(_qc2.rooms[id]||0)) _qc2.deep[id]=_qc2.rooms[id]||0; qcRender(); }
 function qc2Tgl(id){
@@ -3011,6 +3013,15 @@ function qcRender(){
     +'<div style="margin-top:14px;padding:12px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;">'
       +'<div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Estimate breakdown</div>'
       +qc2Lines().map(function(l){ return '<div style="display:flex;justify-content:space-between;font-size:13px;line-height:1.9;"><span>'+esc(l.desc)+'</span><b>$'+l.price+'</b></div>'; }).join('')
+      +(function(){
+        const core=qc2CoreAmt(), ad=qc2AddonsAmt(), dp=qc2DeepAmt();
+        const r=function(lab,v,c2){ return '<div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:800;line-height:1.9;color:'+(c2||'#334155')+';"><span>'+lab+'</span><span>$'+v+'</span></div>'; };
+        return '<div style="border-top:1.5px solid #e2e8f0;margin-top:8px;padding-top:8px;">'
+          +r('\U0001f9f9 Standard clean',core)
+          +(ad>0?r('\u2795 Add-ons (as needed)',ad,'#0369a1'):'')
+          +(dp>0?r('\U0001f9fc Deep clean upcharge',dp,'#7c3aed'):'')
+          +'<div style="display:flex;justify-content:space-between;font-size:14.5px;font-weight:900;margin-top:4px;padding-top:6px;border-top:1.5px solid #e2e8f0;"><span>Total</span><span>$'+qc2Total()+'</span></div></div>';
+      })()
       +(function(){ const m=Math.round(qc2Total()/CLEAN_MIN_RATE*60/5)*5; const h=Math.floor(m/60), mm=m%60;
         return '<div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px dashed #cbd5e1;"><span>\u23f1 Est. total time on site</span><b>~'+(h?h+'h ':'')+(mm?mm+'m':(h?'':'0m'))+'</b></div>'; })()
     +'</div>'
@@ -3031,6 +3042,11 @@ function qcRender(){
         +'<div style="font-size:11px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">Everything they get</div>'
         +inc.map(function(p){ return '<div style="display:flex;gap:8px;font-size:13.5px;line-height:1.75;font-weight:600;color:#3b0764;"><span style="color:#16a34a;font-weight:800;">✓</span><span>'+esc(p)+'</span></div>'; }).join('')
         +'<div style="margin-top:9px;padding-top:9px;border-top:1px dashed #e9d5ff;display:flex;justify-content:space-between;align-items:baseline;">'
+          +(function(){
+            const core=qc2CoreAmt(), ad=qc2AddonsAmt(), dp=qc2DeepAmt();
+            const r=function(lab,v){ return '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:#6d28d9;line-height:1.8;"><span>'+lab+'</span><span>$'+v+'</span></div>'; };
+            return '<div style="margin-bottom:6px;">'+r('Standard clean',core)+(ad>0?r('Add-ons (as needed)',ad):'')+(dp>0?r('Deep clean upcharge',dp):'')+'</div>';
+          })()
           +'<span style="font-size:13px;font-weight:800;color:#6d28d9;">All of it:</span>'
           +'<span style="font-size:17px;font-weight:800;color:#3b0764;">'+((_qc2.firstOnly&&dr>0)?('$'+first+' today · $'+spot+'/visit after'):('$'+first+(qc2RoomCount()||dr||1?'':'')+' a visit'))+'</span></div>'
         +'</div>';
