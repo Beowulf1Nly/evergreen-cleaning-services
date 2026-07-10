@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.68 */
+/* APP_VER:2026-07-08.69 */
 (function(){
-  var V='2026-07-08.68'; window.__APP_VER=V;
+  var V='2026-07-08.69'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2734,10 +2734,9 @@ function qc2CfgOpen(id){
   ov.innerHTML='<div style="background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:18px 16px 28px;box-shadow:0 -8px 30px rgba(0,0,0,.25);" onclick="event.stopPropagation()">'
     +'<div style="font-size:17px;font-weight:900;margin-bottom:14px;">'+a.icon+' '+a.label+'</div>'
     +(a.rooms?(sec(a.q||'How much of the house?')
-      +'<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;-webkit-overflow-scrolling:touch;">'
-      +schip(!(c.scope>0),'Whole<br>house',"qc2CfgScope('"+id+"',0)",!(c.scope>0)?'qc2ScSel':'')
-      +(function(){ const out=[]; for(let n=1;n<=(a.maxN||8);n++) out.push(schip(c.scope===n,n+'<br><span style=\"font-size:10px;font-weight:700;\">'+(a.unit||'room')+(n>1?'s':'')+'</span>',"qc2CfgScope('"+id+"',"+n+")",c.scope===n?'qc2ScSel':'')); return out.join(''); })()
-      +'</div>'):'')
+      +'<button onclick="qc2CfgScopeWheel(\''+id+'\')" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:14px;border-radius:13px;border:2px solid #7dd3fc;background:#f0f9ff;font-family:inherit;cursor:pointer;margin-bottom:12px;">'
+      +'<span style="font-size:16px;font-weight:800;color:#0f172a;">'+((c.scope>0)?(c.scope+' '+(a.unit||'room')+(c.scope>1?'s':'')):'Whole house')+'</span>'
+      +'<span style="font-size:13px;font-weight:800;color:#0369a1;">scroll to change \u25be</span></button>'):'')
     +(a.depth?(sec(a.dq||'How deep?')
     +'<div style="display:flex;gap:8px;margin-bottom:14px;">'
       +chip(!c.deep,a.d1||'Wipe down',"qc2CfgDeep('"+id+"',0)")
@@ -2748,18 +2747,61 @@ function qc2CfgOpen(id){
       +'<span style="display:flex;align-items:center;gap:8px;"><b style="font-size:20px;">$'+qc2AddonPrice(id)+'</b>'
       +'<button onclick="qc2CfgPrice(\''+id+'\')" style="background:#f1f5f9;border:none;border-radius:9px;padding:6px 12px;font-size:14px;font-weight:800;color:#475569;font-family:inherit;cursor:pointer;">\u270e $</button></span></div>'
       +'<div style="margin-top:10px;padding-top:8px;border-top:1px dashed #cbd5e1;">'
-      +'<div style="font-size:13px;font-weight:800;color:#475569;margin-bottom:6px;">\u23f1 Est. time \u2014 scroll & tap (price follows at $'+CLEAN_MIN_RATE+'/hr)</div>'
-      +'<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;">'
-      +(function(){ const cur=qc2AddonMins(id), out=[], MINS=[5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,105,120,150,180,240];
-          MINS.forEach(function(m){ const on=(m===cur); out.push(schip(on,(m<60?m+'m':(Math.floor(m/60)+'h'+(m%60?(' '+m%60+'m'):''))),"qc2CfgMins('"+id+"',"+m+")",on?'qc2TmSel':'')); });
-          return out.join(''); })()
-      +'</div></div></div>'
+      +'<button onclick="qc2CfgTimeWheel(\''+id+'\')" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:14px;border-radius:13px;border:2px solid #e2e8f0;background:#fff;font-family:inherit;cursor:pointer;">'
+      +'<span style="font-size:13px;font-weight:800;color:#475569;">\u23f1 Est. time</span>'
+      +'<span style="font-size:16px;font-weight:800;color:#0f172a;">~'+qc2AddonMins(id)+' min <span style="font-size:13px;color:#0369a1;">scroll \u25be</span></span></button>'
+      +'<div style="font-size:11px;color:#94a3b8;font-weight:600;margin-top:6px;">Pick the time \u2014 the price follows at $'+CLEAN_MIN_RATE+'/hr</div></div></div>'
     +'<div style="display:flex;gap:8px;">'
       +'<button onclick="qc2CfgRemove(\''+id+'\')" style="flex:1;padding:14px 6px;border-radius:13px;border:2px solid #fecaca;background:#fef2f2;color:#b91c1c;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;">Remove</button>'
       +'<button onclick="qc2CfgClose()" style="flex:2;padding:14px 6px;border-radius:13px;border:none;background:#16a34a;color:#fff;font-weight:900;font-size:15px;font-family:inherit;cursor:pointer;">\u2713 Done \u2014 $'+qc2AddonPrice(id)+'</button></div></div>';
-  setTimeout(function(){ ['qc2ScSel','qc2TmSel'].forEach(function(i){ try{ const el=document.getElementById(i); if(el) el.scrollIntoView({inline:'center',block:'nearest'}); }catch(e){} }); },30);
 }
 function qc2CfgMins(id,m){ _qc2.addonP[id]=Math.max(5,Math.round(m/60*CLEAN_MIN_RATE/5)*5); qc2CfgOpen(id); }
+function qcWheelOpen(title,values,selIdx,cb){
+  window._qcWheelVals=values; window._qcWheelCb=cb;
+  let ov=document.getElementById('qcWheelOv');
+  if(!ov){ ov=document.createElement('div'); ov.id='qcWheelOv';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:3700;display:flex;align-items:flex-end;justify-content:center;';
+    ov.onclick=function(ev){ if(ev.target===ov) ov.remove(); };
+    document.body.appendChild(ov); }
+  const IH=44,H=220,PAD=(H-IH)/2;
+  ov.innerHTML='<div style="background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:16px 16px 24px;" onclick="event.stopPropagation()">'
+    +'<div style="font-size:15px;font-weight:900;margin-bottom:8px;text-align:center;">'+title+'</div>'
+    +'<div style="position:relative;">'
+    +'<div style="position:absolute;left:8%;right:8%;top:'+PAD+'px;height:'+IH+'px;border:2px solid #16a34a;background:rgba(22,163,74,.07);border-radius:12px;pointer-events:none;"></div>'
+    +'<div style="position:absolute;left:0;right:0;top:0;height:'+PAD+'px;background:linear-gradient(#fff,rgba(255,255,255,0));pointer-events:none;z-index:2;"></div>'
+    +'<div style="position:absolute;left:0;right:0;bottom:0;height:'+PAD+'px;background:linear-gradient(rgba(255,255,255,0),#fff);pointer-events:none;z-index:2;"></div>'
+    +'<div id="qcWheel" style="height:'+H+'px;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;">'
+    +'<div style="height:'+PAD+'px;"></div>'
+    +values.map(function(v,i){ return '<div onclick="qcWheelTo('+i+')" style="height:'+IH+'px;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:800;color:#0f172a;scroll-snap-align:center;cursor:pointer;">'+v.label+'</div>'; }).join('')
+    +'<div style="height:'+PAD+'px;"></div>'
+    +'</div></div>'
+    +'<button onclick="qcWheelDone()" style="width:100%;margin-top:12px;padding:15px;border-radius:13px;border:none;background:#16a34a;color:#fff;font-weight:900;font-size:16px;font-family:inherit;cursor:pointer;">\u2713 Done</button></div>';
+  const w=document.getElementById('qcWheel');
+  w.scrollTop=Math.max(0,selIdx)*IH;
+}
+function qcWheelTo(i){ const w=document.getElementById('qcWheel'); if(w) w.scrollTo({top:i*44,behavior:'smooth'}); }
+function qcWheelDone(){
+  const w=document.getElementById('qcWheel'); if(!w) return;
+  const i=Math.max(0,Math.min((window._qcWheelVals||[]).length-1,Math.round(w.scrollTop/44)));
+  const v=window._qcWheelVals[i];
+  const ov=document.getElementById('qcWheelOv'); if(ov) ov.remove();
+  if(window._qcWheelCb&&v) window._qcWheelCb(v.v);
+}
+function qc2CfgScopeWheel(id){
+  const a=QC2_ADDONS.find(function(x){return x.id===id;}); if(!a) return;
+  const c=_qc2.addonCfg[id]||{};
+  const vals=[{v:0,label:'Whole house'}];
+  for(let n=1;n<=(a.maxN||8);n++) vals.push({v:n,label:n+' '+(a.unit||'room')+(n>1?'s':'')});
+  const sel=(c.scope>0)?c.scope:0;
+  qcWheelOpen(a.q||'How much of the house?',vals,vals.findIndex(function(x){return x.v===sel;}),function(v){ qc2CfgScope(id,v); });
+}
+function qc2CfgTimeWheel(id){
+  const MINS=[5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,105,120,150,180,240];
+  const cur=qc2AddonMins(id);
+  const vals=MINS.map(function(m){ return {v:m,label:(m<60?(m+' min'):(Math.floor(m/60)+'h'+(m%60?(' '+m%60+'m'):'')))}; });
+  let si=0,bd=1e9; MINS.forEach(function(m,i){ const d=Math.abs(m-cur); if(d<bd){bd=d;si=i;} });
+  qcWheelOpen('\u23f1 How long will it take?',vals,si,function(v){ qc2CfgMins(id,v); });
+}
 function qc2AddonMins(id){ return Math.max(5,Math.round(qc2AddonPrice(id)/CLEAN_MIN_RATE*60/5)*5); }
 function qc2CfgTime(id){
   const a=QC2_ADDONS.find(function(x){return x.id===id;});
