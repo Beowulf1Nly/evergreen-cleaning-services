@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.67 */
+/* APP_VER:2026-07-08.68 */
 (function(){
-  var V='2026-07-08.67'; window.__APP_VER=V;
+  var V='2026-07-08.68'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2728,14 +2728,15 @@ function qc2CfgOpen(id){
     ov.onclick=function(ev){ if(ev.target===ov) qc2CfgClose(); };
     document.body.appendChild(ov); }
   const chip=function(on,labl,fn){ return '<button onclick="'+fn+'" style="flex:1;min-width:0;padding:12px 4px;border-radius:12px;border:2px solid '+(on?'#16a34a':'#e2e8f0')+';background:'+(on?'#f0fdf4':'#fff')+';color:'+(on?'#15803d':'#334155')+';font-weight:800;font-size:13.5px;font-family:inherit;cursor:pointer;">'+labl+'</button>'; };
+  const schip=function(on,labl,fn,idAttr){ return '<button '+(idAttr?('id="'+idAttr+'" '):'')+'onclick="'+fn+'" style="flex:0 0 auto;min-width:58px;padding:11px 8px;border-radius:12px;border:2px solid '+(on?'#16a34a':'#e2e8f0')+';background:'+(on?'#f0fdf4':'#fff')+';color:'+(on?'#15803d':'#334155')+';font-weight:800;font-size:13.5px;font-family:inherit;cursor:pointer;text-align:center;">'+labl+'</button>'; };
   const sec=function(t){ return '<div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin:0 0 6px;">'+t+'</div>'; };
   const ovr=_qc2.addonP[id]>0;
   ov.innerHTML='<div style="background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:18px 16px 28px;box-shadow:0 -8px 30px rgba(0,0,0,.25);" onclick="event.stopPropagation()">'
     +'<div style="font-size:17px;font-weight:900;margin-bottom:14px;">'+a.icon+' '+a.label+'</div>'
     +(a.rooms?(sec(a.q||'How much of the house?')
-      +'<div style="display:flex;gap:6px;margin-bottom:14px;">'
-      +chip(!(c.scope>0),'Whole<br>house',"qc2CfgScope('"+id+"',0)")
-      +(a.maxN>5?[2,4,6,8,10,12]:[1,2,3,4,5]).map(function(n){ return chip(c.scope===n,n+'<br><span style=\"font-size:10px;font-weight:700;\">'+(a.unit||'room')+(n>1?'s':'')+'</span>',"qc2CfgScope('"+id+"',"+n+")"); }).join('')
+      +'<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;-webkit-overflow-scrolling:touch;">'
+      +schip(!(c.scope>0),'Whole<br>house',"qc2CfgScope('"+id+"',0)",!(c.scope>0)?'qc2ScSel':'')
+      +(function(){ const out=[]; for(let n=1;n<=(a.maxN||8);n++) out.push(schip(c.scope===n,n+'<br><span style=\"font-size:10px;font-weight:700;\">'+(a.unit||'room')+(n>1?'s':'')+'</span>',"qc2CfgScope('"+id+"',"+n+")",c.scope===n?'qc2ScSel':'')); return out.join(''); })()
       +'</div>'):'')
     +(a.depth?(sec(a.dq||'How deep?')
     +'<div style="display:flex;gap:8px;margin-bottom:14px;">'
@@ -2746,15 +2747,19 @@ function qc2CfgOpen(id){
       +'<span style="font-size:13px;font-weight:800;color:#475569;">Price'+(ovr?' \u2014 your price':'')+'</span>'
       +'<span style="display:flex;align-items:center;gap:8px;"><b style="font-size:20px;">$'+qc2AddonPrice(id)+'</b>'
       +'<button onclick="qc2CfgPrice(\''+id+'\')" style="background:#f1f5f9;border:none;border-radius:9px;padding:6px 12px;font-size:14px;font-weight:800;color:#475569;font-family:inherit;cursor:pointer;">\u270e $</button></span></div>'
-      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px dashed #cbd5e1;">'
-      +'<span style="font-size:13px;font-weight:800;color:#475569;">\u23f1 Est. time</span>'
-      +'<span style="display:flex;align-items:center;gap:8px;"><b style="font-size:16px;">~'+qc2AddonMins(id)+' min</b>'
-      +'<button onclick="qc2CfgTime(\''+id+'\')" style="background:#f1f5f9;border:none;border-radius:9px;padding:6px 12px;font-size:14px;font-weight:800;color:#475569;font-family:inherit;cursor:pointer;">\u270e time</button></span></div>'
-      +'<div style="font-size:11px;color:#94a3b8;font-weight:600;margin-top:6px;">Edit either one \u2014 they stay matched at $'+CLEAN_MIN_RATE+'/hr</div></div>'
+      +'<div style="margin-top:10px;padding-top:8px;border-top:1px dashed #cbd5e1;">'
+      +'<div style="font-size:13px;font-weight:800;color:#475569;margin-bottom:6px;">\u23f1 Est. time \u2014 scroll & tap (price follows at $'+CLEAN_MIN_RATE+'/hr)</div>'
+      +'<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;">'
+      +(function(){ const cur=qc2AddonMins(id), out=[], MINS=[5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,105,120,150,180,240];
+          MINS.forEach(function(m){ const on=(m===cur); out.push(schip(on,(m<60?m+'m':(Math.floor(m/60)+'h'+(m%60?(' '+m%60+'m'):''))),"qc2CfgMins('"+id+"',"+m+")",on?'qc2TmSel':'')); });
+          return out.join(''); })()
+      +'</div></div></div>'
     +'<div style="display:flex;gap:8px;">'
       +'<button onclick="qc2CfgRemove(\''+id+'\')" style="flex:1;padding:14px 6px;border-radius:13px;border:2px solid #fecaca;background:#fef2f2;color:#b91c1c;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;">Remove</button>'
       +'<button onclick="qc2CfgClose()" style="flex:2;padding:14px 6px;border-radius:13px;border:none;background:#16a34a;color:#fff;font-weight:900;font-size:15px;font-family:inherit;cursor:pointer;">\u2713 Done \u2014 $'+qc2AddonPrice(id)+'</button></div></div>';
+  setTimeout(function(){ ['qc2ScSel','qc2TmSel'].forEach(function(i){ try{ const el=document.getElementById(i); if(el) el.scrollIntoView({inline:'center',block:'nearest'}); }catch(e){} }); },30);
 }
+function qc2CfgMins(id,m){ _qc2.addonP[id]=Math.max(5,Math.round(m/60*CLEAN_MIN_RATE/5)*5); qc2CfgOpen(id); }
 function qc2AddonMins(id){ return Math.max(5,Math.round(qc2AddonPrice(id)/CLEAN_MIN_RATE*60/5)*5); }
 function qc2CfgTime(id){
   const a=QC2_ADDONS.find(function(x){return x.id===id;});
