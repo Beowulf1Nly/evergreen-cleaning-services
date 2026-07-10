@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.88 */
+/* APP_VER:2026-07-08.89 */
 (function(){
-  var V='2026-07-08.88'; window.__APP_VER=V;
+  var V='2026-07-08.89'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2001,9 +2001,79 @@ function fmBeginRoute(){
 /* ───────── Job card ───────── */
 let _fmAddonSel={}; try{ _fmAddonSel=JSON.parse(localStorage.getItem('evg_fm_addonsel')||'{}'); }catch(e){}
 function _fmAddonSelSave(){ try{ localStorage.setItem('evg_fm_addonsel',JSON.stringify(_fmAddonSel)); }catch(e){} }
+// mid-job extras + per-visit price overrides — she runs the whole visit from the job screen
+let _fmExtraAdd={}; try{ _fmExtraAdd=JSON.parse(localStorage.getItem('evg_fm_extraadd')||'{}'); }catch(e){}
+function _fmExtraSave(){ try{ localStorage.setItem('evg_fm_extraadd',JSON.stringify(_fmExtraAdd)); }catch(e){} }
+let _fmAddonPx={}; try{ _fmAddonPx=JSON.parse(localStorage.getItem('evg_fm_addonpx')||'{}'); }catch(e){}
+function _fmPxSave(){ try{ localStorage.setItem('evg_fm_addonpx',JSON.stringify(_fmAddonPx)); }catch(e){} }
+function _fmJobRerender(){ if(window._fmCurStops!=null&&window._fmCurIdx!=null) _fmRenderJob(window._fmCurStops,window._fmCurIdx); }
+function fmJobAddonPx(i){
+  const bk=window._fmCurBk; if(!bk) return;
+  const list=customerServicesFor(bk.email,bk.name)||[]; const sv=list[i]; if(!sv) return;
+  const k=_stopKey(bk); const cur=((_fmAddonPx[k]||{})[sv.name])||sv.price||20;
+  qcMoneyWheel('\ud83d\udcb2 '+sv.name+' \u2014 today only',5,300,5,cur,function(v){
+    if(v>0){ (_fmAddonPx[k]=_fmAddonPx[k]||{})[sv.name]=v; (_fmAddonSel[k]=_fmAddonSel[k]||{})[sv.name]=true; _fmPxSave(); _fmAddonSelSave(); }
+    _fmJobRerender(); showToast('\u270e '+sv.name+' \u2192 $'+v+' this visit \u2014 saved plan unchanged');
+  });
+}
+function fmJobExtraEdit(i){
+  const bk=window._fmCurBk; if(!bk) return; const k=_stopKey(bk);
+  const arr=_fmExtraAdd[k]||[]; const x=arr[i]; if(!x) return;
+  qcMoneyWheel('\ud83d\udcb2 '+x.name,5,400,5,+x.price||50,function(v){ if(v>0){ x.price=v; _fmExtraSave(); } _fmJobRerender(); });
+}
+function fmJobExtraRm(i){
+  const bk=window._fmCurBk; if(!bk) return; const k=_stopKey(bk);
+  (_fmExtraAdd[k]=_fmExtraAdd[k]||[]).splice(i,1); _fmExtraSave(); _fmJobRerender();
+}
+function fmJobAddonPicker(){
+  const bk=window._fmCurBk; if(!bk) return;
+  let ov=document.getElementById('fmAPick');
+  if(!ov){ ov=document.createElement('div'); ov.id='fmAPick';
+    ov.style.cssText='position:fixed;inset:0;z-index:3400;background:rgba(10,22,30,.55);display:flex;align-items:flex-end;justify-content:center;';
+    ov.onclick=function(e){ if(e.target===ov) ov.remove(); };
+    document.body.appendChild(ov); }
+  const cat=[];
+  QC2_ADDONS.forEach(function(a){ cat.push({icon:a.icon,label:a.label,p:(a.noWhole?(a.pr||a.price):a.price)}); });
+  [['🍳','Deep clean \u2014 kitchen','kit'],['🚿','Deep clean \u2014 bathroom','bath'],['🛋','Deep clean \u2014 living room','liv'],['🛏','Deep clean \u2014 bedroom','bed'],['🚪','Deep clean \u2014 extra room','living']].forEach(function(d){ cat.push({icon:d[0],label:d[1],p:qc2DeepUnitFor(d[2])}); });
+  window._fmACat=cat;
+  ov.innerHTML='<div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:78vh;display:flex;flex-direction:column;color:#0f2740;" onclick="event.stopPropagation()">'
+    +'<div style="padding:14px 16px 10px;border-bottom:1.5px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">'
+    +'<div style="font-size:16px;font-weight:900;">\u2795 Add to this visit</div>'
+    +'<button onclick="document.getElementById(\'fmAPick\').remove()" style="background:#f3f4f6;border:none;font-size:20px;padding:7px 13px;border-radius:11px;cursor:pointer;">\u00d7</button></div>'
+    +'<div style="overflow-y:auto;padding:12px 14px;">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">'
+    +cat.map(function(c,i){ return '<button onclick="fmJobCatPick('+i+')" style="text-align:left;padding:10px;border:1.5px solid #e2e8f0;border-radius:12px;background:#fff;font-family:inherit;cursor:pointer;">'
+      +'<div style="font-size:17px;">'+c.icon+'</div><div style="font-size:12.5px;font-weight:800;margin-top:2px;">'+esc(c.label)+'</div>'
+      +'<div style="font-size:11px;font-weight:700;color:#0369a1;">from $'+c.p+' \u00b7 ~'+Math.max(5,Math.round(c.p/CLEAN_MIN_RATE*60/5)*5)+'m</div></button>'; }).join('')
+    +'<button onclick="fmJobCatCustom()" style="text-align:left;padding:10px;border:2px dashed #cbd5e1;border-radius:12px;background:#fff;font-family:inherit;cursor:pointer;">'
+      +'<div style="font-size:17px;">\u2728</div><div style="font-size:12.5px;font-weight:800;margin-top:2px;">Custom\u2026</div><div style="font-size:11px;font-weight:700;color:#64748b;">type anything</div></button>'
+    +'</div>'
+    +'<div style="font-size:11px;color:#94a3b8;font-weight:600;margin-top:10px;padding-bottom:8px;">Pick one \u2192 set the price on the wheel (time follows at $'+CLEAN_MIN_RATE+'/hr) \u2192 it\u2019s on this visit\u2019s bill and pre-checked at finish.</div>'
+    +'</div></div>';
+}
+function fmJobCatPick(i){
+  const bk=window._fmCurBk, c=(window._fmACat||[])[i]; if(!bk||!c) return;
+  qcMoneyWheel('\ud83d\udcb2 '+c.label,5,400,5,c.p,function(v){
+    if(!(v>0)) return;
+    const k=_stopKey(bk); (_fmExtraAdd[k]=_fmExtraAdd[k]||[]).push({name:c.label.replace(/[;:]/g,' '),price:v}); _fmExtraSave();
+    const ov=document.getElementById('fmAPick'); if(ov) ov.remove();
+    _fmJobRerender(); showToast('\u2795 '+c.label+' \u2014 $'+v+' added to this visit');
+  });
+}
+function fmJobCatCustom(){
+  const bk=window._fmCurBk; if(!bk) return;
+  const nm=prompt('What extra work?',''); if(nm===null) return;
+  const name=String(nm).replace(/[;:]/g,' ').trim(); if(!name) return;
+  qcMoneyWheel('\ud83d\udcb2 '+name,5,400,5,50,function(v){
+    if(!(v>0)) return;
+    const k=_stopKey(bk); (_fmExtraAdd[k]=_fmExtraAdd[k]||[]).push({name:name,price:v}); _fmExtraSave();
+    const ov=document.getElementById('fmAPick'); if(ov) ov.remove();
+    _fmJobRerender(); showToast('\u2795 '+name+' \u2014 $'+v+' added to this visit');
+  });
+}
 function fmJobAddonTgl(i){
   const bk=window._fmCurBk; if(!bk) return;
-  const list=customerServicesFor(bk.email)||[]; const s=list[i]; if(!s) return;
+  const list=customerServicesFor(bk.email,bk.name)||[]; const s=list[i]; if(!s) return;
   const k=_stopKey(bk); _fmAddonSel[k]=_fmAddonSel[k]||{}; _fmAddonSel[k][s.name]=!_fmAddonSel[k][s.name]; _fmAddonSelSave();
   if(window._fmCurStops!=null&&window._fmCurIdx!=null) _fmRenderJob(window._fmCurStops,window._fmCurIdx);
 }
@@ -2118,12 +2188,19 @@ function _fmRenderJob(stops,idx){
     pkgHtml='<div class="fm-note-box"><b>🧽 '+(QC_TIER_LABEL[tier]||'Standard Clean')+' — this visit includes</b>'
       +'<div style="margin-top:6px;">'+items.map(function(x){ return '<div style="font-size:13px;line-height:1.9;"><span style="color:#7dd3fc;font-weight:800;">✓</span> '+x+'</div>'; }).join('')+'</div></div>';
   }
-  const _svcList=customerServicesFor(bk.email)||[];
+  const _svcList=customerServicesFor(bk.email,bk.name)||[];
   const _selMap=_fmAddonSel[_stopKey(bk)]||{};
-  const addonHtml=_svcList.length?('<div class="fm-note-box"><b>🧺 As-needed add-ons — tap what you\'ll do today</b>'
+  const _pxMap=_fmAddonPx[_stopKey(bk)]||{};
+  const _extras=_fmExtraAdd[_stopKey(bk)]||[];
+  const addonHtml=(!_isQuoteJob(bk))?('<div class="fm-note-box"><b>🧺 As-needed add-ons — tap what you\'ll do today</b>'
     +'<div class="fm-addon-row" style="margin-top:8px;">'
-    +_svcList.map(function(s2,i2){ const on2=!!_selMap[s2.name]; return '<button class="fm-addon-chip'+(on2?' on':'')+'" onclick="fmJobAddonTgl('+i2+')"><span>'+(on2?'✓ ':'＋ ')+esc(s2.name)+'</span>'+(_seeMoney(bk)?'<span class="fm-addon-price">$'+(+s2.price||0).toFixed(0)+'</span>':'')+'</button>'; }).join('')
-    +'</div><div style="font-size:11px;color:#94a3b8;margin-top:6px;">Only what you tap gets done &amp; charged — it pre-fills the finish screen.</div></div>'):'';
+    +_svcList.map(function(s2,i2){ const on2=!!_selMap[s2.name]; const _pv=(+_pxMap[s2.name]>0)?+_pxMap[s2.name]:(+s2.price||0);
+      return '<button class="fm-addon-chip'+(on2?' on':'')+'" onclick="fmJobAddonTgl('+i2+')"><span>'+(on2?'✓ ':'＋ ')+esc(s2.name)+'</span><span class="fm-addon-price">$'+_pv.toFixed(0)+'</span>'
+      +(on2?'<span onclick="event.stopPropagation();fmJobAddonPx('+i2+')" style="margin-left:5px;padding:2px 7px;border-radius:7px;background:rgba(125,211,252,.18);color:#7dd3fc;font-size:11px;font-weight:800;">\u270e</span>':'')+'</button>'; }).join('')
+    +_extras.map(function(x2,i2){ return '<button class="fm-addon-chip on" onclick="fmJobExtraEdit('+i2+')"><span>\u2728 '+esc(x2.name)+'</span><span class="fm-addon-price">$'+(+x2.price||0).toFixed(0)+'</span>'
+      +'<span onclick="event.stopPropagation();fmJobExtraRm('+i2+')" style="margin-left:5px;padding:2px 7px;border-radius:7px;background:rgba(248,113,113,.18);color:#f87171;font-size:11px;font-weight:800;">\u00d7</span></button>'; }).join('')
+    +'<button class="fm-addon-chip" style="border-style:dashed;" onclick="fmJobAddonPicker()"><span>\u2795 Add-on\u2026</span></button>'
+    +'</div><div style="font-size:11px;color:#94a3b8;margin-top:6px;">Tap = doing it today \u00b7 \u270e = price for this visit \u00b7 everything pre-fills the finish screen.</div></div>'):'';
   const _navBtn=done
     ? '<button class="fm-btn fm-btn-lg" style="background:#64748b;color:#e2e8f0;cursor:not-allowed;" disabled>✓ Completed — no need to drive</button>'
     : '<button class="fm-btn fm-btn-lg fm-btn-nav" onclick="fmNavigate('+idx+')">🧭 Navigate Here</button>';
@@ -2213,7 +2290,8 @@ function fmOpenComplete(){
   const bk=stop.bk;
   _fmcStop=stop; _fmcRowIdx=(allBookings||[]).indexOf(bk); _fmcPayType=_payType(bk);
   _fmcCash=false; _fmcInvoiceSent=false; _fmcChargeChosen=false; _fmcBase=_fmAmt(bk); _fmcPhotos=[];
-  _fmcAddons=(customerServicesFor(bk.email,bk.name)||[]).map(s=>({name:s.name,price:+s.price||0,on:!!((_fmAddonSel[_stopKey(bk)]||{})[s.name])}));
+  _fmcAddons=(customerServicesFor(bk.email,bk.name)||[]).map(s=>({name:s.name,price:(+((_fmAddonPx[_stopKey(bk)]||{})[s.name])>0)?+_fmAddonPx[_stopKey(bk)][s.name]:(+s.price||0),on:!!((_fmAddonSel[_stopKey(bk)]||{})[s.name])}));
+  (_fmExtraAdd[_stopKey(bk)]||[]).forEach(function(x){ _fmcAddons.push({name:x.name,price:+x.price||0,on:true}); });
   _fmcEndChk={}; _fmcBuildChecklist(bk);
   if(_fmcPayType==='cash') _fmcEndChk['Collected cash']=false;
   document.getElementById('fmcTitle').textContent='Finish '+(bk.name||'job');
