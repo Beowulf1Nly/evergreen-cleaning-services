@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.57 */
+/* APP_VER:2026-07-08.58 */
 (function(){
-  var V='2026-07-08.57'; window.__APP_VER=V;
+  var V='2026-07-08.58'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2658,14 +2658,14 @@ const QC2_ROOMS=[
 const QC2_ROOM_UNIT=15;      // beds + extra rooms; bathrooms carry their own
 const QC2_DEEP_UNIT=15;      // deep-clean upcharge per room (tappable)
 const QC2_ADDONS=[
-  { id:'grout',   icon:'🧽', label:'Grout scrub',      price:50, rooms:1 },
+  { id:'grout',   icon:'🧽', label:'Grout scrub',      price:50, rooms:1, q:'How many tiled areas? (bathrooms, kitchen, entryway\u2026)', unit:'area' },
   { id:'dishes',  icon:'🍽', label:'Dishes',           price:15 },
   { id:'oven',    icon:'🔥', label:'Inside oven',      price:25 },
   { id:'fridge',  icon:'🧊', label:'Inside fridge',    price:25 },
-  { id:'windows', icon:'🪟', label:'Interior windows', price:30, rooms:1 },
+  { id:'windows', icon:'🪟', label:'Interior windows', price:30, rooms:1, q:'Windows in how many rooms?', unit:'room' },
   { id:'laundry', icon:'🧺', label:'Laundry',          price:20 },
-  { id:'base',    icon:'📏', label:'Baseboards',       price:25, rooms:1 },
-  { id:'pet',     icon:'🐾', label:'Pet hair (heavy)', price:20, rooms:1 }
+  { id:'base',    icon:'📏', label:'Baseboards',       price:25, rooms:1, q:'Baseboards in how many rooms?', unit:'room' },
+  { id:'pet',     icon:'🐾', label:'Pet hair (heavy)', price:20, rooms:1, q:'Pet hair in how many rooms?', unit:'room' }
 ];
 let _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, deepAll:false, firstOnly:false, deepU:0 };
 function qc2Reset(){ _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, deepAll:false, firstOnly:false, deepU:0 }; }
@@ -2684,7 +2684,7 @@ function qc2AddonPrice(id){
 function qc2AddonDetail(id){
   const a=QC2_ADDONS.find(function(x){return x.id===id;}); if(!a) return '';
   const c=_qc2.addonCfg[id]||{}, parts=[];
-  if(a.rooms) parts.push((c.scope>0)?(c.scope+' room'+(c.scope>1?'s':'')):'whole house');
+  if(a.rooms) parts.push((c.scope>0)?(c.scope+' '+(a.unit||'room')+(c.scope>1?'s':'')):'whole house');
   if(c.deep) parts.push('deep clean');
   return parts.join(' \u00b7 ');
 }
@@ -2719,10 +2719,10 @@ function qc2CfgOpen(id){
   const ovr=_qc2.addonP[id]>0;
   ov.innerHTML='<div style="background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:18px 16px 28px;box-shadow:0 -8px 30px rgba(0,0,0,.25);" onclick="event.stopPropagation()">'
     +'<div style="font-size:17px;font-weight:900;margin-bottom:14px;">'+a.icon+' '+a.label+'</div>'
-    +(a.rooms?(sec('How much of the house?')
+    +(a.rooms?(sec(a.q||'How much of the house?')
       +'<div style="display:flex;gap:6px;margin-bottom:14px;">'
       +chip(!(c.scope>0),'Whole<br>house',"qc2CfgScope('"+id+"',0)")
-      +[1,2,3,4,5].map(function(n){ return chip(c.scope===n,String(n),"qc2CfgScope('"+id+"',"+n+")"); }).join('')
+      +[1,2,3,4,5].map(function(n){ return chip(c.scope===n,n+'<br><span style=\"font-size:10px;font-weight:700;\">'+(a.unit||'room')+(n>1?'s':'')+'</span>',"qc2CfgScope('"+id+"',"+n+")"); }).join('')
       +'</div>'):'')
     +sec('How deep?')
     +'<div style="display:flex;gap:8px;margin-bottom:14px;">'
