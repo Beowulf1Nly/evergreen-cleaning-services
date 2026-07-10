@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.84 */
+/* APP_VER:2026-07-08.85 */
 (function(){
-  var V='2026-07-08.84'; window.__APP_VER=V;
+  var V='2026-07-08.85'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -3196,14 +3196,17 @@ function qcRender(){
   }
 }
 function qcEmail(){
-  var nm=prompt('Customer name for the estimate:',''); if(nm===null) return; nm=nm.trim();
+  // on a quote visit we're standing in their house — the customer is the current stop
+  var bk=_qcQuoteBk||(function(){ try{ return (_fmStops()[_fmViewIdx]||{}).bk; }catch(e){ return null; } })();
+  var nm=String((bk&&bk.name)||'').trim();
+  if(!nm){ nm=prompt('Customer name for the estimate:',''); if(nm===null) return; nm=nm.trim(); }
   if(!nm){ showToast('Enter the customer name'); return; }
-  var em=prompt('Email the estimate to:',''); if(em===null) return; em=em.trim().toLowerCase();
+  var em=prompt('Email the estimate to'+(bk&&bk.email?' (from their file — fix if wrong)':'')+':',String((bk&&bk.email)||'').trim().toLowerCase()); if(em===null) return; em=em.trim().toLowerCase();
   if(!em||em.indexOf('@')<1||em.indexOf('.')<0){ showToast('Enter a valid email'); return; }
   var items=qc2Lines().map(function(l){ return {desc:l.desc, price:l.price, included:'false'}; });
   if(_qc2.firstOnly&&qc2DeepRooms()>0) items.push({desc:'Visits after the first — spot clean', price:qc2Spot(), included:'true'});
   var vt=new Date(); vt.setDate(vt.getDate()+14); var pad=function(n){ return String(n).padStart(2,'0'); };
-  _fmEnqueue({ kind:'quoteest', idemKey:'qe:calc:'+em+'|'+Date.now(), method:'GET', params:{ action:'send_quote_email', submittedBy:adminName||'Crew', name:nm, email:em, phone:'', address:'', summary:qc2Summary(), items:JSON.stringify(items), notes:'[]', estimateDate:todayISOStr(), validThru:vt.getFullYear()+'-'+pad(vt.getMonth()+1)+'-'+pad(vt.getDate()), frequency:'Cleaning estimate', adminToken:adminToken } });
+  _fmEnqueue({ kind:'quoteest', idemKey:'qe:calc:'+em+'|'+Date.now(), method:'GET', params:{ action:'send_quote_email', submittedBy:adminName||'Crew', name:nm, email:em, phone:String((bk&&bk.phone)||''), address:String((bk&&bk.address)||''), summary:qc2Summary(), items:JSON.stringify(items), notes:'[]', estimateDate:todayISOStr(), validThru:vt.getFullYear()+'-'+pad(vt.getMonth()+1)+'-'+pad(vt.getDate()), frequency:'Cleaning estimate', adminToken:adminToken } });
   _fmFlushQueue();
   qcClose();
   if(_qcQuoteBk) _qcQuoteDone('Quote \u2014 estimate emailed to '+em+' ($'+qc2Total()+') by '+(adminName||'crew'));
