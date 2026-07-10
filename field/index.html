@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.75 */
+/* APP_VER:2026-07-08.76 */
 (function(){
-  var V='2026-07-08.75'; window.__APP_VER=V;
+  var V='2026-07-08.76'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -689,7 +689,13 @@ function mowMinutes(bk){
   return Math.max(45, Math.min(600, Math.round(mins/5)*5));
 }
 function parseServices(str){ return String(str||'').split(';').map(s=>s.trim()).filter(Boolean).map(s=>{ const m=s.match(/^(.*?):\s*\$?([\d.]+)\s*$/); return m?{name:m[1].trim(),price:parseFloat(m[2])||0}:null; }).filter(s=>s&&s.name&&s.price>0); }
-function customerServicesFor(email){ const em=String(email||'').toLowerCase().trim(); if(!em) return []; const c=(allCustomers||[]).find(x=>String(x.Email||'').toLowerCase().trim()===em); return parseServices(c?(c.Services||''):''); }
+function customerServicesFor(email,name){
+  const em=String(email||'').toLowerCase().trim();
+  let c=null;
+  if(em) c=(allCustomers||[]).find(x=>String(x.Email||'').toLowerCase().trim()===em);
+  if(!c&&!em&&name){ const nm=String(name).toLowerCase().trim(); c=(allCustomers||[]).find(x=>String(x.Name||'').toLowerCase().trim()===nm); }
+  return parseServices(c?(c.Services||''):'');
+}
 function _fmMapsUrl(bk){ return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent((bk.address||'')+(bk.zip?', '+bk.zip:'')+', FL'); }
 let _toastT=null; function showToast(msg,ms){ const t=document.getElementById('toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); clearTimeout(_toastT); _toastT=setTimeout(()=>t.classList.remove('show'),ms||3200); }
 function authParam(){ return 'adminToken='+encodeURIComponent(adminToken); }
@@ -2207,7 +2213,7 @@ function fmOpenComplete(){
   const bk=stop.bk;
   _fmcStop=stop; _fmcRowIdx=(allBookings||[]).indexOf(bk); _fmcPayType=_payType(bk);
   _fmcCash=false; _fmcInvoiceSent=false; _fmcChargeChosen=false; _fmcBase=_fmAmt(bk); _fmcPhotos=[];
-  _fmcAddons=(customerServicesFor(bk.email)||[]).map(s=>({name:s.name,price:+s.price||0,on:!!((_fmAddonSel[_stopKey(bk)]||{})[s.name])}));
+  _fmcAddons=(customerServicesFor(bk.email,bk.name)||[]).map(s=>({name:s.name,price:+s.price||0,on:!!((_fmAddonSel[_stopKey(bk)]||{})[s.name])}));
   _fmcEndChk={}; _fmcBuildChecklist(bk);
   if(_fmcPayType==='cash') _fmcEndChk['Collected cash']=false;
   document.getElementById('fmcTitle').textContent='Finish '+(bk.name||'job');
@@ -2893,19 +2899,25 @@ function qcNotInterested(){
   qcClose(); qc2Reset(); showToast('Logged for the office.');
 }
 function qcBookNow(){
-  var first=qc2Total(), spot=qc2Spot();
-  var summary=qc2Summary();
+  var first=qc2Total(), core=qc2CoreAmt(), summary=qc2Summary();
+  // as-needed add-ons + deep upcharge become per-visit Services toggles: the crew
+  // checks them at completion and the visit price adds up — the booked price stays
+  // the plain standard clean.
+  var svc=[];
+  QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ var dt=qc2AddonDetail(a.id); svc.push(a.label+(dt?(' ('+dt+')'):'')+': $'+qc2AddonPrice(a.id)); } });
+  var dp=qc2DeepAmt(); if(dp>0) svc.push('Deep clean upcharge'+(_qc2.firstOnly?' (first visit)':'')+': $'+dp);
+  window._ncServices=svc.join('; ');
   try{ ncOpen(); }catch(e){ console.warn('ncOpen failed',e); showToast('⚠ Could not open the booking form — tell the office'); return; }
   qcClose();
   try{
-    var p=document.getElementById('nc-price'); if(p) p.value=first;
+    var p=document.getElementById('nc-price'); if(p) p.value=core;
     var bd=document.getElementById('nc-bed'); if(bd) bd.value=(_qc2.rooms.bed||0);
     var ba=document.getElementById('nc-bath'); if(ba) ba.value=(_qc2.rooms.bath||0);
     var ex=document.getElementById('nc-extra'); if(ex) ex.value=(_qc2.rooms.living||0);
     var n=document.getElementById('nc-notes');
-    if(n&&!n.value) n.value=summary+((_qc2.firstOnly&&qc2DeepRooms()>0)?(' | First visit deep $'+first+'. Following: $'+spot):'');
+    if(n&&!n.value) n.value=summary+' | Standard $'+core+'/visit'+(svc.length?(' + as-needed: '+window._ncServices):'')+(first>core?(' | First visit ~$'+first+' with everything selected'):'');
   }catch(e){}
-  showToast('📋 Estimate carried over — finish booking them');
+  showToast('📋 $'+core+'/visit standard — add-ons ride as per-visit toggles'+(first>core?(' (first visit ~$'+first+')'):''),6000);
 }
 /* ⏰ preferred time — picked at booking, tagged into notes ('⏰ Prefers: …') so it
    shows on the route list, the job screen, HQ job cards and dispatch tooltips */
@@ -3077,6 +3089,28 @@ function qcEmail(){
 }
 function ncClose(){ const o=document.getElementById('ncOverlay'); if(o) o.style.display='none'; }
 const NC_FREQS=['📋 Quote Visit','Weekly Plan','Bi-Weekly Plan','Monthly Plan','One-time visit'];
+function ncSearch(q){
+  const box=document.getElementById('nc-srch-res'); if(!box) return;
+  q=String(q||'').toLowerCase().trim();
+  if(q.length<2){ box.innerHTML=''; return; }
+  const hits=(allCustomers||[]).filter(function(c){
+    return ['Name','Address','Phone','Email'].some(function(k){ return String(c[k]||'').toLowerCase().indexOf(q)>=0; });
+  }).slice(0,6);
+  window._ncMatches=hits;
+  box.innerHTML=hits.map(function(c,i){
+    return '<button onclick="ncFill('+i+')" style="display:block;width:100%;text-align:left;padding:9px 11px;margin-bottom:4px;border:1.5px solid #bae6fd;border-radius:10px;background:#f0f9ff;font-family:inherit;cursor:pointer;">'
+      +'<div style="font-size:14px;font-weight:800;color:#0f172a;">'+esc(c.Name||'?')+'</div>'
+      +'<div style="font-size:12px;color:#475569;">'+esc(c.Address||'')+(c.Phone?(' · '+esc(c.Phone)):'')+'</div></button>';
+  }).join('')||'<div style="font-size:12px;color:#94a3b8;padding:2px 0 6px;">No match — fill it in below as a new customer.</div>';
+}
+function ncFill(i){
+  const c=(window._ncMatches||[])[i]; if(!c) return;
+  const set=function(id,v){ const el=document.getElementById(id); if(el&&v) el.value=v; };
+  set('nc-name',c.Name); set('nc-phone',c.Phone); set('nc-email',String(c.Email||'').toLowerCase()); set('nc-addr',c.Address); set('nc-zip',c.Zip);
+  const box=document.getElementById('nc-srch-res'); if(box) box.innerHTML='';
+  const sr=document.getElementById('nc-search'); if(sr) sr.value='';
+  showToast('✓ '+(c.Name||'Customer')+' filled in — double-check the address');
+}
 function ncOpen(){
   if(!document.getElementById('ncOverlay')){
     const inp='width:100%;box-sizing:border-box;padding:12px;border:1.5px solid #cbd5e1;border-radius:10px;font-size:16px;font-family:inherit;margin:4px 0 10px;';
@@ -3090,6 +3124,9 @@ function ncOpen(){
       +'<div><div style="font-size:18px;font-weight:800;">➕ New Customer</div><div style="font-size:12.5px;color:#64748b;margin-top:2px;">Got one on the route? Add & schedule them right here.</div></div>'
       +'<button onclick="ncClose()" style="background:#f3f4f6;border:none;font-size:22px;color:#374151;cursor:pointer;line-height:1;padding:8px 14px;border-radius:12px;">×</button></div>'
       +'<div style="overflow-y:auto;padding:14px 16px 6px;flex:1;">'
+      +'<div style="'+lab+'">🔎 Existing customer? Search to autofill</div>'
+      +'<input id="nc-search" style="'+inp+'" placeholder="Name, address or phone…" oninput="ncSearch(this.value)" autocomplete="off">'
+      +'<div id="nc-srch-res" style="margin:-4px 0 8px;"></div>'
       +'<div style="'+lab+'">Full name *</div><input id="nc-name" style="'+inp+'" placeholder="Jane Smith">'
       +'<div style="'+lab+'">Phone</div><input id="nc-phone" type="tel" inputmode="tel" style="'+inp+'" placeholder="(352) 555-0123">'
       +'<div style="'+lab+'">Email</div><input id="nc-email" type="email" inputmode="email" autocapitalize="none" style="'+inp+'" placeholder="you@email.com">'
@@ -3127,7 +3164,8 @@ function ncSubmit(){
   if(!isQuote&&pay==='card'&&!email){ showToast('Card customers need an email (or switch to Cash)'); return; }
   if(!isQuote&&!price){ showToast('Set a price — or pick Quote Visit'); return; }
   if(!confirm('Add '+name+'?\n'+freq+(price?(' · $'+price):'')+' · first visit '+date+'\n'+addr)) return;
-  _fmEnqueue({ kind:'newcust', idemKey:'nc:'+_uuid(), method:'GET', params:{ action:'manual_schedule', name:name, email:email, phone:phone, address:addr, zip:zip, frequency:freq, service:svc, price:price, serviceDate:date, notes:homeSummary+(notes?(' — '+notes):'')+' — Added on route by '+(adminName||'crew'), payMethod:pay||'card', adminToken:adminToken } });
+  _fmEnqueue({ kind:'newcust', idemKey:'nc:'+_uuid(), method:'GET', params:{ action:'manual_schedule', name:name, email:email, phone:phone, address:addr, zip:zip, frequency:freq, service:svc, price:price, serviceDate:date, notes:homeSummary+(notes?(' — '+notes):'')+' — Added on route by '+(adminName||'crew'), payMethod:pay||'card', services:(window._ncServices||''), adminToken:adminToken } });
+  window._ncServices='';
   if(!isQuote&&parseFloat(price)>0){
     // crew sourced AND closed this one on the spot → 80% of the first job
     const _ncNames=[adminName||'Crew'].concat((_helpers||[]).map(function(h){ return (typeof h==='string')?h:((h&&h.name)||''); })).filter(Boolean);
