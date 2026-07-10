@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.101 */
+/* APP_VER:2026-07-08.102 */
 (function(){
-  var V='2026-07-08.101'; window.__APP_VER=V;
+  var V='2026-07-08.102'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -1528,7 +1528,7 @@ function _fmHeartbeat(){
       clockIn:_clockInTime?_clockInTime.toISOString():'', crew:adminCrews||'',
       stopName: bk?(bk.name||''):'', stopAddr: bk?((bk.address||'')+(bk.zip?', '+bk.zip:'')):'',
       stopIndex: cur?(stops.indexOf(cur)+1):0, totalStops: total, doneCount: done,
-      stopMins: bk?String(mowMinutes(bk)):'',
+      stopMins: bk?String(_fmVisitMins(bk)):'',
       helpers: String((_helpers||[]).length) });
     if(_lastPos){ params.set('lat', String(_lastPos.lat)); params.set('lon', String(_lastPos.lon)); }
     if(_lastSync.ts===0){ _lastSync={ok:null,ts:Date.now(),msg:'sending'}; _renderSyncStatus(); }
@@ -2105,7 +2105,7 @@ let _fmJobGo={}; try{ _fmJobGo=JSON.parse(localStorage.getItem('evg_fm_jobgo')||
 function fmJobGo(){
   const bk=window._fmCurBk; if(!bk) return; const k=_stopKey(bk);
   _fmJobGo[k]=Date.now(); try{ localStorage.setItem('evg_fm_jobgo',JSON.stringify(_fmJobGo)); }catch(e){}
-  if(!_jobTimers[k]) _jobTimers[k]=new Date().toISOString();   // job clock anchors on Start
+  _jobTimers[k]=new Date().toISOString();   // Start OWNS the clock — overrides any early drive-countdown anchor
   _persist(); _fmHeartbeat(); _fmJobRerender();
   showToast('▶ Started — timer running. Tap ✓ Done when the house is finished.');
 }
@@ -2129,6 +2129,21 @@ function _fmDriveArrive(k){
 let _fmYardNudged={};
 // ⏱ Live per-yard pace: elapsed on THIS yard vs its expected minutes. Crews get
 // nudged at 1× (heads-up) and 1.5× (loud) — same threshold that alerts the office.
+function _fmVisitTotal(bk){
+  try{
+    let t=_fmAmt(bk)||0; const k=_stopKey(bk), sel=_fmAddonSel[k]||{}, px=_fmAddonPx[k]||{};
+    (customerServicesFor(bk.email,bk.name)||[]).forEach(function(sv){ if(sel[sv.name]) t+=(+px[sv.name]>0?+px[sv.name]:(+sv.price||0)); });
+    (_fmExtraAdd[k]||[]).forEach(function(x){ t+=(+x.price||0); });
+    return t;
+  }catch(e){ return _fmAmt(bk)||0; }
+}
+function _fmVisitMins(bk){
+  // price IS time in this business — $50/hr, so today's scope sets today's clock.
+  // Checking an addon mid-visit grows the expected time live.
+  const t=_fmVisitTotal(bk);
+  if(!(t>0)) return mowMinutes(bk);
+  return Math.max(30,Math.round(t/CLEAN_MIN_RATE*60/5)*5);
+}
 function _fmYardPaceTick(){
   const el=document.getElementById('fmYardPace'); if(!el) return;
   const scr=document.getElementById('fmScreenJob');
@@ -2146,10 +2161,12 @@ function _fmYardPaceTick(){
     el.innerHTML='<span style="color:#7dd3fc;">🚗 Drive time — '+Math.ceil(left)+'m to arrival</span>';
     return;
   }
-  const mins=(Date.now()-new Date(t0).getTime())/60000, exp=mowMinutes(bk), m=Math.floor(mins);
-  if(mins<=exp) el.innerHTML='<span style="color:#4ade80;">⏱ '+m+'m on this yard · ~'+exp+'m expected — good pace</span>';
-  else if(mins<=exp*1.5) el.innerHTML='<span style="color:#fbbf24;">⏱ '+m+'m — past the ~'+exp+'m estimate, tighten up</span>';
-  else el.innerHTML='<span style="color:#f87171;font-weight:800;">🔴 '+m+'m — way over the ~'+exp+'m estimate</span>';
+  if(_fmJobGo[k]) t0=new Date(_fmJobGo[k]).toISOString();      // ▶ Start is the truth when it exists
+  const mins=(Date.now()-new Date(t0).getTime())/60000, exp=_fmVisitMins(bk), m=Math.floor(mins);
+  const _h=function(v){ return v>=60?(Math.floor(v/60)+'h '+String(Math.round(v%60)).padStart(2,'0')+'m'):(Math.round(v)+'m'); };
+  if(mins<=exp) el.innerHTML='<span style="color:#4ade80;">⏱ '+_h(m)+' of ~'+_h(exp)+' for today\u2019s scope — good pace</span>';
+  else if(mins<=exp*1.5) el.innerHTML='<span style="color:#fbbf24;">⏱ '+_h(m)+' — past the ~'+_h(exp)+' scope estimate, tighten up</span>';
+  else el.innerHTML='<span style="color:#f87171;font-weight:800;">🔴 '+_h(m)+' — way over the ~'+_h(exp)+' this visit should take</span>';
   // Display-only by owner's call — no buzzing, no toasts. The bar says it all.
 }
 function _fmPace(stops){
@@ -2196,11 +2213,7 @@ function _fmRenderJob(stops,idx){
   if(!done && !skipped && !_jobTimers[_stopKey(bk)] && !_fmDrivePhase[_stopKey(bk)]){ _fmDrivePhase[_stopKey(bk)]={t0:Date.now()}; try{ localStorage.setItem('evg_fm_drive',JSON.stringify(_fmDrivePhase)); }catch(e){} }
   const lotM=String(bk.notes||'').match(/lot:\s*([\d.]+)ac/i);
   let pills='';
-  const _vTot=(function(){ try{
-    let t=amt||0; const k7=_stopKey(bk), sel=_fmAddonSel[k7]||{}, px=_fmAddonPx[k7]||{};
-    (customerServicesFor(bk.email,bk.name)||[]).forEach(function(sv){ if(sel[sv.name]) t+=(+px[sv.name]>0?+px[sv.name]:(+sv.price||0)); });
-    (_fmExtraAdd[k7]||[]).forEach(function(x){ t+=(+x.price||0); });
-    return t; }catch(e){ return amt||0; } })();
+  const _vTot=_fmVisitTotal(bk);
   if(amt){ if(_seeMoney(bk)) pills+='<span class="fm-pill amt">$'+_vTot.toFixed(0)+' '+(pt==='cash'?'cash':pt==='autopay'?'autopay':'invoice')+(_vTot>amt?' <span style=\"opacity:.75;font-weight:600;\">($'+amt.toFixed(0)+' + add-ons)</span>':'')+'</span>'; else pills+='<span class="fm-pill muted">'+(pt==='autopay'?'Autopay':'Invoice')+'</span>'; }
   if(bk.frequency) pills+='<span class="fm-pill muted">'+esc(bk.frequency)+'</span>';
   if(bk.crew) pills+='<span class="fm-pill muted">Crew '+esc(bk.crew)+'</span>';
