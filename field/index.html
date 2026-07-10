@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.71 */
+/* APP_VER:2026-07-08.72 */
 (function(){
-  var V='2026-07-08.71'; window.__APP_VER=V;
+  var V='2026-07-08.72'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2698,7 +2698,7 @@ function qc2AddonPrice(id){
 function qc2AddonDetail(id){
   const a=QC2_ADDONS.find(function(x){return x.id===id;}); if(!a) return '';
   const c=_qc2.addonCfg[id]||{}, parts=[];
-  if(a.rooms) parts.push((c.scope>0)?(c.scope+' '+(a.unit||'room')+(c.scope>1?'s':'')):'whole house');
+  if(a.rooms){ if(c.scope>0) parts.push(c.scope+' '+(a.unit||'room')+(c.scope>1?'s':'')); else if(c.scope===0) parts.push('whole house'); }
   if(a.depth&&c.deep) parts.push((a.d2||'deep clean').toLowerCase());
   return parts.join(' \u00b7 ');
 }
@@ -2723,12 +2723,12 @@ function qc2Bump(id,d){ _qc2.rooms[id]=Math.max(0,(_qc2.rooms[id]||0)+d); _qc2.d
 function qc2DeepBump(id,d){ _qc2.deep[id]=Math.max(0,Math.min((_qc2.rooms[id]||0)+(id==='baseRooms'?0:0),(_qc2.deep[id]||0)+d)); if(_qc2.deep[id]>(_qc2.rooms[id]||0)) _qc2.deep[id]=_qc2.rooms[id]||0; qcRender(); }
 function qc2Tgl(id){
   if(_qc2.addons[id]){ qc2CfgOpen(id); return; }
-  _qc2.addons[id]=true; _qc2.addonCfg[id]=_qc2.addonCfg[id]||{scope:0,deep:0};
+  _qc2.addons[id]=true; _qc2.addonCfg[id]=_qc2.addonCfg[id]||{scope:-1,deep:0};
   qcRender(); qc2CfgOpen(id);
 }
 function qc2CfgOpen(id){
   const a=QC2_ADDONS.find(function(x){return x.id===id;}); if(!a) return;
-  const c=_qc2.addonCfg[id]=_qc2.addonCfg[id]||{scope:0,deep:0};
+  const c=_qc2.addonCfg[id]=_qc2.addonCfg[id]||{scope:-1,deep:0};
   let ov=document.getElementById('qc2CfgOv');
   if(!ov){ ov=document.createElement('div'); ov.id='qc2CfgOv';
     ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:3600;display:flex;align-items:flex-end;justify-content:center;';
@@ -2742,7 +2742,7 @@ function qc2CfgOpen(id){
     +'<div style="font-size:17px;font-weight:900;margin-bottom:14px;">'+a.icon+' '+a.label+'</div>'
     +(a.rooms?(sec(a.q||'How much of the house?')
       +'<button onclick="qc2CfgScopeWheel(\''+id+'\')" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:14px;border-radius:13px;border:2px solid #7dd3fc;background:#f0f9ff;font-family:inherit;cursor:pointer;margin-bottom:12px;">'
-      +'<span style="font-size:16px;font-weight:800;color:#0f172a;">'+((c.scope>0)?(c.scope+' '+(a.unit||'room')+(c.scope>1?'s':'')):'Whole house')+'</span>'
+      +'<span style="font-size:16px;font-weight:800;color:'+((c.scope==null||c.scope<0)?'#94a3b8':'#0f172a')+';">'+((c.scope>0)?(c.scope+' '+(a.unit||'room')+(c.scope>1?'s':'')):((c.scope===0)?'Whole house':'(Select)'))+'</span>'
       +'<span style="font-size:13px;font-weight:800;color:#0369a1;">Select \u25be</span></button>'):'')
     +(a.depth?(sec(a.dq||'How deep?')
     +'<div style="display:flex;gap:8px;margin-bottom:14px;">'
@@ -2807,7 +2807,7 @@ function qc2CfgScopeWheel(id){
   const vals=[{v:0,label:'Whole house'}];
   for(let n=1;n<=(a.maxN||8);n++) vals.push({v:n,label:n+' '+(a.unit||'room')+(n>1?'s':'')});
   const sel=(c.scope>0)?c.scope:0;
-  qcWheelOpen(a.q||'How much of the house?',vals,vals.findIndex(function(x){return x.v===sel;}),function(v){ qc2CfgScope(id,v); });
+  qcWheelOpen(a.q||'How much of the house?',vals,vals.findIndex(function(x){return x.v===sel;}),function(v){ qc2CfgScope(id,v); });   // picking (even 'Whole house') sets it — until then the row shows (Select)
 }
 function qc2CfgTimeWheel(id){
   const MINS=[5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,105,120,150,180,240];
