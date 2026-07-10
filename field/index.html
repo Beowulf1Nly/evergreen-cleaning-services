@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.78 */
+/* APP_VER:2026-07-08.79 */
 (function(){
-  var V='2026-07-08.78'; window.__APP_VER=V;
+  var V='2026-07-08.79'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2244,7 +2244,49 @@ function _fmcGrand(){ return (_fmcBase||0)+_fmcAddonTotal(); }
    $79 minimum to step foot inside · aim ≥ $50/hr of estimated work.
    The calculator and the booked price are STARTING POINTS — the cleaner adjusts
    on-site, but payment physically can't complete under the floor (boss can). */
-const CLEAN_MIN_JOB=79, CLEAN_MIN_RATE=50;
+let CLEAN_MIN_JOB=79, CLEAN_MIN_RATE=50;
+/* ══════════ 💵 PRICEBOOK — /hq/pricebook.html is the single source of truth.
+   Prices are read BY CODE (CLN-BASE, ADD-OVEN-DEEP, …); anything the owner edits
+   there lands here on the next fetch. Defaults below only apply until then. ══════════ */
+let _pbItems=null;
+function _pbNum(code,def){ const it=(_pbItems||[]).find(function(x){ return String(x.code||'').toUpperCase()===code&&x.active!==false; }); const p=it?parseFloat(it.price):NaN; return (p>0)?p:def; }
+function _pbApplyCln(){
+  if(!_pbItems) return;
+  CLEAN_MIN_JOB=Math.round(_pbNum('CLN-BASE',CLEAN_MIN_JOB));
+  CLEAN_MIN_RATE=Math.round(_pbNum('CLN-RATE',CLEAN_MIN_RATE));
+  QC2_ROOMS.forEach(function(r){ r.unit=_pbNum('CLN-ROOM-'+(r.id==='living'?'EXTRA':r.id.toUpperCase()),r.unit); });
+  QC2_DEEP_MAP.kit=_pbNum('CLN-DEEP-KIT',QC2_DEEP_MAP.kit); QC2_DEEP_MAP.liv=_pbNum('CLN-DEEP-LIV',QC2_DEEP_MAP.liv);
+  QC2_DEEP_MAP.bed=_pbNum('CLN-DEEP-BED',QC2_DEEP_MAP.bed); QC2_DEEP_MAP.bath=_pbNum('CLN-DEEP-BATH',QC2_DEEP_MAP.bath);
+  QC2_DEEP_MAP.living=_pbNum('CLN-DEEP-EXTRA',QC2_DEEP_MAP.living);
+  QC2_ADDONS.forEach(function(a){
+    const C='ADD-'+a.id.toUpperCase();
+    if(a.noWhole){ a.pr=_pbNum(C+'-PER',a.pr); a.price=a.pr; }
+    else{ a.price=_pbNum(C,a.price); if(a.pr!=null) a.pr=_pbNum(C+'-PER',a.pr); }
+    if(a.depth){ const dp=_pbNum(C+'-DEEP',0); if(dp>0&&a.price>0) a.dx=dp/a.price; }
+  });
+  // custom add-ons created in the pricebook (category Add-ons, code not ADD-* or unknown base code)
+  (_pbItems||[]).forEach(function(it){
+    if(it.active===false||!/add-?ons?/i.test(String(it.category||''))) return;
+    const code=String(it.code||'').toUpperCase();
+    if(/-(PER|DEEP)$/.test(code)) return;
+    const known=/^ADD-/.test(code)&&QC2_ADDONS.some(function(a){ return 'ADD-'+a.id.toUpperCase()===code; });
+    if(known) return;
+    const nm=String(it.name||'').trim(); if(!nm) return;
+    const xid='x_'+(code||nm).toLowerCase().replace(/[^a-z0-9]+/g,'').slice(0,24);
+    const ex=QC2_ADDONS.find(function(a){ return a.id===xid; });
+    if(ex){ ex.price=parseFloat(it.price)||ex.price; ex.label=nm; }
+    else QC2_ADDONS.push({ id:xid, icon:'✨', label:nm, price:Math.max(5,parseFloat(it.price)||10) });
+  });
+}
+function _pbFetch(){
+  try{ const c=localStorage.getItem('evg_pb_items'); if(c&&!_pbItems){ _pbItems=JSON.parse(c); _pbApplyCln(); } }catch(e){}
+  if(!adminToken||navigator.onLine===false) return;
+  fetch(SCRIPT_URL+'?action=get_pricebook&bizKey=Cleaning&adminToken='+encodeURIComponent(adminToken))
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(d&&d.success&&Array.isArray(d.items)&&d.items.length){ _pbItems=d.items; try{ localStorage.setItem('evg_pb_items',JSON.stringify(d.items)); }catch(e){} _pbApplyCln(); try{ if(document.getElementById('qcBody')) qcRender(); }catch(e2){} } })
+    .catch(function(){});
+}
+setTimeout(_pbFetch,3000); setInterval(_pbFetch,600000);
 function _clnFloorCheck(amount,bk){
   if(bk&&_isQuoteJob(bk)) return { ok:true };
   if(_fmIsBoss()) return { ok:true };
