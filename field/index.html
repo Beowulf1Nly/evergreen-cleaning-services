@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.98 */
+/* APP_VER:2026-07-08.99 */
 (function(){
-  var V='2026-07-08.98'; window.__APP_VER=V;
+  var V='2026-07-08.99'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -30,11 +30,17 @@
         var tgt=m[1];
         if(tgt===V) return;                                   // already current
         var done=''; try{ done=localStorage.getItem('evg_field_updated_to')||''; }catch(e){}
-        if(done===tgt) return;                                // already reloaded once for this version — stop
+        // self-healing guard: 'done' only counts if we actually LANDED on that build.
+        // (CDN lag used to serve the old shell during the reload — the guard then said
+        // 'updated' forever while the phone stayed stale. 90s backoff, then retry.)
+        if(done===tgt){
+          var at=0; try{ at=+localStorage.getItem('evg_field_upd_at')||0; }catch(e){}
+          if(Date.now()-at<90000) return;
+        }
         // NEVER yank the app out from under a crew mid-route — if a route is
         // running, hold the update until the day is finished (route lock owns the day).
         try{ if(window.__FM_BUSY){ return; } }catch(e){}
-        try{ localStorage.setItem('evg_field_updated_to', tgt); }catch(e){}
+        try{ localStorage.setItem('evg_field_updated_to', tgt); localStorage.setItem('evg_field_upd_at', String(Date.now())); }catch(e){}
         location.replace('index.html?_='+Date.now());         // one clean reload to the new build
       }).catch(function(){});
   }
@@ -3119,7 +3125,7 @@ function qcOpen(){
       +'<button onclick="qcBookNow()" style="flex:1;padding:13px;border:none;border-radius:12px;background:#16a34a;color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;">Book now</button>'
       +'<button onclick="qcEmail()" style="flex:1;padding:13px;border:none;border-radius:12px;background:#0284c7;color:#fff;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;">Email estimate</button>'
       +'</div>'
-      +'<button id="qcDeclBtn" onclick="qcNotInterested()" style="width:100%;margin-top:8px;padding:11px;border:1.5px solid #fecaca;border-radius:12px;background:#fef2f2;color:#b91c1c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;">Customer declined</button>'
+      +'<button id="qcDeclBtn" onclick="qcNotInterested()" style="display:block;margin:10px auto 0;padding:4px 10px;border:none;background:none;color:#94a3b8;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;text-decoration:underline;">customer declined?</button>'
       +'<button id="qcAlreadyBtn" onclick="qcQuoteAlready()" style="display:none;width:100%;margin-top:8px;padding:10px;border:1.5px solid #e2e8f0;border-radius:12px;background:#f8fafc;color:#64748b;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;">Already booked / handled \u2014 just close this quote</button>'
       +'</div></div>';
     document.body.appendChild(o);
@@ -3224,6 +3230,7 @@ function _qcQuoteDone(note){
   _persist(); _fmRender();
 }
 function qcNotInterested(){
+  if(!confirm('Mark this quote as DECLINED at $'+qc2Total()+'?\n\nOnly do this if the customer actually said no.')) return;
   const why=prompt('They passed at $'+qc2Total()+' — why? (optional, helps the office)','');
   if(why===null) return;
   const st=_fmStops()[_fmViewIdx]; const bk=st&&st.bk;
