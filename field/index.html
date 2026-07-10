@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.89 */
+/* APP_VER:2026-07-08.90 */
 (function(){
-  var V='2026-07-08.89'; window.__APP_VER=V;
+  var V='2026-07-08.90'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -1599,7 +1599,8 @@ function _fmAddLocalSameDay(nb,anchorKey){
     // or network fails, the insert-after pin keeps it right behind this stop.
     if(_fmStarted) setTimeout(function(){ try{ _fmAutoRoute(); }catch(e){} },400);
     // the queued booking hits the backend in seconds — refresh swaps the temp for the real row
-    setTimeout(function(){ try{ loadData(true); }catch(e){} },6000);
+    setTimeout(function(){ try{ loadData(true); }catch(e){} },3500);
+    setTimeout(function(){ try{ loadData(true); }catch(e){} },12000);
   }catch(e){}
 }
 
@@ -3464,7 +3465,7 @@ function ncSubmit(){
   if(!isQuote&&pay==='card'&&!email){ showToast('Card customers need an email (or switch to Cash)'); return; }
   if(!isQuote&&!price){ showToast('Set a price — or pick Quote Visit'); return; }
   if(!confirm('Add '+name+'?\n'+freq+(price?(' · $'+price):'')+' · first visit '+date+'\n'+addr)) return;
-  _fmEnqueue({ kind:'newcust', idemKey:'nc:'+_uuid(), method:'GET', params:{ action:'manual_schedule', name:name, email:email, phone:phone, address:addr, zip:zip, frequency:freq, service:svc, price:price, serviceDate:date, notes:homeSummary+(notes?(' — '+notes):'')+' — Added on route by '+(adminName||'crew'), payMethod:pay||'card', services:(window._ncServices||''), adminToken:adminToken } });
+  _fmEnqueue({ kind:'newcust', idemKey:'nc:'+_uuid(), method:'GET', params:{ action:'manual_schedule', name:name, email:email, phone:phone, address:addr, zip:zip, frequency:freq, service:svc, price:price, serviceDate:date, notes:homeSummary+(notes?(' — '+notes):'')+' — Added on route by '+(adminName||'crew'), payMethod:pay||'card', services:(window._ncServices||''), crew:(String(adminCrews||'').toUpperCase().split(/[^A-Z0-9]+/)[0]||''), adminToken:adminToken } });
   window._ncServices='';
   if(!isQuote&&parseFloat(price)>0){
     // crew sourced AND closed this one on the spot → 80% of the first job
