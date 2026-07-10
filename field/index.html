@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.73 */
+/* APP_VER:2026-07-08.74 */
 (function(){
-  var V='2026-07-08.73'; window.__APP_VER=V;
+  var V='2026-07-08.74'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -3017,9 +3017,9 @@ function qcRender(){
         const core=qc2CoreAmt(), ad=qc2AddonsAmt(), dp=qc2DeepAmt();
         const r=function(lab,v,c2){ return '<div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:800;line-height:1.9;color:'+(c2||'#334155')+';"><span>'+lab+'</span><span>$'+v+'</span></div>'; };
         return '<div style="border-top:1.5px solid #e2e8f0;margin-top:8px;padding-top:8px;">'
-          +r('\U0001f9f9 Standard clean',core)
+          +r('🧹 Standard clean',core)
           +(ad>0?r('\u2795 Add-ons (as needed)',ad,'#0369a1'):'')
-          +(dp>0?r('\U0001f9fc Deep clean upcharge',dp,'#7c3aed'):'')
+          +(dp>0?r('🧼 Deep clean upcharge',dp,'#7c3aed'):'')
           +'<div style="display:flex;justify-content:space-between;font-size:14.5px;font-weight:900;margin-top:4px;padding-top:6px;border-top:1.5px solid #e2e8f0;"><span>Total</span><span>$'+qc2Total()+'</span></div></div>';
       })()
       +(function(){ const m=Math.round(qc2Total()/CLEAN_MIN_RATE*60/5)*5; const h=Math.floor(m/60), mm=m%60;
