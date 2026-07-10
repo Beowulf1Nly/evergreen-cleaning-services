@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.63 */
+/* APP_VER:2026-07-08.64 */
 (function(){
-  var V='2026-07-08.63'; window.__APP_VER=V;
+  var V='2026-07-08.64'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2672,8 +2672,13 @@ function qc2Reset(){ _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,li
 function qc2Charged(id){ const n=_qc2.rooms[id]||0; return id==='bed'?Math.max(0,n-1):n; }   // 1st bed rides in the base
 function qc2RoomUnit(id){ if(_qc2.roomP[id]>0) return _qc2.roomP[id]; const r=QC2_ROOMS.find(function(x){return x.id===id;}); return (r&&r.unit)||QC2_ROOM_UNIT; }
 function qc2DeepUnit(){ return (_qc2.deepU>0)?_qc2.deepU:QC2_DEEP_UNIT; }
-const QC2_KIT_DEEP=25, QC2_LIV_DEEP=15;
-function qc2DeepUnitFor(id){ if(_qc2.deepU>0) return _qc2.deepU; if(id==='kit') return QC2_KIT_DEEP; if(id==='liv') return QC2_LIV_DEEP; return qc2RoomUnit(id); }   // deep doubles the room's own rate
+// Deep-clean upcharges = the EXTRA labor a deep adds over a standard clean, at $50/hr:
+//   kitchen +$50 (~60m: degrease, cabinet fronts, appliances, hands-and-knees floors)
+//   bathroom +$30 (~36m: scale & soap scum, grout lines, behind the toilet, vents)
+//   living room +$25 (~30m: blinds, under cushions, furniture moved, vents)
+//   bedroom / extra room +$20 (~24m: blinds, under bed, all surfaces, doors & plates)
+const QC2_DEEP_MAP={ kit:50, liv:25, bed:20, bath:30, living:20 };
+function qc2DeepUnitFor(id){ if(_qc2.deepU>0) return _qc2.deepU; return QC2_DEEP_MAP[id]||20; }
 function qc2AddonPrice(id){
   if(_qc2.addonP[id]>0) return _qc2.addonP[id];
   const a=QC2_ADDONS.find(function(x){return x.id===id;}); if(!a) return 0;
@@ -2701,8 +2706,8 @@ function qc2Spot(){
 }
 function qc2DeepAmt(){
   if(_qc2.deepU>0) return qc2DeepRooms()*_qc2.deepU;
-  if(_qc2.deepAll){ let t=QC2_KIT_DEEP+QC2_LIV_DEEP; QC2_ROOMS.forEach(function(r){ t+=(_qc2.rooms[r.id]||0)*qc2DeepUnitFor(r.id); }); return t; }
-  let t=((_qc2.deepBase&&_qc2.deepBase.kit)?QC2_KIT_DEEP:0)+((_qc2.deepBase&&_qc2.deepBase.liv)?QC2_LIV_DEEP:0);
+  if(_qc2.deepAll){ let t=qc2DeepUnitFor('kit')+qc2DeepUnitFor('liv'); QC2_ROOMS.forEach(function(r){ t+=(_qc2.rooms[r.id]||0)*qc2DeepUnitFor(r.id); }); return t; }
+  let t=((_qc2.deepBase&&_qc2.deepBase.kit)?qc2DeepUnitFor('kit'):0)+((_qc2.deepBase&&_qc2.deepBase.liv)?qc2DeepUnitFor('liv'):0);
   QC2_ROOMS.forEach(function(r){ t+=Math.min(_qc2.deep[r.id]||0,_qc2.rooms[r.id]||0)*qc2DeepUnitFor(r.id); });
   return t;
 }
@@ -2774,7 +2779,7 @@ function qc2CfgClose(){ const ov=document.getElementById('qc2CfgOv'); if(ov) ov.
 function qc2DeepAllTgl(){ _qc2.deepAll=!_qc2.deepAll; qcRender(); }
 function qc2FirstTgl(){ _qc2.firstOnly=!_qc2.firstOnly; qcRender(); }
 function qc2EditRoom(id){ const r=QC2_ROOMS.find(function(x){return x.id===id;}); const v=prompt('Price per '+(r?r.label.replace(' (extra)','').toLowerCase().replace(/s$/,''):'room')+'?',String(qc2RoomUnit(id))); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.roomP[id]=n; qcRender(); }
-function qc2EditDeep(){ const v=prompt('Custom flat deep-clean upcharge per room? Default doubles each room\u2019s own rate (bed +$15, bath +$25, kitchen +$25). Leave blank to use the default.',String(_qc2.deepU||'')); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.deepU=n; else _qc2.deepU=0; qcRender(); }
+function qc2EditDeep(){ const v=prompt('Custom flat deep-clean upcharge per room? Defaults are per room type: kitchen +$50, bathroom +$30, living +$25, bedroom/extra +$20 (real extra labor at $'+CLEAN_MIN_RATE+'/hr). Leave blank to use the defaults.',String(_qc2.deepU||'')); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.deepU=n; else _qc2.deepU=0; qcRender(); }
 function qc2EditAddon(id){ const a=QC2_ADDONS.find(function(x){return x.id===id;}); const v=prompt('Price for '+a.label+'? (an hour of work should be $'+CLEAN_MIN_RATE+'+)',String(qc2AddonPrice(id))); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.addonP[id]=n; qcRender(); }
 function qc2Lines(){
   const L=[{desc:'Base — includes up to 1 bedroom, 1 kitchen & 1 living room',price:CLEAN_MIN_JOB}];
@@ -2906,7 +2911,7 @@ function qcRender(){
     }).join(''):'')
     +'<div onclick="qc2DeepAllTgl()" style="display:flex;align-items:center;gap:10px;border:2px solid '+(_qc2.deepAll?'#16a34a':'#e2e8f0')+';border-radius:14px;background:'+(_qc2.deepAll?'#f0fdf4':'#fff')+';padding:12px;margin:4px 0 8px;cursor:pointer;">'
       +'<span style="width:22px;height:22px;border-radius:6px;border:2px solid '+(_qc2.deepAll?'#0369a1':'#cbd5e1')+';background:'+(_qc2.deepAll?'#0369a1':'#fff')+';color:#fff;font-size:14px;line-height:19px;text-align:center;font-weight:800;flex-shrink:0;">'+(_qc2.deepAll?'✓':'')+'</span>'
-      +'<span style="flex:1;"><span style="font-size:14.5px;font-weight:800;">Deep clean — entire visit</span><button onclick="event.stopPropagation();qc2EditDeep()" style="display:block;background:none;border:none;padding:0;font-size:12px;color:#0369a1;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:underline;">'+(_qc2.deepU>0?('+$'+_qc2.deepU+'/room (custom)'):'doubles each room\u2019s rate')+'</button></span>'
+      +'<span style="flex:1;"><span style="font-size:14.5px;font-weight:800;">Deep clean — entire visit</span><button onclick="event.stopPropagation();qc2EditDeep()" style="display:block;background:none;border:none;padding:0;font-size:12px;color:#0369a1;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:underline;">'+(_qc2.deepU>0?('+$'+_qc2.deepU+'/room (custom)'):'kit +$50 \u00b7 bath +$30 \u00b7 bed +$20')+'</button></span>'
       +(_qc2.deepAll?('<span style="font-size:15px;font-weight:800;color:#15803d;">+$'+qc2DeepAmt()+'</span>'):'')
       +'</div>'
     +(anyDeep?('<div onclick="qc2FirstTgl()" style="display:flex;align-items:center;gap:10px;border:2px solid '+(_qc2.firstOnly?'#f59e0b':'#e2e8f0')+';border-radius:14px;background:'+(_qc2.firstOnly?'#fffbeb':'#fff')+';padding:12px;margin-bottom:8px;cursor:pointer;">'
