@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.93 */
+/* APP_VER:2026-07-08.95 */
 (function(){
-  var V='2026-07-08.93'; window.__APP_VER=V;
+  var V='2026-07-08.95'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2032,8 +2032,9 @@ function fmJobExtraRm(i){
   const bk=window._fmCurBk; if(!bk) return; const k=_stopKey(bk);
   (_fmExtraAdd[k]=_fmExtraAdd[k]||[]).splice(i,1); _fmExtraSave(); _fmJobRerender();
 }
-function fmJobAddonPicker(){
-  const bk=window._fmCurBk; if(!bk) return;
+function fmJobAddonPicker(target){
+  window._fmAPickTarget=(target==='fmc')?'fmc':'job';
+  const bk=(window._fmAPickTarget==='fmc')?(_fmcStop&&_fmcStop.bk):window._fmCurBk; if(!bk) return;
   let ov=document.getElementById('fmAPick');
   if(!ov){ ov=document.createElement('div'); ov.id='fmAPick';
     ov.style.cssText='position:fixed;inset:0;z-index:3400;background:rgba(10,22,30,.55);display:flex;align-items:flex-end;justify-content:center;';
@@ -2041,11 +2042,14 @@ function fmJobAddonPicker(){
     document.body.appendChild(ov); }
   const cat=[];
   QC2_ADDONS.forEach(function(a){ cat.push({icon:a.icon,label:a.label,p:(a.noWhole?(a.pr||a.price):a.price)}); });
-  [['🍳','Deep clean \u2014 kitchen','kit'],['🚿','Deep clean \u2014 bathroom','bath'],['🛋','Deep clean \u2014 living room','liv'],['🛏','Deep clean \u2014 bedroom','bed'],['🚪','Deep clean \u2014 extra room','living']].forEach(function(d){ cat.push({icon:d[0],label:d[1],p:qc2DeepUnitFor(d[2])}); });
+  [['🍳','Deep clean \u2014 kitchen','kit'],['🚿','Deep clean \u2014 bathroom','bath'],['🛋','Deep clean \u2014 living room','liv'],['🛏','Deep clean \u2014 bedroom','bed'],['🚪','Deep clean \u2014 extra room','living']].forEach(function(d){ cat.push({icon:d[0],label:d[1],p:qc2DeepUnitFor(d[2]),deep:1}); });
+  const _srt=localStorage.getItem('evg_apick_sort')||'time';
+  if(_srt==='time') cat.sort(function(a,b){ return a.p-b.p; });
   window._fmACat=cat;
   ov.innerHTML='<div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:78vh;display:flex;flex-direction:column;color:#0f2740;" onclick="event.stopPropagation()">'
     +'<div style="padding:14px 16px 10px;border-bottom:1.5px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">'
     +'<div style="font-size:16px;font-weight:900;">\u2795 Add to this visit</div>'
+    +'<button onclick="localStorage.setItem(\'evg_apick_sort\',(localStorage.getItem(\'evg_apick_sort\')||\'time\')===\'time\'?\'az\':\'time\');fmJobAddonPicker(window._fmAPickTarget)" style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:6px 11px;font-size:12px;font-weight:800;color:#1d4ed8;font-family:inherit;cursor:pointer;">'+((localStorage.getItem('evg_apick_sort')||'time')==='time'?'\u23f1 fastest first':'A\u2013Z')+'</button>'
     +'<button onclick="document.getElementById(\'fmAPick\').remove()" style="background:#f3f4f6;border:none;font-size:20px;padding:7px 13px;border-radius:11px;cursor:pointer;">\u00d7</button></div>'
     +'<div style="overflow-y:auto;padding:12px 14px;">'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">'
@@ -2059,23 +2063,36 @@ function fmJobAddonPicker(){
     +'</div></div>';
 }
 function fmJobCatPick(i){
-  const bk=window._fmCurBk, c=(window._fmACat||[])[i]; if(!bk||!c) return;
+  const tgt=window._fmAPickTarget||'job';
+  const bk=(tgt==='fmc')?(_fmcStop&&_fmcStop.bk):window._fmCurBk;
+  const c=(window._fmACat||[])[i]; if(!bk||!c) return;
+  // 🚫 no double deep: if this visit already carries ANY deep clean, block another
+  if(c.deep){
+    const k0=_stopKey(bk);
+    const hasDeep=(customerServicesFor(bk.email,bk.name)||[]).some(function(sv){ return /deep clean/i.test(sv.name); })
+      ||((_fmExtraAdd[k0]||[]).some(function(x){ return /deep clean/i.test(x.name); }))
+      ||((tgt==='fmc')&&(_fmcAddons||[]).some(function(a){ return a.on&&/deep clean/i.test(a.name); }));
+    if(hasDeep){ showToast('\ud83e\uddfc This job already has a deep clean on it \u2014 edit that one instead of stacking another.',6000); return; }
+  }
   qcMoneyWheel('\ud83d\udcb2 '+c.label,5,400,5,c.p,function(v){
     if(!(v>0)) return;
-    const k=_stopKey(bk); (_fmExtraAdd[k]=_fmExtraAdd[k]||[]).push({name:c.label.replace(/[;:]/g,' '),price:v}); _fmExtraSave();
     const ov=document.getElementById('fmAPick'); if(ov) ov.remove();
-    _fmJobRerender(); showToast('\u2795 '+c.label+' \u2014 $'+v+' added to this visit');
+    if(tgt==='fmc'){ _fmcAddons.push({name:c.label.replace(/[;:]/g,' '),price:v,on:true}); _fmcRenderAddons(); _fmcRenderAmount(); _fmcRenderPay(); _fmcRenderEndChk&&_fmcRenderEndChk(); }
+    else{ const k=_stopKey(bk); (_fmExtraAdd[k]=_fmExtraAdd[k]||[]).push({name:c.label.replace(/[;:]/g,' '),price:v}); _fmExtraSave(); _fmJobRerender(); }
+    showToast('\u2795 '+c.label+' \u2014 $'+v+' added to this visit');
   });
 }
 function fmJobCatCustom(){
-  const bk=window._fmCurBk; if(!bk) return;
+  const tgt=window._fmAPickTarget||'job';
+  const bk=(tgt==='fmc')?(_fmcStop&&_fmcStop.bk):window._fmCurBk; if(!bk) return;
   const nm=prompt('What extra work?',''); if(nm===null) return;
   const name=String(nm).replace(/[;:]/g,' ').trim(); if(!name) return;
   qcMoneyWheel('\ud83d\udcb2 '+name,5,400,5,50,function(v){
     if(!(v>0)) return;
-    const k=_stopKey(bk); (_fmExtraAdd[k]=_fmExtraAdd[k]||[]).push({name:name,price:v}); _fmExtraSave();
     const ov=document.getElementById('fmAPick'); if(ov) ov.remove();
-    _fmJobRerender(); showToast('\u2795 '+name+' \u2014 $'+v+' added to this visit');
+    if(tgt==='fmc'){ _fmcAddons.push({name:name,price:v,on:true}); _fmcRenderAddons(); _fmcRenderAmount(); _fmcRenderPay(); _fmcRenderEndChk&&_fmcRenderEndChk(); }
+    else{ const k=_stopKey(bk); (_fmExtraAdd[k]=_fmExtraAdd[k]||[]).push({name:name,price:v}); _fmExtraSave(); _fmJobRerender(); }
+    showToast('\u2795 '+name+' \u2014 $'+v+' added to this visit');
   });
 }
 let _fmJobGo={}; try{ _fmJobGo=JSON.parse(localStorage.getItem('evg_fm_jobgo')||'{}'); }catch(e){}
@@ -2173,7 +2190,12 @@ function _fmRenderJob(stops,idx){
   if(!done && !skipped && !_jobTimers[_stopKey(bk)] && !_fmDrivePhase[_stopKey(bk)]){ _fmDrivePhase[_stopKey(bk)]={t0:Date.now()}; try{ localStorage.setItem('evg_fm_drive',JSON.stringify(_fmDrivePhase)); }catch(e){} }
   const lotM=String(bk.notes||'').match(/lot:\s*([\d.]+)ac/i);
   let pills='';
-  if(amt){ if(_seeMoney(bk)) pills+='<span class="fm-pill amt">$'+amt.toFixed(0)+' '+(pt==='cash'?'cash':pt==='autopay'?'autopay':'invoice')+'</span>'; else pills+='<span class="fm-pill muted">'+(pt==='autopay'?'Autopay':'Invoice')+'</span>'; }
+  const _vTot=(function(){ try{
+    let t=amt||0; const k7=_stopKey(bk), sel=_fmAddonSel[k7]||{}, px=_fmAddonPx[k7]||{};
+    (customerServicesFor(bk.email,bk.name)||[]).forEach(function(sv){ if(sel[sv.name]) t+=(+px[sv.name]>0?+px[sv.name]:(+sv.price||0)); });
+    (_fmExtraAdd[k7]||[]).forEach(function(x){ t+=(+x.price||0); });
+    return t; }catch(e){ return amt||0; } })();
+  if(amt){ if(_seeMoney(bk)) pills+='<span class="fm-pill amt">$'+_vTot.toFixed(0)+' '+(pt==='cash'?'cash':pt==='autopay'?'autopay':'invoice')+(_vTot>amt?' <span style=\"opacity:.75;font-weight:600;\">($'+amt.toFixed(0)+' + add-ons)</span>':'')+'</span>'; else pills+='<span class="fm-pill muted">'+(pt==='autopay'?'Autopay':'Invoice')+'</span>'; }
   if(bk.frequency) pills+='<span class="fm-pill muted">'+esc(bk.frequency)+'</span>';
   if(bk.crew) pills+='<span class="fm-pill muted">Crew '+esc(bk.crew)+'</span>';
   if(lotM) pills+='<span class="fm-pill">📐 '+lotM[1]+' ac</span>';
@@ -2460,7 +2482,7 @@ function _fmcRenderAddons(){
   const seeP=_isMoneyRole()||_fmcPayType==='cash';
   wrap.innerHTML=_fmcAddons.map((a,i)=>'<button class="fm-addon-chip'+(a.on?' on':'')+'" onclick="fmToggleAddon('+i+')"><span>'+(a.on?'\u2713 ':'\uff0b ')+esc(a.name)+'</span>'+(seeP?'<span class="fm-addon-price">$'+(+a.price||0).toFixed(0)+'</span>':'')
     +(a.on?'<span onclick="event.stopPropagation();fmAddonPriceEdit('+i+')" style="margin-left:6px;padding:2px 8px;border-radius:7px;background:rgba(3,105,161,.12);color:#0369a1;font-size:11px;font-weight:800;">\u270e</span>':'')+'</button>').join('')
-    +'<button class="fm-addon-chip" onclick="fmAddonCustom()" style="border-style:dashed;"><span>\u2795 Extra work today\u2026</span></button>';
+    +'<button class="fm-addon-chip" onclick="fmJobAddonPicker(\'fmc\')" style="border-style:dashed;"><span>\u2795 Add-on\u2026</span></button>';
 }
 function fmToggleAddon(i){ if(!_fmcAddons[i]) return; _fmcAddons[i].on=!_fmcAddons[i].on; _fmcRenderAddons(); _fmcRenderAmount(); _fmcRenderPay(); }
 // scope changed on the day? adjust THIS visit's price for the add-on (e.g. saved
@@ -2528,7 +2550,7 @@ function _fmcBuildChecklist(bk){
   var tier=_fmVisitTier(bk);
   ['🚪 Final walkthrough — every room checked','🍽 Kitchen — counters, sink, stovetop & appliance fronts','🚿 Bathrooms — toilets, tubs/showers, mirrors, floors','🧽 Dusting — all surfaces, sills & reachable ledges','🧹 All floors vacuumed & mopped','🗑 Trash out & liners replaced','💡 Lights off · doors locked (or key returned)','🧴 Supplies & equipment packed up','📸 Photos taken of finished rooms'].forEach(function(l){ _fmcEndChk[l]=false; });
   try{ QC_FEATURES.forEach(function(fe){ if(QC_TIER_RANK[tier]>=QC_TIER_RANK[fe.tier]) _fmcEndChk['✨ '+fe.name]=false; }); }catch(e){}
-  (_fmcAddons||[]).forEach(function(a){ if(a&&a.name && _fmcEndChk['✨ '+a.name]===undefined) _fmcEndChk['➕ '+a.name+' (add-on)']=false; });
+  (_fmcAddons||[]).forEach(function(a){ if(a&&a.on&&a.name && _fmcEndChk['✨ '+a.name]===undefined) _fmcEndChk['➕ '+a.name+' (add-on)']=false; });
 }
 function _fmcRenderEndChk(){
   const wrap=document.getElementById('fmcChecklist'); const items=Object.keys(_fmcEndChk);
@@ -2826,15 +2848,15 @@ const QC2_DEEP_UNIT=15;      // deep-clean upcharge per room (tappable)
 const QC2_ADDONS=[
   { id:'grout',   icon:'🧽', label:'Grout scrub',      price:50, pr:20, rooms:1, q:'How many tiled areas? (bathrooms, kitchen, entryway\u2026)', unit:'area' },  // ~60m house / ~25m per area — scrubbing IS the deep version
   { id:'dishes',  icon:'🍽', label:'Dishes',           price:15 },
-  { id:'oven',    icon:'🔥', label:'Inside oven',      price:15, dx:3, depth:1, dq:'Quick wipe or full degrease?', d1:'Quick wipe', d2:'Full degrease' },  // wipe ~18m / degrease ~54m
-  { id:'fridge',  icon:'🧊', label:'Inside fridge',    price:15, dx:3, depth:1, dq:'Shelves only or full empty-out?', d1:'Shelves only', d2:'Full empty-out' },  // shelves ~18m / empty-out ~54m
+  { id:'oven',    icon:'🔥', label:'Inside oven',      price:10, dx:4.5, depth:1, dq:'Quick wipe or full degrease?', d1:'Quick wipe', d2:'Full degrease' },  // wipe ~12m / degrease $45 ~54m
+  { id:'fridge',  icon:'🧊', label:'Inside fridge',    price:10, dx:4.5, depth:1, dq:'Shelves only or full empty-out?', d1:'Shelves only', d2:'Full empty-out' },  // shelves ~12m / empty-out $45 ~54m
   { id:'windows', icon:'🪟', label:'Interior windows', price:40, pr:5, rooms:1, q:'How many windows?', unit:'window', maxN:12, depth:1, dq:'Glass only or tracks & sills too?', d1:'Glass only', d2:'Tracks & sills' },  // ~6m per window glass-only; whole house $40≈48m
   { id:'laundry', icon:'🧺', label:'Laundry',          price:15 },  // ~18m of LABOR (load, switch, fold) — machines run on their own time
   { id:'base',    icon:'📏', label:'Baseboards',       price:25, pr:5,  rooms:1, q:'Baseboards in how many rooms?', unit:'room', dx:2, depth:1, dq:'Dust or scrub?', d1:'Dust', d2:'Scrub' },  // dust ~30m house, ~6m/room; scrub doubles it
   { id:'pet',     icon:'🐾', label:'Pet hair (heavy)', price:30, pr:10, rooms:1, q:'Pet hair in how many rooms?', unit:'room' },  // ~36m house / ~12m per room
   { id:'couch',   icon:'🛋', label:'Couch steam clean', price:35, pr:35, rooms:1, noWhole:1, q:'How many couches / sofas?', unit:'couch', maxN:4 },   // ~42m per couch
   { id:'linens',  icon:'🛏', label:'Bed linens change', price:15, pr:15, rooms:1, noWhole:1, q:'How many beds?', unit:'bed', maxN:6 },               // ~18m per bed — strip, remake, pillowcases
-  { id:'micro',   icon:'🍲', label:'Inside microwave',  price:10 }                                                                                     // ~12m
+  { id:'micro',   icon:'🍲', label:'Inside microwave',  price:5 }                                                                                      // ~6m
 ];
 let _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, customs:[], deepAll:false, firstOnly:false, deepU:0 };
 function qc2Reset(){ _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, customs:[], deepAll:false, firstOnly:false, deepU:0 }; }
@@ -3153,7 +3175,9 @@ function qcSaveEdit(){
   const bk=_qcEditBk; if(!bk) return;
   const core=qc2CoreAmt(), svc=qc2SvcStr(), summ=qc2Summary();
   if(!confirm('Save '+(bk.name||'customer')+'\u2019s plan?\n$'+core+'/visit standard'+(svc?('\nAs-needed: '+svc):''))) return;
-  _fmEnqueue({ kind:'planedit', idemKey:'pe:'+_stopKey(bk)+':'+Date.now(), method:'GET', params:{ action:'update_quote_booking', email:String(bk.email||'').toLowerCase().trim(), serviceDate:dateOf(bk), frequency:String(bk.frequency||''), price:String(core), services:svc, address:bk.address||'', noteAppend:'\u270f\ufe0f Plan edited on-site by '+(adminName||'crew')+' \u2014 '+summ, adminToken } });
+  const hs=(_qc2.rooms.bed||0)+'bd/'+(_qc2.rooms.bath||0)+'ba'+((_qc2.rooms.living||0)?('+'+_qc2.rooms.living+'rm'):'');
+  _fmEnqueue({ kind:'planedit', idemKey:'pe:'+_stopKey(bk)+':'+Date.now(), method:'GET', params:{ action:'update_quote_booking', email:String(bk.email||'').toLowerCase().trim(), serviceDate:dateOf(bk), frequency:String(bk.frequency||''), price:String(core), services:svc, address:bk.address||'', homeSummary:hs, noteAppend:'\u270f\ufe0f Plan edited on-site by '+(adminName||'crew')+' \u2014 '+summ, adminToken } });
+  try{ const tokRe=/(\d+)\s*bd\s*\/\s*(\d+)\s*ba(?:\s*\+\s*(\d+)\s*rm)?/i; bk.notes=tokRe.test(String(bk.notes||''))?String(bk.notes).replace(tokRe,hs):(hs+' | '+String(bk.notes||'')); }catch(e){}
   _fmFlushQueue();
   bk.price='$'+core;
   try{ const em=String(bk.email||'').toLowerCase().trim(); const c=(allCustomers||[]).find(function(x){ return em?(String(x.Email||'').toLowerCase().trim()===em):(String(x.Name||'').toLowerCase().trim()===String(bk.name||'').toLowerCase().trim()); }); if(c) c.Services=svc; }catch(e){}
