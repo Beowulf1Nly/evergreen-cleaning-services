@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.85 */
+/* APP_VER:2026-07-08.86 */
 (function(){
-  var V='2026-07-08.85'; window.__APP_VER=V;
+  var V='2026-07-08.86'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2920,6 +2920,8 @@ function qc2Lines(){
 function qc2Summary(){ return qc2Lines().map(function(l){ return l.desc; }).join(' + '); }
 
 function qcOpen(){
+  if(!_qcQuoteNext) _qcQuoteBk=null;   // builder opened casually — outcomes must NOT close an old quote
+  _qcQuoteNext=false;
   if(!document.getElementById('qcOverlay')){
     const o=document.createElement('div');
     o.id='qcOverlay';
@@ -2949,8 +2951,13 @@ function qcOpen(){
 }
 function qcClose(){ const o=document.getElementById('qcOverlay'); if(o) o.style.display='none'; }
 /* ── quote-visit mode: same builder, but every outcome CLOSES the quote job ── */
-let _qcQuoteBk=null;
-function qcOpenForQuote(bk){ _qcQuoteBk=bk; qc2Reset(); qcOpen(); showToast('\ud83d\udccb Quote visit \u2014 build it in front of them, then Book / Email / Declined',5000); }
+let _qcQuoteBk=null, _qcQuoteKey='', _qcQuoteNext=false;
+function qcOpenForQuote(bk){
+  _qcQuoteBk=bk; _qcQuoteNext=true;
+  const k=_stopKey(bk);
+  if(_qcQuoteKey!==k){ qc2Reset(); _qcQuoteKey=k; }   // same quote reopened = estimate kept
+  qcOpen(); showToast('\ud83d\udccb Quote visit \u2014 build it in front of them, then Book / Email / Declined',5000);
+}
 function _qcQuoteDone(note){
   const bk=_qcQuoteBk; if(!bk) return; _qcQuoteBk=null;
   const base=_stopKey(bk);
@@ -3203,10 +3210,19 @@ function qcEmail(){
   if(!nm){ showToast('Enter the customer name'); return; }
   var em=prompt('Email the estimate to'+(bk&&bk.email?' (from their file — fix if wrong)':'')+':',String((bk&&bk.email)||'').trim().toLowerCase()); if(em===null) return; em=em.trim().toLowerCase();
   if(!em||em.indexOf('@')<1||em.indexOf('.')<0){ showToast('Enter a valid email'); return; }
-  var items=qc2Lines().map(function(l){ return {desc:l.desc, price:l.price, included:'false'}; });
-  if(_qc2.firstOnly&&qc2DeepRooms()>0) items.push({desc:'Visits after the first — spot clean', price:qc2Spot(), included:'true'});
+  // the email must read like the close card: recurring total = STANDARD visit;
+  // deep (first-visit) and as-needed add-ons are 'optional' lines outside the total
+  var core=qc2CoreAmt(), tot=qc2Total(), dr0=qc2DeepRooms();
+  var items=[{desc:'Standard clean — every visit (up to 1 bedroom, kitchen & living room)', price:CLEAN_MIN_JOB, included:'false'}];
+  QC2_ROOMS.forEach(function(r){ var ch=qc2Charged(r.id); if(ch>0) items.push({desc:ch+'× '+(r.id==='bed'?('extra bedroom'+(ch>1?'s':'')):r.label.toLowerCase()), price:ch*qc2RoomUnit(r.id), included:'false'}); });
+  if(dr0>0) items.push({desc:'Deep clean — '+(_qc2.deepAll?'whole home':(dr0+' room'+(dr0>1?'s':'')))+(_qc2.firstOnly?' (first-visit reset, one time)':' (every visit)'), price:qc2DeepAmt(), included:'false', optional:_qc2.firstOnly?'true':'false'});
+  QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ var dt=qc2AddonDetail(a.id); items.push({desc:a.label+(dt?(' — '+dt):'')+' (as needed)', price:qc2AddonPrice(a.id), included:'false', optional:'true'}); } });
+  var emailNotes=[];
+  if(_qc2.firstOnly&&dr0>0) emailNotes.push('First visit: ~$'+tot+' — a one-time reset to get the whole house under control.');
+  emailNotes.push('Every visit after: $'+core+' flat.');
+  if(qc2AddonsAmt()>0) emailNotes.push('Add-ons are only billed when you request them or a room needs it — otherwise your visit stays $'+core+'.');
   var vt=new Date(); vt.setDate(vt.getDate()+14); var pad=function(n){ return String(n).padStart(2,'0'); };
-  _fmEnqueue({ kind:'quoteest', idemKey:'qe:calc:'+em+'|'+Date.now(), method:'GET', params:{ action:'send_quote_email', submittedBy:adminName||'Crew', name:nm, email:em, phone:String((bk&&bk.phone)||''), address:String((bk&&bk.address)||''), summary:qc2Summary(), items:JSON.stringify(items), notes:'[]', estimateDate:todayISOStr(), validThru:vt.getFullYear()+'-'+pad(vt.getMonth()+1)+'-'+pad(vt.getDate()), frequency:'Cleaning estimate', adminToken:adminToken } });
+  _fmEnqueue({ kind:'quoteest', idemKey:'qe:calc:'+em+'|'+Date.now(), method:'GET', params:{ action:'send_quote_email', submittedBy:adminName||'Crew', name:nm, email:em, phone:String((bk&&bk.phone)||''), address:String((bk&&bk.address)||''), summary:qc2Summary(), items:JSON.stringify(items), notes:JSON.stringify(emailNotes), estimateDate:todayISOStr(), validThru:vt.getFullYear()+'-'+pad(vt.getMonth()+1)+'-'+pad(vt.getDate()), frequency:'Cleaning estimate', adminToken:adminToken } });
   _fmFlushQueue();
   qcClose();
   if(_qcQuoteBk) _qcQuoteDone('Quote \u2014 estimate emailed to '+em+' ($'+qc2Total()+') by '+(adminName||'crew'));
