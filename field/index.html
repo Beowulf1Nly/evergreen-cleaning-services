@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.66 */
+/* APP_VER:2026-07-08.67 */
 (function(){
-  var V='2026-07-08.66'; window.__APP_VER=V;
+  var V='2026-07-08.67'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2662,7 +2662,7 @@ const QC2_ADDONS=[
   { id:'dishes',  icon:'🍽', label:'Dishes',           price:15 },
   { id:'oven',    icon:'🔥', label:'Inside oven',      price:15, dx:3, depth:1, dq:'Quick wipe or full degrease?', d1:'Quick wipe', d2:'Full degrease' },  // wipe ~18m / degrease ~54m
   { id:'fridge',  icon:'🧊', label:'Inside fridge',    price:15, dx:3, depth:1, dq:'Shelves only or full empty-out?', d1:'Shelves only', d2:'Full empty-out' },  // shelves ~18m / empty-out ~54m
-  { id:'windows', icon:'🪟', label:'Interior windows', price:40, pr:10, rooms:1, q:'Windows in how many rooms?', unit:'room', depth:1, dq:'Glass only or tracks & sills too?', d1:'Glass only', d2:'Tracks & sills' },  // ~48m house / ~12m per room
+  { id:'windows', icon:'🪟', label:'Interior windows', price:40, pr:5, rooms:1, q:'How many windows?', unit:'window', maxN:12, depth:1, dq:'Glass only or tracks & sills too?', d1:'Glass only', d2:'Tracks & sills' },  // ~6m per window glass-only; whole house $40≈48m
   { id:'laundry', icon:'🧺', label:'Laundry',          price:15 },  // ~18m of LABOR (load, switch, fold) — machines run on their own time
   { id:'base',    icon:'📏', label:'Baseboards',       price:25, pr:5,  rooms:1, q:'Baseboards in how many rooms?', unit:'room', dx:2, depth:1, dq:'Dust or scrub?', d1:'Dust', d2:'Scrub' },  // dust ~30m house, ~6m/room; scrub doubles it
   { id:'pet',     icon:'🐾', label:'Pet hair (heavy)', price:30, pr:10, rooms:1, q:'Pet hair in how many rooms?', unit:'room' }  // ~36m house / ~12m per room
@@ -2735,7 +2735,7 @@ function qc2CfgOpen(id){
     +(a.rooms?(sec(a.q||'How much of the house?')
       +'<div style="display:flex;gap:6px;margin-bottom:14px;">'
       +chip(!(c.scope>0),'Whole<br>house',"qc2CfgScope('"+id+"',0)")
-      +[1,2,3,4,5].map(function(n){ return chip(c.scope===n,n+'<br><span style=\"font-size:10px;font-weight:700;\">'+(a.unit||'room')+(n>1?'s':'')+'</span>',"qc2CfgScope('"+id+"',"+n+")"); }).join('')
+      +(a.maxN>5?[2,4,6,8,10,12]:[1,2,3,4,5]).map(function(n){ return chip(c.scope===n,n+'<br><span style=\"font-size:10px;font-weight:700;\">'+(a.unit||'room')+(n>1?'s':'')+'</span>',"qc2CfgScope('"+id+"',"+n+")"); }).join('')
       +'</div>'):'')
     +(a.depth?(sec(a.dq||'How deep?')
     +'<div style="display:flex;gap:8px;margin-bottom:14px;">'
