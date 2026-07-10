@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.97 */
+/* APP_VER:2026-07-08.98 */
 (function(){
-  var V='2026-07-08.97'; window.__APP_VER=V;
+  var V='2026-07-08.98'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2549,7 +2549,7 @@ function fmToggleInvoice(){ _fmcInvoiceSent=!_fmcInvoiceSent; _fmcRenderPay(); }
 function _fmVisitTier(bk){ return _tierOf(bk); }
 function _fmcBuildChecklist(bk){
   var tier=_fmVisitTier(bk);
-  ['🚪 Final walkthrough — every room checked','🍽 Kitchen — counters, sink, stovetop & appliance fronts','🚿 Bathrooms — toilets, tubs/showers, mirrors, floors','🧽 Dusting — all surfaces, sills & reachable ledges','🧹 All floors vacuumed & mopped','🗑 Trash out & liners replaced','💡 Lights off · doors locked (or key returned)','🧴 Supplies & equipment packed up','📸 Photos taken of finished rooms'].forEach(function(l){ _fmcEndChk[l]=false; });
+  ['🚪 Final walkthrough — every room checked','🍽 Kitchen — counters, sink, stovetop & appliance fronts','🚿 Bathrooms — toilets, tubs/showers, mirrors, floors','🧽 Dusting — all surfaces, sills & reachable ledges','🌀 Ceiling fans dusted — every room','🧹 All floors vacuumed & mopped/steamed','✋ Door knobs, handles & switches wiped','🗑 Trash out & liners replaced','💡 Lights off · doors locked (or key returned)','🧴 Supplies & equipment packed up','📸 Photos taken of finished rooms'].forEach(function(l){ _fmcEndChk[l]=false; });
   try{ QC_FEATURES.forEach(function(fe){ if(QC_TIER_RANK[tier]>=QC_TIER_RANK[fe.tier]) _fmcEndChk['✨ '+fe.name]=false; }); }catch(e){}
   (_fmcAddons||[]).forEach(function(a){ if(a&&a.on&&a.name && _fmcEndChk['✨ '+a.name]===undefined) _fmcEndChk['➕ '+a.name+' (add-on)']=false; });
 }
@@ -3305,10 +3305,10 @@ function qcDeepInfoOpen(){
   ov.innerHTML='<div style="background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:82vh;overflow-y:auto;padding:18px 16px 28px;" onclick="event.stopPropagation()">'
     +'<div style="font-size:17px;font-weight:900;margin-bottom:6px;">🧼 Standard vs. Deep clean</div>'
     +'<div style="font-size:13px;color:#475569;line-height:1.55;margin-bottom:12px;"><b>Standard</b> is the upkeep clean \u2014 surfaces, floors, the things you touch every week. <b>Deep</b> gets a room back under control \u2014 the buildup, grease and scale an upkeep clean doesn\u2019t touch.</div>'
-    +row('🍳','Kitchen','counters, sink & faucet, stovetop, outside of appliances, floors, trash out, cabinet fronts spot-cleaned','backsplash & hood degreased, inside microwave, cabinet fronts scrubbed, appliances detailed, floors by hand, baseboards',qc2DeepUnitFor('kit'))
-    +row('🚿','Bathroom','toilet, shower/tub wiped, sink & counters, mirror, floors, trash out, doors & switches spot-cleaned','soap scum & hard-water scale removed, tile & grout lines scrubbed, behind & around the toilet, vents & fan, baseboards, door & frame',qc2DeepUnitFor('bath'))
-    +row('🛋','Living room','every surface dusted, floors vacuumed & mopped, tidy & reset, touch points spot-cleaned','blinds & ceiling fan, under the cushions, furniture moved & cleaned behind, vents, baseboards, doors & frames',qc2DeepUnitFor('liv'))
-    +row('🛏','Bedroom / extra room','surfaces dusted, floors vacuumed, beds made, tidy, doors & switches spot-cleaned','blinds & fan, under the bed, baseboards, doors & frames, every surface top to bottom',qc2DeepUnitFor('bed'))
+    +row('🍳','Kitchen','counters, sink & faucet, stovetop, outside of appliances, floors vacuumed & mopped, trash out, door knobs & cabinet fronts spot-cleaned','backsplash & hood degreased, inside microwave, cabinet fronts scrubbed, appliances detailed, floors by hand, baseboards',qc2DeepUnitFor('kit'))
+    +row('🚿','Bathroom','toilet, shower/tub wiped, sink & counters, mirror, floors vacuumed & mopped, trash out, door knobs & switches spot-cleaned','soap scum & hard-water scale removed, tile & grout lines scrubbed, behind & around the toilet, vents & fan, baseboards, door & frame',qc2DeepUnitFor('bath'))
+    +row('🛋','Living room','every surface dusted, ceiling fan dusted, floors vacuumed & mopped/steamed, tidy & reset, door knobs & switches spot-cleaned','blinds, under the cushions, furniture moved & cleaned behind, vents, baseboards, doors & frames',qc2DeepUnitFor('liv'))
+    +row('🛏','Bedroom / extra room','surfaces dusted, ceiling fan dusted, floors vacuumed & mopped/steamed, beds made, door knobs & switches spot-cleaned','blinds, under the bed, baseboards, doors & frames, every surface top to bottom',qc2DeepUnitFor('bed'))
     +'<div style="background:#fffbeb;border:1.5px solid #fde047;border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.55;color:#713f12;font-weight:600;">Most homes: <b>deep clean the first visit</b> to reset the house, then standard visits keep it that way \u2014 so the regular price stays low.</div>'
     +'<button onclick="document.getElementById(\'qcDeepInfoOv\').remove()" style="width:100%;margin-top:12px;padding:14px;border-radius:13px;border:none;background:#0f172a;color:#fff;font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;">Got it</button></div>';
 }
@@ -3431,11 +3431,12 @@ function qcRender(){
       const every=[];
       const nk=_qc2BR('kit'), nl=_qc2BR('liv');
       if(nk>0) every.push((nk>1?nk+' kitchens':'Kitchen')+' \u2014 counters, sink, stovetop, appliance fronts, floors, trash out');
-      if(nl>0) every.push((nl>1?nl+' living rooms':'Living room')+' \u2014 dusted top to bottom, floors done, tidied & reset');
-      const nb=_qc2.rooms.bed||0; if(nb>0) every.push(nb+' bedroom'+(nb>1?'s':'')+' \u2014 dusted, floors, beds made');
+      if(nl>0) every.push((nl>1?nl+' living rooms':'Living room')+' \u2014 dusted top to bottom, ceiling fan, tidied & reset');
+      const nb=_qc2.rooms.bed||0; if(nb>0) every.push(nb+' bedroom'+(nb>1?'s':'')+' \u2014 dusted, ceiling fan, beds made');
       const na=_qc2.rooms.bath||0; if(na>0) every.push(na+' bathroom'+(na>1?'s':'')+' \u2014 toilet, shower, sink, mirror, floors');
       const nx=_qc2.rooms.living||0; if(nx>0) every.push(nx+' extra room'+(nx>1?'s':'')+' \u2014 full standard clean');
-      every.push('Touch points spot-cleaned everywhere \u2014 doors, switches, handles');
+      every.push('Every room \u2014 vacuumed & mopped/steamed, ceiling fans dusted');
+      every.push('Touch points everywhere \u2014 door knobs, handles, switches spot-cleaned');
       const asneeded=[];
       if(_qc2.deepAll) asneeded.push({t:'Deep clean \u2014 every room, back under control'+(_qc2.firstOnly?' (first visit reset)':''),p:qc2DeepAmt()});
       else if(dr>0) asneeded.push({t:'Deep clean \u2014 '+dr+' room'+(dr>1?'s':'')+(_qc2.firstOnly?' (first visit reset)':''),p:qc2DeepAmt()});
