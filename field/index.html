@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.82 */
+/* APP_VER:2026-07-08.83 */
 (function(){
-  var V='2026-07-08.82'; window.__APP_VER=V;
+  var V='2026-07-08.83'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -3155,13 +3155,23 @@ function qcRender(){
       if(_qc2.deepAll) asneeded.push({t:'Deep clean \u2014 every room, back under control'+(_qc2.firstOnly?' (first visit reset)':''),p:qc2DeepAmt()});
       else if(dr>0) asneeded.push({t:'Deep clean \u2014 '+dr+' room'+(dr>1?'s':'')+(_qc2.firstOnly?' (first visit reset)':''),p:qc2DeepAmt()});
       QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ const _dt=qc2AddonDetail(a.id); asneeded.push({t:(FLUFF[a.id]||a.label)+(_dt?' \u2014 '+_dt:''),p:qc2AddonPrice(a.id)}); } });
-      const li=function(txt,extra){ return '<div style="display:flex;gap:9px;font-size:14px;line-height:1.9;font-weight:600;color:#3b0764;"><span style="color:#16a34a;font-weight:800;">\u2713</span><span>'+txt+(extra||'')+'</span></div>'; };
+      const li=function(txt,extra){ return '<div style="display:flex;gap:9px;font-size:14px;line-height:1.85;font-weight:600;color:#3b0764;"><span style="color:#16a34a;font-weight:800;">\u2713</span><span>'+txt+(extra||'')+'</span></div>'; };
+      const core=qc2CoreAmt(), hasX=asneeded.length>0, isFirst=(_qc2.firstOnly&&dr>0);
+      let stepN=0;
+      const say=function(quote,inner){ stepN++;
+        return '<div style="margin-bottom:12px;">'
+          +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;"><span style="background:#6d28d9;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;">'+stepN+'</span><span style="font-size:10.5px;font-weight:900;color:#6d28d9;text-transform:uppercase;letter-spacing:.08em;">Say this</span></div>'
+          +'<div style="background:#fff;border:1.5px solid #e9d5ff;border-radius:12px;padding:10px 13px;font-size:15px;line-height:1.55;font-weight:700;color:#3b0764;">\u201c'+quote+'\u201d</div>'
+          +(inner||'')+'</div>'; };
       return '<div style="margin-top:10px;padding:14px 15px;background:#fdf4ff;border:1.5px solid #e9d5ff;border-radius:14px;">'
-        +'<div style="font-size:12px;font-weight:900;color:#6d28d9;text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">\ud83e\uddf9 Every visit \u2014 $'+qc2CoreAmt()+'</div>'
-        +every.map(function(p){ return li(esc(p)); }).join('')
-        +(asneeded.length?('<div style="font-size:12px;font-weight:900;color:#0369a1;text-transform:uppercase;letter-spacing:.07em;margin:12px 0 7px;">\u2795 Only when needed or requested</div>'
-          +asneeded.map(function(x){ return li(esc(x.t),' <b style="color:#0369a1;">$'+x.p+'</b>'); }).join('')
-          +'<div style="margin-top:8px;font-size:12.5px;line-height:1.6;font-weight:600;color:#6d28d9;">These only go on the bill when you ask for them or a room needs it \u2014 otherwise your visit stays $'+qc2CoreAmt()+'.</div>'):'')
+        +'<div style="font-size:12px;font-weight:900;color:#6d28d9;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">\ud83d\udde3 The close \u2014 read it word for word</div>'
+        +say('Every single visit, we do all of this:','<div style="padding:7px 4px 0;">'+every.map(function(p){ return li(esc(p)); }).join('')+'</div>')
+        +say('That\u2019s $'+core+' a visit. Flat. Every time.')
+        +(hasX?say('These extras only happen when you ask, or when a room needs it:','<div style="padding:7px 4px 0;">'+asneeded.map(function(x){ return li(esc(x.t),' <b style="color:#0369a1;">$'+x.p+'</b>'); }).join('')+'</div>'):'')
+        +(hasX?say('We only charge those when we actually do them. If we don\u2019t, your bill is just $'+core+'. You\u2019re always in control.'):'')
+        +(isFirst?say('The first visit is $'+first+' \u2014 that\u2019s the one-time reset to get the whole house under control. After that it\u2019s $'+core+' a visit.'):(hasX?say('With everything done it\u2019s $'+first+' \u2014 but most visits will just be the $'+core+'.'):''))
+        +say('Which day works best for you?')
+        +'<div style="font-size:11.5px;font-weight:800;color:#9333ea;margin-top:2px;">If they pick a day \u2192 tap <b>Book now</b> below. They hesitate \u2192 tap <b>Email estimate</b>. That\u2019s it.</div>'
         +(function(){
             const core=qc2CoreAmt(), ad=qc2AddonsAmt(), dp=qc2DeepAmt();
             const r=function(lab,v,big){ return '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:'+(big?'15px':'12.5px')+';font-weight:800;color:'+(big?'#3b0764':'#6d28d9')+';line-height:2;"><span>'+lab+'</span><span style="'+(big?'font-size:18px;':'')+'">$'+v+'</span></div>'; };
