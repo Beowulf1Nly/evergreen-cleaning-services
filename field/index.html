@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.80 */
+/* APP_VER:2026-07-08.81 */
 (function(){
-  var V='2026-07-08.80'; window.__APP_VER=V;
+  var V='2026-07-08.81'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2208,7 +2208,7 @@ function fmRecordSkip(reason){
 function fmOpenComplete(){
   // Quote visits close with an OUTCOME (book / email estimate / no) — not a payment.
   const _qbk=(_fmStops()[_fmViewIdx]||{}).bk;
-  if(_qbk&&_isQuoteJob(_qbk)){ fmQuoteCloser(_qbk); return; }
+  if(_qbk&&_isQuoteJob(_qbk)){ qcOpenForQuote(_qbk); return; }
   const stop=_fmStops()[_fmViewIdx]; if(!stop) return;
   const bk=stop.bk;
   _fmcStop=stop; _fmcRowIdx=(allBookings||[]).indexOf(bk); _fmcPayType=_payType(bk);
@@ -2935,6 +2935,19 @@ function qcOpen(){
   document.getElementById('qcOverlay').style.display='flex';
 }
 function qcClose(){ const o=document.getElementById('qcOverlay'); if(o) o.style.display='none'; }
+/* ── quote-visit mode: same builder, but every outcome CLOSES the quote job ── */
+let _qcQuoteBk=null;
+function qcOpenForQuote(bk){ _qcQuoteBk=bk; qc2Reset(); qcOpen(); showToast('\ud83d\udccb Quote visit \u2014 build it in front of them, then Book / Email / Declined',5000); }
+function _qcQuoteDone(note){
+  const bk=_qcQuoteBk; if(!bk) return; _qcQuoteBk=null;
+  const base=_stopKey(bk);
+  // note FIRST so it lands on the still-open quote row; then mark it done at $0
+  _fmEnqueue({ kind:'quotenote', idemKey:'qn:'+base, method:'GET', params:{ action:'set_employee_note', rowIndex:(bk._rowIndex||0), email:bk.email||'', serviceDate:dateOf(bk), note:note, markedBy:adminName||'Crew', adminToken } });
+  _fmEnqueue({ kind:'quotedone', idemKey:'qd:'+base, method:'GET', params:{ action:'mark_done', rowIndex:(bk._rowIndex||0), email:bk.email||'', serviceDate:dateOf(bk), amount:'0', markedBy:adminName||'Crew', adminToken } });
+  _fmFlushQueue();
+  bk.done='\u2713 Done'; _fmDoneLocal[base]=Date.now(); _fmMarkSeq(bk);
+  _persist(); _fmRender();
+}
 function qcNotInterested(){
   const why=prompt('They passed at $'+qc2Total()+' — why? (optional, helps the office)','');
   if(why===null) return;
@@ -2945,7 +2958,9 @@ function qcNotInterested(){
     bk.employeeNotes=(String(bk.employeeNotes||'').trim()?bk.employeeNotes+' | ':'')+note;
     _fmFlushQueue();
   }
-  qcClose(); qc2Reset(); showToast('Logged for the office.');
+  qcClose(); qc2Reset();
+  if(_qcQuoteBk) _qcQuoteDone('Quote LOST \u2014 declined at $'+qc2Total()+(why.trim()?(' ('+why.trim()+')'):'')+' \u2014 '+(adminName||'crew'));
+  showToast('Logged for the office.');
 }
 function qcBookNow(){
   var first=qc2Total(), core=qc2CoreAmt(), summary=qc2Summary();
@@ -3163,7 +3178,9 @@ function qcEmail(){
   var vt=new Date(); vt.setDate(vt.getDate()+14); var pad=function(n){ return String(n).padStart(2,'0'); };
   _fmEnqueue({ kind:'quoteest', idemKey:'qe:calc:'+em+'|'+Date.now(), method:'GET', params:{ action:'send_quote_email', submittedBy:adminName||'Crew', name:nm, email:em, phone:'', address:'', summary:qc2Summary(), items:JSON.stringify(items), notes:'[]', estimateDate:todayISOStr(), validThru:vt.getFullYear()+'-'+pad(vt.getMonth()+1)+'-'+pad(vt.getDate()), frequency:'Cleaning estimate', adminToken:adminToken } });
   _fmFlushQueue();
-  qcClose(); showToast('\u2709\ufe0f Estimate emailed to '+em);
+  qcClose();
+  if(_qcQuoteBk) _qcQuoteDone('Quote \u2014 estimate emailed to '+em+' ($'+qc2Total()+') by '+(adminName||'crew'));
+  showToast('\u2709\ufe0f Estimate emailed to '+em);
 }
 function ncClose(){ const o=document.getElementById('ncOverlay'); if(o) o.style.display='none'; }
 const NC_FREQS=['Weekly Plan','Bi-Weekly Plan','Monthly Plan','One-time visit','Custom — every X days'];
@@ -3261,6 +3278,7 @@ function ncSubmit(){
     _fmEnqueue({ kind:'comm', idemKey:'cm:nc:'+email+'|'+date, method:'GET', params:{ action:'log_commission', key:'cm:nc:'+email+'|'+date+'|'+name, date:todayISOStr(), names:_ncNames.join(', '), jobName:name, email:email, jobDate:date, base:String(parseFloat(price)), pct:'80', type:'lead + close (80%)', adminToken } });
   }
   _fmFlushQueue();
+  if(_qcQuoteBk) _qcQuoteDone('Quote WON \u2014 '+freq+' $'+(price||'?')+'/visit \u2014 booked at quote visit by '+(adminName||'crew'));
   if(date===todayISOStr()){
     const cur=(function(){ try{ const st=_fmStops(); return st[_fmViewIdx]?_stopKey(st[_fmViewIdx].bk):null; }catch(e){ return null; } })();
     _fmAddLocalSameDay({ name:name, email:email, phone:phone, address:addr, zip:zip, frequency:freq, price:(price?('$'+price):''), serviceDate:date, notes:'Added on route (same-day)', crew:'', jobTime:'', payMethod:pay||'card' }, cur);
