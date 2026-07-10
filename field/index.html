@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.95 */
+/* APP_VER:2026-07-08.96 */
 (function(){
-  var V='2026-07-08.95'; window.__APP_VER=V;
+  var V='2026-07-08.96'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -1839,7 +1839,7 @@ function _fmRenderStart(){
   _fmShow('fmScreenStart');
   const hr=new Date().getHours(); const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
   document.getElementById('fmGreet').textContent=greet+', '+((adminName||'').split(' ')[0]||'crew');
-  document.getElementById('fmStartDate').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+' · 👤 '+String(adminRole||'employee').replace(/_/g,' ');
+  document.getElementById('fmStartDate').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+' · 👤 '+String(adminRole||'employee').replace(/_/g,' ')+' · v'+(String((document.documentElement.outerHTML.match(/APP_VER:([0-9.]+)/)||[])[1]||'?').slice(-5));
   const raw=_fmTodayRawJobs(), n=raw.length;
   document.getElementById('fmStartCount').textContent=n;
   const total=raw.reduce((s,b)=>s+_fmAmt(b),0), cashN=raw.filter(b=>_payType(b)==='cash').length;
@@ -2328,6 +2328,7 @@ function fmOpenComplete(){
   // Quote visits close with an OUTCOME (book / email estimate / no) — not a payment.
   const _qbk=(_fmStops()[_fmViewIdx]||{}).bk;
   if(_qbk&&_isQuoteJob(_qbk)){ qcOpenForQuote(_qbk); return; }
+  if(_qbk&&!_fmJobGo[_stopKey(_qbk)]){ fmJobGo(); showToast('▶ Job started — tap ✓ Done again when the house is finished.',5000); return; }
   const stop=_fmStops()[_fmViewIdx]; if(!stop) return;
   const bk=stop.bk;
   _fmcStop=stop; _fmcRowIdx=(allBookings||[]).indexOf(bk); _fmcPayType=_payType(bk);
@@ -2616,7 +2617,9 @@ async function fmSubmitComplete(){
   const extra=[];
   if(selAddons.length && _fmcPayType!=='autopay'){ const tag=selAddons.map(a=>a.name+'='+a.price).join(','); extra.push({ kind:'addons', idemKey:'addons:'+base+':'+tag, method:'GET', params:{ action:'apply_job_addons', rowIndex, email, serviceDate:svcDate, addons:JSON.stringify(selAddons), adminToken } }); } // autopay applies extras inside field_complete so the charge includes them
   if(_fmcPayType==='cash') extra.push({ kind:'cash', idemKey:'cash:'+base, method:'GET', params:{ action:'mark_cash_paid', rowIndex, email, serviceDate:svcDate, adminToken, markedBy:adminName||'Crew' } });
-  if(_fmcPayType==='invoice' && _fmcInvoiceSent) extra.push({ kind:'invoice', idemKey:'invoice:'+base, method:'GET', params:{ action:'send_invoice', rowIndex, email, serviceDate:svcDate, amount:grand.toFixed(2), adminToken } });
+  const _descParts=['Standard clean $'+(_fmcBase||0).toFixed(0)].concat((_fmcAddons||[]).filter(a=>a.on&&a.price>0).map(a=>a.name+' $'+(+a.price).toFixed(0)));
+  const _lineDesc=_descParts.join(' + ');
+  if(_fmcPayType==='invoice' && _fmcInvoiceSent) extra.push({ kind:'invoice', idemKey:'invoice:'+base, method:'GET', params:{ action:'send_invoice', rowIndex, email, serviceDate:svcDate, amount:grand.toFixed(2), description:_lineDesc, adminToken } });
   if(ownerNote){ const noteLine='📝 '+ownerNote+' — '+(adminName||'crew'); extra.push({ kind:'note', idemKey:'note:'+base, method:'GET', params:{ action:'set_employee_note', rowIndex, email, serviceDate:svcDate, note:(String(bk.employeeNotes||'').trim()?bk.employeeNotes+' | ':'')+noteLine, adminToken } }); }
   // Sticky customer note — only sent when actually changed; REPLACES the profile note.
   (function(){
