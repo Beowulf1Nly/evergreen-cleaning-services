@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.91 */
+/* APP_VER:2026-07-08.92 */
 (function(){
-  var V='2026-07-08.91'; window.__APP_VER=V;
+  var V='2026-07-08.92'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2072,6 +2072,14 @@ function fmJobCatCustom(){
     _fmJobRerender(); showToast('\u2795 '+name+' \u2014 $'+v+' added to this visit');
   });
 }
+let _fmJobGo={}; try{ _fmJobGo=JSON.parse(localStorage.getItem('evg_fm_jobgo')||'{}'); }catch(e){}
+function fmJobGo(){
+  const bk=window._fmCurBk; if(!bk) return; const k=_stopKey(bk);
+  _fmJobGo[k]=Date.now(); try{ localStorage.setItem('evg_fm_jobgo',JSON.stringify(_fmJobGo)); }catch(e){}
+  if(!_jobTimers[k]) _jobTimers[k]=new Date().toISOString();   // job clock anchors on Start
+  _persist(); _fmHeartbeat(); _fmJobRerender();
+  showToast('▶ Started — timer running. Tap ✓ Done when the house is finished.');
+}
 function fmJobAddonTgl(i){
   const bk=window._fmCurBk; if(!bk) return;
   const list=customerServicesFor(bk.email,bk.name)||[]; const s=list[i]; if(!s) return;
@@ -2201,6 +2209,7 @@ function _fmRenderJob(stops,idx){
     +_extras.map(function(x2,i2){ return '<button class="fm-addon-chip on" onclick="fmJobExtraEdit('+i2+')"><span>\u2728 '+esc(x2.name)+'</span><span class="fm-addon-price">$'+(+x2.price||0).toFixed(0)+'</span>'
       +'<span onclick="event.stopPropagation();fmJobExtraRm('+i2+')" style="margin-left:5px;padding:2px 7px;border-radius:7px;background:rgba(248,113,113,.18);color:#f87171;font-size:11px;font-weight:800;">\u00d7</span></button>'; }).join('')
     +'<button class="fm-addon-chip" style="border-style:dashed;" onclick="fmJobAddonPicker()"><span>\u2795 Add-on\u2026</span></button>'
+    +'<button class="fm-addon-chip" style="border-color:#a78bfa;color:#c4b5fd;" onclick="fmEditPlan()"><span>🧮 Edit whole plan\u2026</span></button>'
     +'</div><div style="font-size:11px;color:#94a3b8;margin-top:6px;">Tap = doing it today \u00b7 \u270e = price for this visit \u00b7 everything pre-fills the finish screen.</div></div>'):'';
   const _navBtn=done
     ? '<button class="fm-btn fm-btn-lg" style="background:#64748b;color:#e2e8f0;cursor:not-allowed;" disabled>✓ Completed — no need to drive</button>'
@@ -2240,7 +2249,11 @@ function _fmRenderJob(stops,idx){
     el.innerHTML=line; el.style.display='';
   })();
   const hop=document.getElementById('fmSkipHopBtn'); if(hop) hop.style.display='';   // everyone gets it — emergencies happen
-  const doneBtn=document.getElementById('fmDoneBtn'); if(doneBtn){ doneBtn.style.display=(done||skipped)?'none':''; if(_isQuoteJob(bk)){ doneBtn.textContent='📝 Build Estimate →'; doneBtn.style.background='#2563eb'; } else { doneBtn.textContent=_fmIsFinalOpenStop()?'✓ Done — Finish Route':'✓ Done — Next Stop'; doneBtn.style.background=''; } }
+  const doneBtn=document.getElementById('fmDoneBtn'); if(doneBtn){ doneBtn.style.display=(done||skipped)?'none':'';
+    const _k9=_stopKey(bk);
+    if(_isQuoteJob(bk)){ doneBtn.textContent='📝 Build Estimate →'; doneBtn.style.background='#2563eb'; doneBtn.onclick=fmOpenComplete; }
+    else if(!_fmJobGo[_k9]){ doneBtn.textContent='▶ Start job'; doneBtn.style.background='#0284c7'; doneBtn.onclick=fmJobGo; }
+    else { doneBtn.textContent=_fmIsFinalOpenStop()?'✓ Done — Finish Route':'✓ Done — Next Stop'; doneBtn.style.background=''; doneBtn.onclick=fmOpenComplete; } }
   _fmSyncTimerSlots(); _fmHeartbeat();
 }
 function _fmUpdateTotalsChip(){ const el=document.getElementById('fmTotalsChip'); if(!el) return; const dm=_fmDriveLeftMin(); const drv=(dm!=null)?(' · 🚗 ~'+(dm>=60?(Math.floor(dm/60)+'h '+String(dm%60).padStart(2,'0')+'m'):(dm+'m'))+' drive left'):''; el.innerHTML='Collected <b>$'+(_fmCashTotal||0).toFixed(0)+'</b> cash'+(_isMoneyRole()?(' · Billed <b>$'+(_fmBilledTotal||0).toFixed(0)+'</b> today'):'')+drv; }
@@ -3068,18 +3081,78 @@ function qcOpen(){
       +'<div style="display:flex;align-items:baseline;justify-content:space-between;"><span style="font-size:13px;font-weight:700;color:#64748b;" id="qcSvcName"></span>'
       +'<span style="font-size:34px;font-weight:800;color:#0369a1;" id="qcTotal">$0</span></div>'
       +'<div id="qcCompare" style="font-size:12px;color:#64748b;margin-top:2px;"></div>'
-      +'<div style="display:flex;gap:8px;margin-top:10px;">'
+      +'<div id="qcOutRow" style="display:flex;gap:8px;margin-top:10px;">'
       +'<button onclick="qcBookNow()" style="flex:1;padding:13px;border:none;border-radius:12px;background:#16a34a;color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;">Book now</button>'
       +'<button onclick="qcEmail()" style="flex:1;padding:13px;border:none;border-radius:12px;background:#0284c7;color:#fff;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;">Email estimate</button>'
       +'</div>'
-      +'<button onclick="qcNotInterested()" style="width:100%;margin-top:8px;padding:11px;border:1.5px solid #fecaca;border-radius:12px;background:#fef2f2;color:#b91c1c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;">Customer declined</button>'
+      +'<button id="qcDeclBtn" onclick="qcNotInterested()" style="width:100%;margin-top:8px;padding:11px;border:1.5px solid #fecaca;border-radius:12px;background:#fef2f2;color:#b91c1c;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;">Customer declined</button>'
       +'<button id="qcAlreadyBtn" onclick="qcQuoteAlready()" style="display:none;width:100%;margin-top:8px;padding:10px;border:1.5px solid #e2e8f0;border-radius:12px;background:#f8fafc;color:#64748b;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer;">Already booked / handled \u2014 just close this quote</button>'
       +'</div></div>';
     document.body.appendChild(o);
   }
   qcRender();
   try{ const ab=document.getElementById('qcAlreadyBtn'); if(ab) ab.style.display=_qcQuoteBk?'':'none'; }catch(e){}
+  _syncEditFooter();
   document.getElementById('qcOverlay').style.display='flex';
+}
+/* ── ✏️ EDIT MODE: the calculator opens prefilled with the customer's plan;
+   saving writes price=standard visit + Services (email+date verified) ── */
+let _qcEditBk=null;
+function qc2SvcStr(){
+  var svc=[];
+  QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ var dt=qc2AddonDetail(a.id); svc.push(a.label+(dt?(' ('+dt+')'):'')+': $'+qc2AddonPrice(a.id)); } });
+  (_qc2.customs||[]).forEach(function(c){ var nm=String(c.name||'').replace(/[;:]/g,' ').trim(); if(nm) svc.push(nm+': $'+(+c.price||0)); });
+  var dp=qc2DeepAmt(); if(dp>0) svc.push('Deep clean upcharge'+(_qc2.firstOnly?' (first visit)':'')+': $'+dp);
+  return svc.join('; ');
+}
+function _qc2Prefill(bk){
+  qc2Reset();
+  const n=String(bk.notes||'');
+  const m=n.match(/(\d+)\s*bd\s*\/\s*(\d+)\s*ba(?:\s*\+\s*(\d+)\s*rm)?/i);
+  if(m){ _qc2.rooms.bed=Math.max(0,parseInt(m[1])||1); _qc2.rooms.bath=parseInt(m[2])||0; _qc2.rooms.living=parseInt(m[3]||'0')||0; }
+  (customerServicesFor(bk.email,bk.name)||[]).forEach(function(sv){
+    const nm=String(sv.name||'').toLowerCase();
+    if(nm.indexOf('deep clean upcharge')>=0){ _qc2.deepAll=true; if(nm.indexOf('first visit')>=0) _qc2.firstOnly=true; return; }
+    let hit=null;
+    QC2_ADDONS.forEach(function(a){ if(!hit&&nm.indexOf(a.label.toLowerCase())===0) hit=a; });
+    if(hit){
+      _qc2.addons[hit.id]=true;
+      const cfg=_qc2.addonCfg[hit.id]={scope:-1,deep:0};
+      const cm=nm.match(/(\d+)\s*(room|window|area|couch|bed|fan)/); if(cm) cfg.scope=parseInt(cm[1])||0; else if(nm.indexOf('whole house')>=0) cfg.scope=0;
+      if(hit.depth&&hit.d2&&nm.indexOf(String(hit.d2).toLowerCase())>=0) cfg.deep=1;
+      if(+sv.price>0) _qc2.addonP[hit.id]=+sv.price;
+    } else _qc2.customs.push({name:sv.name,price:+sv.price||10});
+  });
+}
+function fmEditPlan(){ const bk=window._fmCurBk; if(!bk) return; qcOpenForEdit(bk); }
+function qcOpenForEdit(bk){ _qc2Prefill(bk); qcOpen(); _qcEditBk=bk; _syncEditFooter(); showToast('\u270f\ufe0f Editing '+(bk.name||'their')+' plan \u2014 change anything, then Save'); }
+function _syncEditFooter(){
+  try{
+    const edit=!!_qcEditBk;
+    const row=document.getElementById('qcOutRow'); if(row) row.style.display=edit?'none':'flex';
+    const dc=document.getElementById('qcDeclBtn'); if(dc) dc.style.display=edit?'none':'';
+    const ab=document.getElementById('qcAlreadyBtn'); if(ab&&edit) ab.style.display='none';
+    let sv=document.getElementById('qcSaveEditBtn');
+    if(!sv){
+      sv=document.createElement('button'); sv.id='qcSaveEditBtn';
+      sv.style.cssText='width:100%;margin-top:10px;padding:13px;border:none;border-radius:12px;background:#7c3aed;color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;';
+      sv.onclick=qcSaveEdit;
+      const dcl=document.getElementById('qcDeclBtn'); if(dcl&&dcl.parentNode) dcl.parentNode.insertBefore(sv,dcl);
+    }
+    sv.style.display=edit?'':'none';
+    if(edit) sv.textContent='\ud83d\udcbe Save plan \u2014 $'+qc2CoreAmt()+'/visit + add-ons';
+  }catch(e){}
+}
+function qcSaveEdit(){
+  const bk=_qcEditBk; if(!bk) return;
+  const core=qc2CoreAmt(), svc=qc2SvcStr(), summ=qc2Summary();
+  if(!confirm('Save '+(bk.name||'customer')+'\u2019s plan?\n$'+core+'/visit standard'+(svc?('\nAs-needed: '+svc):''))) return;
+  _fmEnqueue({ kind:'planedit', idemKey:'pe:'+_stopKey(bk)+':'+Date.now(), method:'GET', params:{ action:'update_quote_booking', email:String(bk.email||'').toLowerCase().trim(), serviceDate:dateOf(bk), frequency:String(bk.frequency||''), price:String(core), services:svc, address:bk.address||'', noteAppend:'\u270f\ufe0f Plan edited on-site by '+(adminName||'crew')+' \u2014 '+summ, adminToken } });
+  _fmFlushQueue();
+  bk.price='$'+core;
+  try{ const em=String(bk.email||'').toLowerCase().trim(); const c=(allCustomers||[]).find(function(x){ return em?(String(x.Email||'').toLowerCase().trim()===em):(String(x.Name||'').toLowerCase().trim()===String(bk.name||'').toLowerCase().trim()); }); if(c) c.Services=svc; }catch(e){}
+  _qcEditBk=null; qcClose(); _persist(); _fmJobRerender();
+  showToast('\ud83d\udcbe Plan saved \u2014 $'+core+'/visit \u00b7 add-ons updated');
 }
 function qcQuoteAlready(){
   if(!_qcQuoteBk) return;
@@ -3088,7 +3161,7 @@ function qcQuoteAlready(){
   _qcQuoteDone('Quote closed \u2014 already booked/handled separately \u2014 '+(adminName||'crew'));
   showToast('\u2713 Quote closed');
 }
-function qcClose(){ const o=document.getElementById('qcOverlay'); if(o) o.style.display='none'; }
+function qcClose(){ const o=document.getElementById('qcOverlay'); if(o) o.style.display='none'; _qcEditBk=null; }
 /* ── quote-visit mode: same builder, but every outcome CLOSES the quote job ── */
 let _qcQuoteBk=null, _qcQuoteKey='', _qcQuoteNext=false;
 function qcOpenSmart(){
@@ -3348,6 +3421,7 @@ function qcRender(){
           })()
         +'</div>';
     })();
+  try{ if(typeof _syncEditFooter==='function') _syncEditFooter(); }catch(e){}
   const tot=document.getElementById('qcTotal');
   const sn=document.getElementById('qcSvcName'); const cp=document.getElementById('qcCompare');
   if(_qc2.firstOnly&&qc2DeepRooms()>0){
