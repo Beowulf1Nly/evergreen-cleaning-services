@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.77 */
+/* APP_VER:2026-07-08.78 */
 (function(){
-  var V='2026-07-08.77'; window.__APP_VER=V;
+  var V='2026-07-08.78'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2681,9 +2681,7 @@ const QC2_ADDONS=[
   { id:'pet',     icon:'🐾', label:'Pet hair (heavy)', price:30, pr:10, rooms:1, q:'Pet hair in how many rooms?', unit:'room' },  // ~36m house / ~12m per room
   { id:'couch',   icon:'🛋', label:'Couch steam clean', price:35, pr:35, rooms:1, noWhole:1, q:'How many couches / sofas?', unit:'couch', maxN:4 },   // ~42m per couch
   { id:'linens',  icon:'🛏', label:'Bed linens change', price:5,  pr:5,  rooms:1, noWhole:1, q:'How many beds?', unit:'bed', maxN:6 },               // ~6m per bed
-  { id:'blinds',  icon:'🪟', label:'Blinds dusting',    price:25, pr:5,  rooms:1, q:'Blinds in how many rooms?', unit:'room' },                       // ~30m house / ~6m room
-  { id:'fans',    icon:'🌀', label:'Ceiling fans',      price:20, pr:5,  rooms:1, noWhole:1, q:'How many fans?', unit:'fan', maxN:8 },                // ~6m per fan
-  { id:'cab',     icon:'🚪', label:'Inside cabinets',   price:40 },                                                                                    // ~48m, kitchen
+  { id:'fans',    icon:'🌀', label:'Ceiling fans',      price:10, pr:2.5, rooms:1, noWhole:1, q:'How many fans?', unit:'fan', maxN:10 },              // ~3m per fan — 4 fans = $10 / 12m
   { id:'micro',   icon:'🍲', label:'Inside microwave',  price:10 }                                                                                     // ~12m
 ];
 let _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, deepAll:false, firstOnly:false, deepU:0 };
@@ -2926,8 +2924,32 @@ function qcBookNow(){
     var ex=document.getElementById('nc-extra'); if(ex) ex.value=(_qc2.rooms.living||0);
     var n=document.getElementById('nc-notes');
     if(n&&!n.value) n.value=summary+' | Standard $'+core+'/visit'+(svc.length?(' + as-needed: '+window._ncServices):'')+(first>core?(' | First visit ~$'+first+' with everything selected'):'');
+    // CONFIRM MODE: everything decided in the estimate is shown, not editable
+    var pr0=document.getElementById('nc-price-row'); if(pr0) pr0.style.display='none';
+    var dt0=document.getElementById('nc-details'); if(dt0) dt0.style.display='none';
     var sn2=document.getElementById('nc-svc-note');
-    if(sn2){ if(svc.length||first>core){ sn2.style.display='block'; sn2.innerHTML='\u2713 Carried from the estimate: <b>$'+core+'/visit</b> standard'+(svc.length?(' \u00b7 as-needed add-ons save to the customer \u2014 crew checks them each visit'):'')+(first>core?(' \u00b7 first visit ~<b>$'+first+'</b> with everything'):''); } else sn2.style.display='none'; }
+    if(sn2){
+      var ad=qc2AddonsAmt(), dp=qc2DeepAmt();
+      var lr=function(l2,v2,b2){ return '<div style="display:flex;justify-content:space-between;font-size:'+(b2?'14px':'12.5px')+';font-weight:'+(b2?'900':'700')+';line-height:1.9;"><span>'+l2+'</span><span>$'+v2+'</span></div>'; };
+      sn2.style.display='block';
+      sn2.innerHTML='<div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;">\u2713 From the estimate \u2014 what they get</div>'
+        +qc2Lines().map(function(l2){ return '<div style="display:flex;justify-content:space-between;font-size:12px;line-height:1.8;"><span>'+esc(l2.desc)+'</span><b>$'+l2.price+'</b></div>'; }).join('')
+        +'<div style="border-top:1px dashed #bbf7d0;margin-top:5px;padding-top:5px;">'
+        +lr('Standard clean \u2014 every visit',core,!(ad>0||dp>0))
+        +(ad>0?lr('Add-ons \u2014 as needed (crew checks each visit)',ad):'')
+        +(dp>0?lr('Deep clean upcharge'+(_qc2.firstOnly?' \u2014 first visit':''),dp):'')
+        +((ad>0||dp>0)?lr((_qc2.firstOnly&&dp>0)?'First visit \u2014 everything':'With everything',first,true):'')
+        +'</div>';
+    }
+    // quote visit in progress? the customer is the CURRENT STOP — carry their info too
+    try{
+      var st0=_fmStops()[_fmViewIdx], bk0=st0&&st0.bk;
+      if(bk0){
+        var fill=function(id2,v2){ var el2=document.getElementById(id2); if(el2&&!el2.value&&v2) el2.value=v2; };
+        fill('nc-name',bk0.name); fill('nc-phone',bk0.phone); fill('nc-email',String(bk0.email||'').toLowerCase());
+        fill('nc-addr',bk0.address); fill('nc-zip',String(bk0.zip||''));
+      }
+    }catch(e2){}
   }catch(e){}
   showToast('📋 $'+core+'/visit standard — add-ons ride as per-visit toggles'+(first>core?(' (first visit ~$'+first+')'):''),6000);
 }
@@ -3103,7 +3125,8 @@ function qcEmail(){
   qcClose(); showToast('\u2709\ufe0f Estimate emailed to '+em);
 }
 function ncClose(){ const o=document.getElementById('ncOverlay'); if(o) o.style.display='none'; }
-const NC_FREQS=['📋 Quote Visit','Weekly Plan','Bi-Weekly Plan','Monthly Plan','One-time visit'];
+const NC_FREQS=['Weekly Plan','Bi-Weekly Plan','Monthly Plan','One-time visit','Custom — every X days'];
+function ncFreqChg(v){ const r=document.getElementById('nc-customdays-row'); if(r) r.style.display=(/custom/i.test(v)?'block':'none'); }
 function ncSearch(q){
   const box=document.getElementById('nc-srch-res'); if(!box) return;
   q=String(q||'').toLowerCase().trim();
@@ -3150,14 +3173,15 @@ function ncOpen(){
       +'<div style="display:flex;gap:8px;"><div style="flex:2.4;"><div style="'+lab+'">Street address *</div><input id="nc-addr" style="'+inp+'" placeholder="123 Oak St, Inverness"></div>'
       +'<div style="flex:1;"><div style="'+lab+'">Zip</div><input id="nc-zip" inputmode="numeric" maxlength="5" style="'+inp+'" placeholder="34450"></div></div>'
       +hd('📅 Plan')
-      +'<div style="display:flex;gap:8px;"><div style="flex:1;"><div style="'+lab+'">Plan *</div><select id="nc-freq" style="'+inp+'">'+NC_FREQS.map(function(f){return '<option>'+f+'</option>';}).join('')+'</select></div>'
+      +'<div style="display:flex;gap:8px;"><div style="flex:1;"><div style="'+lab+'">Plan *</div><select id="nc-freq" style="'+inp+'" onchange="ncFreqChg(this.value)">'+NC_FREQS.map(function(f){return '<option>'+f+'</option>';}).join('')+'</select>'
+      +'<div id="nc-customdays-row" style="display:none;"><div style="'+lab+'">Every how many days?</div><input id="nc-customdays" type="number" inputmode="numeric" min="2" max="90" value="10" style="'+inp+'"></div></div>'
       +'<div style="flex:1;"><div style="'+lab+'">First date *</div><input id="nc-date" type="date" style="'+inp+'"></div></div>'
       +'<div style="display:flex;gap:8px;"><div style="flex:1;"><div style="'+lab+'">⏰ Preferred time</div><select id="nc-pref" style="'+inp+'"><option value="">No preference</option><option>Mornings (8–11)</option><option>Midday (11–2)</option><option>Afternoons (2–5)</option><option>Exact time — put it in notes</option></select></div>'
       +'<div style="flex:1;"><div style="'+lab+'">Payment</div><select id="nc-pay" style="'+inp+'"><option value="card">💳 Card</option><option value="cash">💵 Cash</option></select></div></div>'
       +hd('💲 Price')
-      +'<div style="'+lab+'">Standard clean per visit ($)</div><input id="nc-price" type="number" inputmode="decimal" style="'+inp+'" placeholder="leave blank for a quote visit">'
+      +'<div id="nc-price-row"><div style="'+lab+'">Standard clean per visit ($)</div><input id="nc-price" type="number" inputmode="decimal" style="'+inp+'" placeholder="e.g. 149"></div>'
       +'<div id="nc-svc-note" style="display:none;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:9px 11px;font-size:12.5px;font-weight:700;color:#166534;line-height:1.5;margin:-4px 0 10px;"></div>'
-      +'<details style="margin:6px 0 10px;"><summary style="font-size:13px;font-weight:800;color:#64748b;cursor:pointer;padding:6px 0;">🏠 Home details & notes'+ '</summary>'
+      +'<details id="nc-details" style="margin:6px 0 10px;"><summary style="font-size:13px;font-weight:800;color:#64748b;cursor:pointer;padding:6px 0;">🏠 Home details & notes'+ '</summary>'
       +'<div style="'+lab+'margin-top:8px;">Type of clean</div><select id="nc-service" style="'+inp+'"><option>Standard Clean</option><option>Better — Detail Clean</option><option>Deep Clean</option><option>Move In/Out Clean</option></select>'
       +'<div style="display:flex;gap:8px;"><div style="flex:1;"><div style="'+lab+'">Beds</div><input id="nc-bed" type="number" inputmode="numeric" min="0" max="10" value="2" style="'+inp+'"></div><div style="flex:1;"><div style="'+lab+'">Baths</div><input id="nc-bath" type="number" inputmode="numeric" min="0" max="10" value="1" style="'+inp+'"></div><div style="flex:1;"><div style="'+lab+'">Extra rms</div><input id="nc-extra" type="number" inputmode="numeric" min="0" max="10" value="0" style="'+inp+'"></div></div>'
       +'<div style="'+lab+'">Home size</div><select id="nc-sqft" style="'+inp+'"><option>Under 1,000 sq ft</option><option selected>1,000–2,000 sq ft</option><option>2,000–3,000 sq ft</option><option>3,000+ sq ft</option></select>'
@@ -3174,7 +3198,9 @@ function ncOpen(){
 }
 function ncSubmit(){
   const v=function(id){ return String((document.getElementById(id)||{}).value||'').trim(); };
-  const name=v('nc-name'), phone=v('nc-phone'), email=v('nc-email').toLowerCase(), addr=v('nc-addr'), zip=v('nc-zip'), freq=v('nc-freq'), price=v('nc-price'), date=v('nc-date'), pay=v('nc-pay'), notes=v('nc-notes');
+  const name=v('nc-name'), phone=v('nc-phone'), email=v('nc-email').toLowerCase(), addr=v('nc-addr'), zip=v('nc-zip'), price=v('nc-price'), date=v('nc-date'), pay=v('nc-pay'), notes=v('nc-notes');
+  let freq=v('nc-freq');
+  if(/custom/i.test(freq)){ const cd=parseInt(v('nc-customdays'))||0; if(!(cd>=2&&cd<=90)){ showToast('Custom plan: pick 2\u201390 days'); return; } freq='Every '+cd+' days'; }
   const svc=v('nc-service')||'Standard Clean', hbed=v('nc-bed')||'0', hbath=v('nc-bath')||'0', hextra=parseInt(v('nc-extra')||'0')||0, hsqft=v('nc-sqft')||'';
   const _pref=v('nc-pref'); if(_pref){ const _ne=document.getElementById('nc-notes'); if(_ne) _ne.value='⏰ Prefers: '+_pref+(String(_ne.value||'').trim()?' | '+_ne.value:''); }
   const homeSummary=svc+' \u00b7 '+hbed+'bd/'+hbath+'ba'+(hextra?(' \u00b7 +'+hextra+' room'+(hextra>1?'s':'')):'')+(hsqft?(' \u00b7 '+hsqft):'');
