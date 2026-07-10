@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.69 */
+/* APP_VER:2026-07-08.70 */
 (function(){
-  var V='2026-07-08.69'; window.__APP_VER=V;
+  var V='2026-07-08.70'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2254,13 +2254,14 @@ function fmAdjustPrice(){
   ov.innerHTML='<div class="fm-sheet">'
     +'<div class="fm-sheet-title">💲 Price — '+esc(bk.name||'')+'</div>'
     +'<div class="fm-sheet-sub">Scope changed? Set what it actually costs. The booked number is a starting point, not law.</div>'
-    +'<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin:6px 0 12px;"><span style="font-size:30px;font-weight:800;">$</span><input id="fmPriceNew" type="number" inputmode="decimal" value="'+cur+'" style="width:130px;padding:12px;border:2px solid #cbd5e1;border-radius:14px;font-size:30px;font-weight:800;text-align:center;font-family:inherit;" oninput="_fmPriceHint()"></div>'
+    +'<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin:6px 0 12px;"><span style="font-size:30px;font-weight:800;">$</span><input id="fmPriceNew" type="number" inputmode="decimal" value="'+cur+'" style="width:130px;padding:12px;border:2px solid #cbd5e1;border-radius:14px;font-size:30px;font-weight:800;text-align:center;font-family:inherit;" oninput="_fmPriceHint()">'
+    +'<button onclick="_fmPriceWheel()" style="padding:12px 14px;border:2px solid #7dd3fc;border-radius:14px;background:#f0f9ff;font-family:inherit;font-weight:800;font-size:14px;color:#0369a1;cursor:pointer;">scroll \u25be</button></div>'
     +'<div style="display:flex;gap:7px;margin-bottom:12px;">'
     +[-20,-10,10,20,40].map(function(d){ return '<button onclick="var e=document.getElementById(\'fmPriceNew\');e.value=Math.max(0,(parseFloat(e.value)||0)+'+d+');_fmPriceHint()" style="flex:1;padding:10px 4px;border:1.5px solid #cbd5e1;border-radius:10px;background:#f8fafc;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;color:'+(d<0?'#b91c1c':'#15803d')+';">'+(d>0?'+':'')+d+'</button>'; }).join('')
     +'</div>'
     +'<div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:12px;padding:10px 12px;margin-bottom:10px;">'
     +'<div style="font-size:11px;font-weight:800;color:#0369a1;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">⏱ Rough it — how long will this take?</div>'
-    +'<div style="display:flex;gap:6px;">'+[1,1.5,2,2.5,3,4].map(function(h2){ return '<button onclick="_fmPriceHrs('+h2+')" style="flex:1;padding:8px 2px;border:1.5px solid #bae6fd;border-radius:9px;background:#fff;font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer;">'+h2+'h</button>'; }).join('')+'</div>'
+    +'<button id="fmHrsBtn" onclick="_fmHrsWheel()" style="width:100%;padding:12px;border:1.5px solid #bae6fd;border-radius:10px;background:#fff;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;color:#0369a1;">'+(window._fmPriceEstH?('\u23f1 ~'+window._fmPriceEstH+'h on site \u00b7 change \u25be'):'\u23f1 Pick how long it\u2019ll take \u25be')+'</button>'
     +'<div id="fmPriceHint" style="font-size:12.5px;font-weight:700;color:#0369a1;margin-top:8px;">At $'+CLEAN_MIN_RATE+'/hr minimum: pick hours above.</div>'
     +'</div>'
     +'<input id="fmPriceWhy" class="login-input" placeholder="Why? (e.g. floors way worse than quoted)" style="border-radius:12px;">'
@@ -2271,7 +2272,13 @@ function fmAdjustPrice(){
   ov.onclick=function(e){ if(ov._dsd&&e.target===ov) ov.style.display='none'; };
   _fmPriceHint();
 }
-function _fmPriceHrs(h2){ window._fmPriceEstH=h2; const el=document.getElementById('fmPriceNew'); const min=Math.max(CLEAN_MIN_JOB,Math.round(h2*CLEAN_MIN_RATE)); if((parseFloat(el.value)||0)<min) el.value=min; _fmPriceHint(); }
+function _fmPriceHrs(h2){ window._fmPriceEstH=h2; const el=document.getElementById('fmPriceNew'); const min=Math.max(CLEAN_MIN_JOB,Math.round(h2*CLEAN_MIN_RATE)); if((parseFloat(el.value)||0)<min) el.value=min; try{ const b=document.getElementById('fmHrsBtn'); if(b) b.innerHTML='\u23f1 ~'+h2+'h on site \u00b7 change \u25be'; }catch(e){} _fmPriceHint(); }
+function _fmPriceWheel(){ const el=document.getElementById('fmPriceNew'); if(!el) return; qcMoneyWheel('\ud83d\udcb2 Price',CLEAN_MIN_JOB,500,5,Math.round(parseFloat(el.value)||CLEAN_MIN_JOB),function(v){ el.value=v; _fmPriceHint(); }); }
+function _fmHrsWheel(){ const HRS=[0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,3,3.5,4,4.5,5,6,7,8]; const cur=window._fmPriceEstH||1.5;
+  const vals=HRS.map(function(h){ return {v:h,label:(h<1?(Math.round(h*60)+' min'):(h+' h'))}; });
+  let si=0,bd=1e9; HRS.forEach(function(h,i){ const d=Math.abs(h-cur); if(d<bd){bd=d;si=i;} });
+  qcWheelOpen('\u23f1 How long on site?',vals,si,function(v){ _fmPriceHrs(v); });
+}
 function _fmPriceHint(){
   const el=document.getElementById('fmPriceHint'); if(!el) return;
   const v=parseFloat((document.getElementById('fmPriceNew')||{}).value)||0;
@@ -2787,6 +2794,13 @@ function qcWheelDone(){
   const ov=document.getElementById('qcWheelOv'); if(ov) ov.remove();
   if(window._qcWheelCb&&v) window._qcWheelCb(v.v);
 }
+function qcMoneyWheel(title,lo,hi,step,cur,cb,topOpt){
+  const vals=topOpt?[topOpt]:[];
+  for(let p=lo;p<=hi;p+=step) vals.push({v:p,label:'$'+p});
+  let si=0,bd=1e9; vals.forEach(function(x,i){ if(typeof x.v==='number'&&x.v>0){ const d=Math.abs(x.v-cur); if(d<bd){bd=d;si=i;} } });
+  if(!(cur>0)&&topOpt) si=0;
+  qcWheelOpen(title,vals,si,cb);
+}
 function qc2CfgScopeWheel(id){
   const a=QC2_ADDONS.find(function(x){return x.id===id;}); if(!a) return;
   const c=_qc2.addonCfg[id]||{};
@@ -2815,18 +2829,16 @@ function qc2CfgScope(id,n){ (_qc2.addonCfg[id]=_qc2.addonCfg[id]||{}).scope=n; d
 function qc2CfgDeep(id,d){ (_qc2.addonCfg[id]=_qc2.addonCfg[id]||{}).deep=d?1:0; delete _qc2.addonP[id]; qc2CfgOpen(id); }
 function qc2CfgPrice(id){
   const a=QC2_ADDONS.find(function(x){return x.id===id;});
-  const v=prompt('Price for '+(a?a.label:'add-on')+'? (an hour of work should be $'+CLEAN_MIN_RATE+'+ \u2014 leave blank to go back to the suggested price)',String(qc2AddonPrice(id)));
-  if(v==null) return;
-  const n=Math.round(parseFloat(v)||0);
-  if(n>0) _qc2.addonP[id]=n; else delete _qc2.addonP[id];
-  qc2CfgOpen(id);
+  qcMoneyWheel('\ud83d\udcb2 '+(a?a.label:'Add-on'),5,200,5,(_qc2.addonP[id]>0)?_qc2.addonP[id]:qc2AddonPrice(id),
+    function(v){ if(v>0) _qc2.addonP[id]=v; else delete _qc2.addonP[id]; qc2CfgOpen(id); },
+    {v:0,label:'Suggested price'});
 }
 function qc2CfgRemove(id){ _qc2.addons[id]=false; qc2CfgClose(); }
 function qc2CfgClose(){ const ov=document.getElementById('qc2CfgOv'); if(ov) ov.remove(); qcRender(); }
 function qc2DeepAllTgl(){ _qc2.deepAll=!_qc2.deepAll; qcRender(); }
 function qc2FirstTgl(){ _qc2.firstOnly=!_qc2.firstOnly; qcRender(); }
-function qc2EditRoom(id){ const r=QC2_ROOMS.find(function(x){return x.id===id;}); const v=prompt('Price per '+(r?r.label.replace(' (extra)','').toLowerCase().replace(/s$/,''):'room')+'?',String(qc2RoomUnit(id))); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.roomP[id]=n; qcRender(); }
-function qc2EditDeep(){ const v=prompt('Custom flat deep-clean upcharge per room? Defaults are per room type: kitchen +$50, bathroom +$30, living +$25, bedroom/extra +$20 (real extra labor at $'+CLEAN_MIN_RATE+'/hr). Leave blank to use the defaults.',String(_qc2.deepU||'')); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.deepU=n; else _qc2.deepU=0; qcRender(); }
+function qc2EditRoom(id){ const r=QC2_ROOMS.find(function(x){return x.id===id;}); qcMoneyWheel('Price per '+(r?r.label.replace(' (extra)','').toLowerCase().replace(/s$/,''):'room'),5,60,5,qc2RoomUnit(id),function(v){ if(v>0)_qc2.roomP[id]=v; qcRender(); }); }
+function qc2EditDeep(){ qcMoneyWheel('\ud83e\uddfc Deep upcharge per room',10,80,5,_qc2.deepU||0,function(v){ _qc2.deepU=(v>0)?v:0; qcRender(); },{v:0,label:'Default (per room type)'}); }
 function qc2EditAddon(id){ const a=QC2_ADDONS.find(function(x){return x.id===id;}); const v=prompt('Price for '+a.label+'? (an hour of work should be $'+CLEAN_MIN_RATE+'+)',String(qc2AddonPrice(id))); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.addonP[id]=n; qcRender(); }
 function qc2Lines(){
   const L=[{desc:'Base — includes up to 1 bedroom, 1 kitchen & 1 living room',price:CLEAN_MIN_JOB}];
