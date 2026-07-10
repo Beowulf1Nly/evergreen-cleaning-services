@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.81 */
+/* APP_VER:2026-07-08.82 */
 (function(){
-  var V='2026-07-08.81'; window.__APP_VER=V;
+  var V='2026-07-08.82'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2358,12 +2358,25 @@ async function fmPriceSave(){
 }
 function _fmcRenderAddons(){
   const block=document.getElementById('fmcAddonsBlock'), wrap=document.getElementById('fmcAddons');
-  if(!_fmcAddons.length){ block.style.display='none'; wrap.innerHTML=''; return; }
   block.style.display='';
   const seeP=_isMoneyRole()||_fmcPayType==='cash';
-  wrap.innerHTML=_fmcAddons.map((a,i)=>'<button class="fm-addon-chip'+(a.on?' on':'')+'" onclick="fmToggleAddon('+i+')"><span>'+(a.on?'✓ ':'＋ ')+esc(a.name)+'</span>'+(seeP?'<span class="fm-addon-price">$'+(+a.price||0).toFixed(0)+'</span>':'')+'</button>').join('');
+  wrap.innerHTML=_fmcAddons.map((a,i)=>'<button class="fm-addon-chip'+(a.on?' on':'')+'" onclick="fmToggleAddon('+i+')"><span>'+(a.on?'\u2713 ':'\uff0b ')+esc(a.name)+'</span>'+(seeP?'<span class="fm-addon-price">$'+(+a.price||0).toFixed(0)+'</span>':'')
+    +(a.on?'<span onclick="event.stopPropagation();fmAddonPriceEdit('+i+')" style="margin-left:6px;padding:2px 8px;border-radius:7px;background:rgba(3,105,161,.12);color:#0369a1;font-size:11px;font-weight:800;">\u270e</span>':'')+'</button>').join('')
+    +'<button class="fm-addon-chip" onclick="fmAddonCustom()" style="border-style:dashed;"><span>\u2795 Extra work today\u2026</span></button>';
 }
 function fmToggleAddon(i){ if(!_fmcAddons[i]) return; _fmcAddons[i].on=!_fmcAddons[i].on; _fmcRenderAddons(); _fmcRenderAmount(); _fmcRenderPay(); }
+// scope changed on the day? adjust THIS visit's price for the add-on (e.g. saved
+// 'tracks & sills' but only the glass needed doing) — saved plan stays untouched.
+function fmAddonPriceEdit(i){
+  const a=_fmcAddons[i]; if(!a) return;
+  qcMoneyWheel('\ud83d\udcb2 '+a.name+' \u2014 today only',5,300,5,+a.price||20,function(v){ if(v>0){ a.price=v; a.on=true; } _fmcRenderAddons(); _fmcRenderAmount(); _fmcRenderPay(); showToast('\u270e '+a.name+' \u2192 $'+v+' for this visit \u2014 their saved plan is unchanged'); });
+}
+// room turned out to need a deep clean / anything extra — one-off line for this visit
+function fmAddonCustom(){
+  const nm=prompt('What extra work? (e.g. \"Deep clean \u2014 master bathroom\")',''); if(nm===null) return;
+  const name=nm.trim(); if(!name){ return; }
+  qcMoneyWheel('\ud83d\udcb2 '+name,10,400,5,50,function(v){ if(!(v>0)) return; _fmcAddons.push({name:name,price:v,on:true}); _fmcRenderAddons(); _fmcRenderAmount(); _fmcRenderPay(); showToast('\u2795 '+name+' \u2014 $'+v+' added to this visit'); });
+}
 function _fmcRenderAmount(){
   const see=_isMoneyRole()||_fmcPayType==='cash';
   const amtEl=document.getElementById('fmcAmt');
@@ -3028,10 +3041,10 @@ function qcDeepInfoOpen(){
   ov.innerHTML='<div style="background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:82vh;overflow-y:auto;padding:18px 16px 28px;" onclick="event.stopPropagation()">'
     +'<div style="font-size:17px;font-weight:900;margin-bottom:6px;">🧼 Standard vs. Deep clean</div>'
     +'<div style="font-size:13px;color:#475569;line-height:1.55;margin-bottom:12px;"><b>Standard</b> is the upkeep clean \u2014 surfaces, floors, the things you touch every week. <b>Deep</b> gets a room back under control \u2014 the buildup, grease and scale an upkeep clean doesn\u2019t touch.</div>'
-    +row('🍳','Kitchen','counters, sink, stovetop, floors','backsplash & hood degreased, cabinet fronts, appliance exteriors, floors by hand',qc2DeepUnitFor('kit'))
-    +row('🚿','Bathroom','toilet, shower, sink, mirror','soap scum & hard-water scale removed, grout lines, behind the toilet, vents',qc2DeepUnitFor('bath'))
-    +row('🛋','Living room','dust, vacuum, surfaces','blinds, under the cushions, furniture moved & cleaned behind, vents',qc2DeepUnitFor('liv'))
-    +row('🛏','Bedroom / extra room','dust, vacuum, surfaces','blinds, under the bed, doors & switch plates, every surface top to bottom',qc2DeepUnitFor('bed'))
+    +row('🍳','Kitchen','counters, sink & faucet, stovetop, outside of appliances, floors, trash out, cabinet fronts spot-cleaned','backsplash & hood degreased, inside microwave, cabinet fronts scrubbed, appliances detailed, floors by hand, baseboards',qc2DeepUnitFor('kit'))
+    +row('🚿','Bathroom','toilet, shower/tub wiped, sink & counters, mirror, floors, trash out, doors & switches spot-cleaned','soap scum & hard-water scale removed, tile & grout lines scrubbed, behind & around the toilet, vents & fan, baseboards, door & frame',qc2DeepUnitFor('bath'))
+    +row('🛋','Living room','every surface dusted, floors vacuumed & mopped, tidy & reset, touch points spot-cleaned','blinds & ceiling fan, under the cushions, furniture moved & cleaned behind, vents, baseboards, doors & frames',qc2DeepUnitFor('liv'))
+    +row('🛏','Bedroom / extra room','surfaces dusted, floors vacuumed, beds made, tidy, doors & switches spot-cleaned','blinds & fan, under the bed, baseboards, doors & frames, every surface top to bottom',qc2DeepUnitFor('bed'))
     +'<div style="background:#fffbeb;border:1.5px solid #fde047;border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.55;color:#713f12;font-weight:600;">Most homes: <b>deep clean the first visit</b> to reset the house, then standard visits keep it that way \u2014 so the regular price stays low.</div>'
     +'<button onclick="document.getElementById(\'qcDeepInfoOv\').remove()" style="width:100%;margin-top:12px;padding:14px;border-radius:13px;border:none;background:#0f172a;color:#fff;font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;">Got it</button></div>';
 }
@@ -3131,18 +3144,24 @@ function qcRender(){
       // the close: stack EVERYTHING they get, fluffed — then the price, then the ask
       const dr=qc2DeepRooms(), first=qc2Total(), spot=qc2Spot();
       const FLUFF={ grout:'Grout scrub', dishes:'Dishes', oven:'Inside of oven', fridge:'Inside of fridge', windows:'Interior windows', laundry:'Laundry', base:'Baseboards', pet:'Pet hair removal' };
-      const inc=[];
-      inc.push('Kitchen — counters, sink, stovetop, floors');
-      inc.push('Living room — dust, vacuum, surfaces');
-      const nb=_qc2.rooms.bed||0; if(nb>0) inc.push(nb+' bedroom'+(nb>1?'s':'')+' — dust, vacuum, surfaces');
-      const na=_qc2.rooms.bath||0; if(na>0) inc.push(na+' bathroom'+(na>1?'s':'')+' — toilet, shower, sink, mirror');
-      const nx=_qc2.rooms.living||0; if(nx>0) inc.push(nx+' extra room'+(nx>1?'s':''));
-      if(_qc2.deepAll) inc.push('Deep clean — every room'+(_qc2.firstOnly?' (first visit)':' (every visit)'));
-      else if(dr>0) inc.push('Deep clean — '+dr+' room'+(dr>1?'s':'')+(_qc2.firstOnly?' (first visit)':''));
-      QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ const _dt=qc2AddonDetail(a.id); inc.push((FLUFF[a.id]||a.label)+(_dt?' \u2014 '+_dt:'')+' (as needed)'); } });
-      return '<div style="margin-top:10px;padding:12px 14px;background:#fdf4ff;border:1.5px solid #e9d5ff;border-radius:14px;">'
-        +'<div style="font-size:11px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">Everything they get</div>'
-        +inc.map(function(p){ return '<div style="display:flex;gap:8px;font-size:13.5px;line-height:1.75;font-weight:600;color:#3b0764;"><span style="color:#16a34a;font-weight:800;">✓</span><span>'+esc(p)+'</span></div>'; }).join('')
+      const every=[];
+      every.push('Kitchen \u2014 counters, sink, stovetop, appliance fronts, floors, trash out');
+      every.push('Living room \u2014 dusted top to bottom, floors done, tidied & reset');
+      const nb=_qc2.rooms.bed||0; if(nb>0) every.push(nb+' bedroom'+(nb>1?'s':'')+' \u2014 dusted, floors, beds made');
+      const na=_qc2.rooms.bath||0; if(na>0) every.push(na+' bathroom'+(na>1?'s':'')+' \u2014 toilet, shower, sink, mirror, floors');
+      const nx=_qc2.rooms.living||0; if(nx>0) every.push(nx+' extra room'+(nx>1?'s':'')+' \u2014 full standard clean');
+      every.push('Touch points spot-cleaned everywhere \u2014 doors, switches, handles');
+      const asneeded=[];
+      if(_qc2.deepAll) asneeded.push({t:'Deep clean \u2014 every room, back under control'+(_qc2.firstOnly?' (first visit reset)':''),p:qc2DeepAmt()});
+      else if(dr>0) asneeded.push({t:'Deep clean \u2014 '+dr+' room'+(dr>1?'s':'')+(_qc2.firstOnly?' (first visit reset)':''),p:qc2DeepAmt()});
+      QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ const _dt=qc2AddonDetail(a.id); asneeded.push({t:(FLUFF[a.id]||a.label)+(_dt?' \u2014 '+_dt:''),p:qc2AddonPrice(a.id)}); } });
+      const li=function(txt,extra){ return '<div style="display:flex;gap:9px;font-size:14px;line-height:1.9;font-weight:600;color:#3b0764;"><span style="color:#16a34a;font-weight:800;">\u2713</span><span>'+txt+(extra||'')+'</span></div>'; };
+      return '<div style="margin-top:10px;padding:14px 15px;background:#fdf4ff;border:1.5px solid #e9d5ff;border-radius:14px;">'
+        +'<div style="font-size:12px;font-weight:900;color:#6d28d9;text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">\ud83e\uddf9 Every visit \u2014 $'+qc2CoreAmt()+'</div>'
+        +every.map(function(p){ return li(esc(p)); }).join('')
+        +(asneeded.length?('<div style="font-size:12px;font-weight:900;color:#0369a1;text-transform:uppercase;letter-spacing:.07em;margin:12px 0 7px;">\u2795 Only when needed or requested</div>'
+          +asneeded.map(function(x){ return li(esc(x.t),' <b style="color:#0369a1;">$'+x.p+'</b>'); }).join('')
+          +'<div style="margin-top:8px;font-size:12.5px;line-height:1.6;font-weight:600;color:#6d28d9;">These only go on the bill when you ask for them or a room needs it \u2014 otherwise your visit stays $'+qc2CoreAmt()+'.</div>'):'')
         +(function(){
             const core=qc2CoreAmt(), ad=qc2AddonsAmt(), dp=qc2DeepAmt();
             const r=function(lab,v,big){ return '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:'+(big?'15px':'12.5px')+';font-weight:800;color:'+(big?'#3b0764':'#6d28d9')+';line-height:2;"><span>'+lab+'</span><span style="'+(big?'font-size:18px;':'')+'">$'+v+'</span></div>'; };
