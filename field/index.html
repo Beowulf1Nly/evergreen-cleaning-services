@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.49 */
+/* APP_VER:2026-07-08.50 */
 (function(){
-  var V='2026-07-08.49'; window.__APP_VER=V;
+  var V='2026-07-08.50'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2618,21 +2618,36 @@ const QC2_ROOMS=[
 const QC2_ROOM_UNIT=15;      // beds + extra rooms; bathrooms carry their own
 const QC2_DEEP_UNIT=15;      // deep-clean upcharge per room (tappable)
 const QC2_ADDONS=[
-  { id:'grout',   icon:'🧽', label:'Grout scrub',      price:50 },
+  { id:'grout',   icon:'🧽', label:'Grout scrub',      price:50, rooms:1 },
   { id:'dishes',  icon:'🍽', label:'Dishes',           price:15 },
   { id:'oven',    icon:'🔥', label:'Inside oven',      price:25 },
   { id:'fridge',  icon:'🧊', label:'Inside fridge',    price:25 },
-  { id:'windows', icon:'🪟', label:'Interior windows', price:30 },
+  { id:'windows', icon:'🪟', label:'Interior windows', price:30, rooms:1 },
   { id:'laundry', icon:'🧺', label:'Laundry',          price:20 },
-  { id:'base',    icon:'📏', label:'Baseboards',       price:25 },
-  { id:'pet',     icon:'🐾', label:'Pet hair (heavy)', price:20 }
+  { id:'base',    icon:'📏', label:'Baseboards',       price:25, rooms:1 },
+  { id:'pet',     icon:'🐾', label:'Pet hair (heavy)', price:20, rooms:1 }
 ];
-let _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, roomP:{}, addons:{}, addonP:{}, deepAll:false, firstOnly:false, deepU:0 };
-function qc2Reset(){ _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, roomP:{}, addons:{}, addonP:{}, deepAll:false, firstOnly:false, deepU:0 }; }
+let _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, deepAll:false, firstOnly:false, deepU:0 };
+function qc2Reset(){ _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, deepAll:false, firstOnly:false, deepU:0 }; }
 function qc2Charged(id){ const n=_qc2.rooms[id]||0; return id==='bed'?Math.max(0,n-1):n; }   // 1st bed rides in the base
 function qc2RoomUnit(id){ if(_qc2.roomP[id]>0) return _qc2.roomP[id]; const r=QC2_ROOMS.find(function(x){return x.id===id;}); return (r&&r.unit)||QC2_ROOM_UNIT; }
 function qc2DeepUnit(){ return (_qc2.deepU>0)?_qc2.deepU:QC2_DEEP_UNIT; }
-function qc2AddonPrice(id){ const a=QC2_ADDONS.find(function(x){return x.id===id;}); return (_qc2.addonP[id]>0)?_qc2.addonP[id]:(a?a.price:0); }
+function qc2AddonPrice(id){
+  if(_qc2.addonP[id]>0) return _qc2.addonP[id];
+  const a=QC2_ADDONS.find(function(x){return x.id===id;}); if(!a) return 0;
+  const c=_qc2.addonCfg[id]||{};
+  let p=a.price;
+  if(a.rooms&&c.scope>0) p=Math.max(10,Math.ceil(a.price/3/5)*5)*c.scope;
+  if(c.deep) p=Math.round(p*1.5/5)*5;
+  return Math.max(5,Math.round(p));
+}
+function qc2AddonDetail(id){
+  const a=QC2_ADDONS.find(function(x){return x.id===id;}); if(!a) return '';
+  const c=_qc2.addonCfg[id]||{}, parts=[];
+  if(a.rooms) parts.push((c.scope>0)?(c.scope+' room'+(c.scope>1?'s':'')):'whole house');
+  if(c.deep) parts.push('deep clean');
+  return parts.join(' \u00b7 ');
+}
 function qc2RoomCount(){ let n=0; QC2_ROOMS.forEach(function(r){ n+=(_qc2.rooms[r.id]||0); }); return n; }
 function qc2DeepRooms(){ if(_qc2.deepAll) return 2+qc2RoomCount(); let n=0; QC2_ROOMS.forEach(function(r){ n+=Math.min(_qc2.deep[r.id]||0,_qc2.rooms[r.id]||0); }); return n; }
 function qc2Spot(){
@@ -2645,7 +2660,53 @@ function qc2DeepAmt(){ return qc2DeepRooms()*qc2DeepUnit(); }
 function qc2Total(){ return qc2Spot()+qc2DeepAmt(); }
 function qc2Bump(id,d){ _qc2.rooms[id]=Math.max(0,(_qc2.rooms[id]||0)+d); _qc2.deep[id]=Math.min(_qc2.deep[id]||0,_qc2.rooms[id]); qcRender(); }
 function qc2DeepBump(id,d){ _qc2.deep[id]=Math.max(0,Math.min((_qc2.rooms[id]||0)+(id==='baseRooms'?0:0),(_qc2.deep[id]||0)+d)); if(_qc2.deep[id]>(_qc2.rooms[id]||0)) _qc2.deep[id]=_qc2.rooms[id]||0; qcRender(); }
-function qc2Tgl(id){ _qc2.addons[id]=!_qc2.addons[id]; qcRender(); }
+function qc2Tgl(id){
+  if(_qc2.addons[id]){ qc2CfgOpen(id); return; }
+  _qc2.addons[id]=true; _qc2.addonCfg[id]=_qc2.addonCfg[id]||{scope:0,deep:0};
+  qcRender(); qc2CfgOpen(id);
+}
+function qc2CfgOpen(id){
+  const a=QC2_ADDONS.find(function(x){return x.id===id;}); if(!a) return;
+  const c=_qc2.addonCfg[id]=_qc2.addonCfg[id]||{scope:0,deep:0};
+  let ov=document.getElementById('qc2CfgOv');
+  if(!ov){ ov=document.createElement('div'); ov.id='qc2CfgOv';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:400;display:flex;align-items:flex-end;justify-content:center;';
+    ov.onclick=function(ev){ if(ev.target===ov) qc2CfgClose(); };
+    document.body.appendChild(ov); }
+  const chip=function(on,labl,fn){ return '<button onclick="'+fn+'" style="flex:1;min-width:0;padding:12px 4px;border-radius:12px;border:2px solid '+(on?'#16a34a':'#e2e8f0')+';background:'+(on?'#f0fdf4':'#fff')+';color:'+(on?'#15803d':'#334155')+';font-weight:800;font-size:13.5px;font-family:inherit;cursor:pointer;">'+labl+'</button>'; };
+  const sec=function(t){ return '<div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin:0 0 6px;">'+t+'</div>'; };
+  const ovr=_qc2.addonP[id]>0;
+  ov.innerHTML='<div style="background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:18px 16px 28px;box-shadow:0 -8px 30px rgba(0,0,0,.25);" onclick="event.stopPropagation()">'
+    +'<div style="font-size:17px;font-weight:900;margin-bottom:14px;">'+a.icon+' '+a.label+'</div>'
+    +(a.rooms?(sec('How much of the house?')
+      +'<div style="display:flex;gap:6px;margin-bottom:14px;">'
+      +chip(!(c.scope>0),'Whole<br>house',"qc2CfgScope('"+id+"',0)")
+      +[1,2,3,4,5].map(function(n){ return chip(c.scope===n,String(n),"qc2CfgScope('"+id+"',"+n+")"); }).join('')
+      +'</div>'):'')
+    +sec('How deep?')
+    +'<div style="display:flex;gap:8px;margin-bottom:14px;">'
+      +chip(!c.deep,'Wipe down',"qc2CfgDeep('"+id+"',0)")
+      +chip(!!c.deep,'Deep clean',"qc2CfgDeep('"+id+"',1)")+'</div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 14px;margin-bottom:14px;">'
+      +'<span style="font-size:13px;font-weight:800;color:#475569;">Price'+(ovr?' \u2014 your price':'')+'</span>'
+      +'<span style="display:flex;align-items:center;gap:8px;"><b style="font-size:20px;">$'+qc2AddonPrice(id)+'</b>'
+      +'<button onclick="qc2CfgPrice(\''+id+'\')" style="background:#f1f5f9;border:none;border-radius:9px;padding:6px 12px;font-size:14px;font-weight:800;color:#475569;font-family:inherit;cursor:pointer;">\u270e Edit</button></span></div>'
+    +'<div style="display:flex;gap:8px;">'
+      +'<button onclick="qc2CfgRemove(\''+id+'\')" style="flex:1;padding:14px 6px;border-radius:13px;border:2px solid #fecaca;background:#fef2f2;color:#b91c1c;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;">Remove</button>'
+      +'<button onclick="qc2CfgClose()" style="flex:2;padding:14px 6px;border-radius:13px;border:none;background:#16a34a;color:#fff;font-weight:900;font-size:15px;font-family:inherit;cursor:pointer;">\u2713 Done \u2014 $'+qc2AddonPrice(id)+'</button></div></div>';
+}
+function qc2CfgScope(id,n){ (_qc2.addonCfg[id]=_qc2.addonCfg[id]||{}).scope=n; delete _qc2.addonP[id]; qc2CfgOpen(id); }
+function qc2CfgDeep(id,d){ (_qc2.addonCfg[id]=_qc2.addonCfg[id]||{}).deep=d?1:0; delete _qc2.addonP[id]; qc2CfgOpen(id); }
+function qc2CfgPrice(id){
+  const a=QC2_ADDONS.find(function(x){return x.id===id;});
+  const v=prompt('Price for '+(a?a.label:'add-on')+'? (an hour of work should be $'+CLEAN_MIN_RATE+'+ \u2014 leave blank to go back to the suggested price)',String(qc2AddonPrice(id)));
+  if(v==null) return;
+  const n=Math.round(parseFloat(v)||0);
+  if(n>0) _qc2.addonP[id]=n; else delete _qc2.addonP[id];
+  qc2CfgOpen(id);
+}
+function qc2CfgRemove(id){ _qc2.addons[id]=false; qc2CfgClose(); }
+function qc2CfgClose(){ const ov=document.getElementById('qc2CfgOv'); if(ov) ov.remove(); qcRender(); }
 function qc2DeepAllTgl(){ _qc2.deepAll=!_qc2.deepAll; qcRender(); }
 function qc2FirstTgl(){ _qc2.firstOnly=!_qc2.firstOnly; qcRender(); }
 function qc2EditRoom(id){ const r=QC2_ROOMS.find(function(x){return x.id===id;}); const v=prompt('Price per '+(r?r.label.replace(' (extra)','').toLowerCase().replace(/s$/,''):'room')+'?',String(qc2RoomUnit(id))); if(v==null)return; const n=Math.round(parseFloat(v)||0); if(n>0)_qc2.roomP[id]=n; qcRender(); }
@@ -2655,7 +2716,7 @@ function qc2Lines(){
   const L=[{desc:'Base — 1 Bedroom · 1 Kitchen · 1 Living Room',price:CLEAN_MIN_JOB}];
   QC2_ROOMS.forEach(function(r){ const ch=qc2Charged(r.id); if(ch>0) L.push({desc:ch+'× '+(r.id==='bed'?('extra bedroom'+(ch>1?'s':'')):r.label.toLowerCase()),price:ch*qc2RoomUnit(r.id)}); });
   const dr=qc2DeepRooms(); if(dr>0) L.push({desc:'🧼 Deep clean — '+(_qc2.deepAll?'whole home ('+dr+' rooms)':dr+' room'+(dr>1?'s':''))+(_qc2.firstOnly?' · FIRST visit only':''),price:qc2DeepAmt()});
-  QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) L.push({desc:a.label,price:qc2AddonPrice(a.id)}); });
+  QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ const _dt=qc2AddonDetail(a.id); L.push({desc:a.label+(_dt?' \u2014 '+_dt:''),price:qc2AddonPrice(a.id)}); } });
   return L;
 }
 function qc2Summary(){ return qc2Lines().map(function(l){ return l.desc; }).join(' + '); }
@@ -2766,9 +2827,9 @@ function qcRender(){
     +QC2_ADDONS.map(function(a){
       const on=!!_qc2.addons[a.id];
       return '<div onclick="qc2Tgl(\''+a.id+'\')" style="border:2px solid '+(on?'#16a34a':'#e2e8f0')+';border-radius:14px;background:'+(on?'#f0fdf4':'#fff')+';padding:11px 10px;cursor:pointer;">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:20px;">'+a.icon+(on?' ✓':'')+'</span>'
-        +'<button onclick="event.stopPropagation();qc2EditAddon(\''+a.id+'\')" style="background:'+(on?'#dcfce7':'#f1f5f9')+';border:none;border-radius:8px;padding:3px 9px;font-size:14px;font-weight:800;color:'+(on?'#15803d':'#475569')+';font-family:inherit;cursor:pointer;">$'+qc2AddonPrice(a.id)+'</button></div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:20px;">'+a.icon+'</span>'+(on?'<span style="color:#15803d;font-weight:900;font-size:16px;">\u2713</span>':'')+'</div>'
         +'<div style="font-size:13.5px;font-weight:800;margin-top:4px;">'+a.label+'</div>'
+        +(on?'<div style="font-size:11px;font-weight:700;color:#15803d;margin-top:2px;">'+(qc2AddonDetail(a.id)||'added')+' \u00b7 tap to adjust</div>':'')
         +'</div>';
     }).join('')
     +'</div>'
@@ -2788,7 +2849,7 @@ function qcRender(){
       const nx=_qc2.rooms.living||0; if(nx>0) inc.push(nx+' extra room'+(nx>1?'s':''));
       if(_qc2.deepAll) inc.push('Deep clean — every room'+(_qc2.firstOnly?' (first visit)':' (every visit)'));
       else if(dr>0) inc.push('Deep clean — '+dr+' room'+(dr>1?'s':'')+(_qc2.firstOnly?' (first visit)':''));
-      QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) inc.push(FLUFF[a.id]||a.label); });
+      QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ const _dt=qc2AddonDetail(a.id); inc.push((FLUFF[a.id]||a.label)+(_dt?' \u2014 '+_dt:'')); } });
       inc.push('Supplies included · same cleaner each visit');
       return '<div style="margin-top:10px;padding:12px 14px;background:#fdf4ff;border:1.5px solid #e9d5ff;border-radius:14px;">'
         +'<div style="font-size:11px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">Everything they get</div>'
