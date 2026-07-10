@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.76 */
+/* APP_VER:2026-07-08.77 */
 (function(){
-  var V='2026-07-08.76'; window.__APP_VER=V;
+  var V='2026-07-08.77'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2678,7 +2678,13 @@ const QC2_ADDONS=[
   { id:'windows', icon:'🪟', label:'Interior windows', price:40, pr:5, rooms:1, q:'How many windows?', unit:'window', maxN:12, depth:1, dq:'Glass only or tracks & sills too?', d1:'Glass only', d2:'Tracks & sills' },  // ~6m per window glass-only; whole house $40≈48m
   { id:'laundry', icon:'🧺', label:'Laundry',          price:15 },  // ~18m of LABOR (load, switch, fold) — machines run on their own time
   { id:'base',    icon:'📏', label:'Baseboards',       price:25, pr:5,  rooms:1, q:'Baseboards in how many rooms?', unit:'room', dx:2, depth:1, dq:'Dust or scrub?', d1:'Dust', d2:'Scrub' },  // dust ~30m house, ~6m/room; scrub doubles it
-  { id:'pet',     icon:'🐾', label:'Pet hair (heavy)', price:30, pr:10, rooms:1, q:'Pet hair in how many rooms?', unit:'room' }  // ~36m house / ~12m per room
+  { id:'pet',     icon:'🐾', label:'Pet hair (heavy)', price:30, pr:10, rooms:1, q:'Pet hair in how many rooms?', unit:'room' },  // ~36m house / ~12m per room
+  { id:'couch',   icon:'🛋', label:'Couch steam clean', price:35, pr:35, rooms:1, noWhole:1, q:'How many couches / sofas?', unit:'couch', maxN:4 },   // ~42m per couch
+  { id:'linens',  icon:'🛏', label:'Bed linens change', price:5,  pr:5,  rooms:1, noWhole:1, q:'How many beds?', unit:'bed', maxN:6 },               // ~6m per bed
+  { id:'blinds',  icon:'🪟', label:'Blinds dusting',    price:25, pr:5,  rooms:1, q:'Blinds in how many rooms?', unit:'room' },                       // ~30m house / ~6m room
+  { id:'fans',    icon:'🌀', label:'Ceiling fans',      price:20, pr:5,  rooms:1, noWhole:1, q:'How many fans?', unit:'fan', maxN:8 },                // ~6m per fan
+  { id:'cab',     icon:'🚪', label:'Inside cabinets',   price:40 },                                                                                    // ~48m, kitchen
+  { id:'micro',   icon:'🍲', label:'Inside microwave',  price:10 }                                                                                     // ~12m
 ];
 let _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, deepAll:false, firstOnly:false, deepU:0 };
 function qc2Reset(){ _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, deepAll:false, firstOnly:false, deepU:0 }; }
@@ -2697,14 +2703,18 @@ function qc2AddonPrice(id){
   const a=QC2_ADDONS.find(function(x){return x.id===id;}); if(!a) return 0;
   const c=_qc2.addonCfg[id]||{};
   let p=a.price;
-  if(a.rooms&&c.scope>0) p=Math.min((a.pr||Math.max(10,Math.ceil(a.price/3/5)*5))*c.scope, a.price);   // N rooms can never cost more than the whole house
+  if(a.rooms){
+    const per=(a.pr||Math.max(10,Math.ceil(a.price/3/5)*5));
+    if(a.noWhole) p=per*Math.max(1,(c.scope>0?c.scope:1));                       // per-item add-ons (couches, beds, fans) just multiply
+    else if(c.scope>0) p=Math.min(per*c.scope, a.price);                          // N rooms can never cost more than the whole house
+  }
   if(a.depth&&c.deep) p=Math.round(p*(a.dx||1.5)/5)*5;
   return Math.max(5,Math.round(p));
 }
 function qc2AddonDetail(id){
   const a=QC2_ADDONS.find(function(x){return x.id===id;}); if(!a) return '';
   const c=_qc2.addonCfg[id]||{}, parts=[];
-  if(a.rooms){ if(c.scope>0) parts.push(c.scope+' '+(a.unit||'room')+(c.scope>1?'s':'')); else if(c.scope===0) parts.push('whole house'); }
+  if(a.rooms){ if(c.scope>0) parts.push(c.scope+' '+(a.unit||'room')+(c.scope>1?'s':'')); else if(c.scope===0&&!a.noWhole) parts.push('whole house'); }
   if(a.depth&&c.deep) parts.push((a.d2||'deep clean').toLowerCase());
   return parts.join(' \u00b7 ');
 }
@@ -2750,7 +2760,7 @@ function qc2CfgOpen(id){
     +'<div style="font-size:17px;font-weight:900;margin-bottom:14px;">'+a.icon+' '+a.label+'</div>'
     +(a.rooms?(sec(a.q||'How much of the house?')
       +'<button onclick="qc2CfgScopeWheel(\''+id+'\')" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:14px;border-radius:13px;border:2px solid #7dd3fc;background:#f0f9ff;font-family:inherit;cursor:pointer;margin-bottom:12px;">'
-      +'<span style="font-size:16px;font-weight:800;color:'+((c.scope==null||c.scope<0)?'#94a3b8':'#0f172a')+';">'+((c.scope>0)?(c.scope+' '+(a.unit||'room')+(c.scope>1?'s':'')):((c.scope===0)?'Whole house':'(Select)'))+'</span>'
+      +'<span style="font-size:16px;font-weight:800;color:'+((c.scope==null||c.scope<0)?'#94a3b8':'#0f172a')+';">'+((c.scope>0)?(c.scope+' '+(a.unit||'room')+(c.scope>1?'s':'')):((c.scope===0&&!a.noWhole)?'Whole house':'(Select)'))+'</span>'
       +'<span style="font-size:13px;font-weight:800;color:#0369a1;">Select \u25be</span></button>'):'')
     +(a.depth?(sec(a.dq||'How deep?')
     +'<div style="display:flex;gap:8px;margin-bottom:14px;">'
@@ -2812,9 +2822,9 @@ function qcMoneyWheel(title,lo,hi,step,cur,cb,topOpt){
 function qc2CfgScopeWheel(id){
   const a=QC2_ADDONS.find(function(x){return x.id===id;}); if(!a) return;
   const c=_qc2.addonCfg[id]||{};
-  const vals=[{v:0,label:'Whole house'}];
+  const vals=a.noWhole?[]:[{v:0,label:'Whole house'}];
   for(let n=1;n<=(a.maxN||8);n++) vals.push({v:n,label:n+' '+(a.unit||'room')+(n>1?'s':'')});
-  const sel=(c.scope>0)?c.scope:0;
+  const sel=(c.scope>0)?c.scope:(a.noWhole?1:0);
   qcWheelOpen(a.q||'How much of the house?',vals,vals.findIndex(function(x){return x.v===sel;}),function(v){ qc2CfgScope(id,v); });   // picking (even 'Whole house') sets it — until then the row shows (Select)
 }
 function qc2CfgTimeWheel(id){
@@ -2916,6 +2926,8 @@ function qcBookNow(){
     var ex=document.getElementById('nc-extra'); if(ex) ex.value=(_qc2.rooms.living||0);
     var n=document.getElementById('nc-notes');
     if(n&&!n.value) n.value=summary+' | Standard $'+core+'/visit'+(svc.length?(' + as-needed: '+window._ncServices):'')+(first>core?(' | First visit ~$'+first+' with everything selected'):'');
+    var sn2=document.getElementById('nc-svc-note');
+    if(sn2){ if(svc.length||first>core){ sn2.style.display='block'; sn2.innerHTML='\u2713 Carried from the estimate: <b>$'+core+'/visit</b> standard'+(svc.length?(' \u00b7 as-needed add-ons save to the customer \u2014 crew checks them each visit'):'')+(first>core?(' \u00b7 first visit ~<b>$'+first+'</b> with everything'):''); } else sn2.style.display='none'; }
   }catch(e){}
   showToast('📋 $'+core+'/visit standard — add-ons ride as per-visit toggles'+(first>core?(' (first visit ~$'+first+')'):''),6000);
 }
@@ -3053,14 +3065,17 @@ function qcRender(){
       return '<div style="margin-top:10px;padding:12px 14px;background:#fdf4ff;border:1.5px solid #e9d5ff;border-radius:14px;">'
         +'<div style="font-size:11px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">Everything they get</div>'
         +inc.map(function(p){ return '<div style="display:flex;gap:8px;font-size:13.5px;line-height:1.75;font-weight:600;color:#3b0764;"><span style="color:#16a34a;font-weight:800;">✓</span><span>'+esc(p)+'</span></div>'; }).join('')
-        +'<div style="margin-top:9px;padding-top:9px;border-top:1px dashed #e9d5ff;display:flex;justify-content:space-between;align-items:baseline;">'
-          +(function(){
+        +(function(){
             const core=qc2CoreAmt(), ad=qc2AddonsAmt(), dp=qc2DeepAmt();
-            const r=function(lab,v){ return '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:#6d28d9;line-height:1.8;"><span>'+lab+'</span><span>$'+v+'</span></div>'; };
-            return '<div style="margin-bottom:6px;">'+r('Standard clean',core)+(ad>0?r('Add-ons (as needed)',ad):'')+(dp>0?r('Deep clean upcharge',dp):'')+'</div>';
+            const r=function(lab,v,big){ return '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:'+(big?'15px':'12.5px')+';font-weight:800;color:'+(big?'#3b0764':'#6d28d9')+';line-height:2;"><span>'+lab+'</span><span style="'+(big?'font-size:18px;':'')+'">$'+v+'</span></div>'; };
+            let h2='<div style="margin-top:9px;padding-top:9px;border-top:1px dashed #e9d5ff;">';
+            h2+=r('Standard clean \u2014 every visit',core,!(ad>0||dp>0));
+            if(ad>0) h2+=r('Add-ons \u2014 as needed',ad);
+            if(dp>0) h2+=r('Deep clean upcharge'+(_qc2.firstOnly?' \u2014 first visit':''),dp);
+            if(ad>0||dp>0) h2+='<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:5px;padding-top:7px;border-top:1px dashed #e9d5ff;font-size:14px;font-weight:900;color:#3b0764;"><span>'+(_qc2.firstOnly&&dp>0?'First visit \u2014 everything':'With everything')+'</span><span style="font-size:19px;">$'+first+'</span></div>'
+              +'<div style="font-size:12px;font-weight:800;color:#6d28d9;text-align:right;">then $'+core+' a visit + whatever\u2019s needed</div>';
+            return h2+'</div>';
           })()
-          +'<span style="font-size:13px;font-weight:800;color:#6d28d9;">All of it:</span>'
-          +'<span style="font-size:17px;font-weight:800;color:#3b0764;">'+((_qc2.firstOnly&&dr>0)?('$'+first+' today · $'+spot+'/visit after'):('$'+first+(qc2RoomCount()||dr||1?'':'')+' a visit'))+'</span></div>'
         +'</div>';
     })();
   const tot=document.getElementById('qcTotal');
@@ -3124,23 +3139,30 @@ function ncOpen(){
       +'<div><div style="font-size:18px;font-weight:800;">➕ New Customer</div><div style="font-size:12.5px;color:#64748b;margin-top:2px;">Got one on the route? Add & schedule them right here.</div></div>'
       +'<button onclick="ncClose()" style="background:#f3f4f6;border:none;font-size:22px;color:#374151;cursor:pointer;line-height:1;padding:8px 14px;border-radius:12px;">×</button></div>'
       +'<div style="overflow-y:auto;padding:14px 16px 6px;flex:1;">'
-      +'<div style="'+lab+'">🔎 Existing customer? Search to autofill</div>'
-      +'<input id="nc-search" style="'+inp+'" placeholder="Name, address or phone…" oninput="ncSearch(this.value)" autocomplete="off">'
+      +'<input id="nc-search" style="'+inp+'border-color:#7dd3fc;background:#f0f9ff;" placeholder="🔎 Existing customer? Type to autofill…" oninput="ncSearch(this.value)" autocomplete="off">'
       +'<div id="nc-srch-res" style="margin:-4px 0 8px;"></div>'
+      +(function(){ const hd=function(t){ return '<div style="font-size:12px;font-weight:900;color:#0369a1;text-transform:uppercase;letter-spacing:.08em;margin:10px 0 6px;padding-bottom:4px;border-bottom:1.5px solid #e0f2fe;">'+t+'</div>'; };
+        return hd('👤 Who')
       +'<div style="'+lab+'">Full name *</div><input id="nc-name" style="'+inp+'" placeholder="Jane Smith">'
-      +'<div style="'+lab+'">Phone</div><input id="nc-phone" type="tel" inputmode="tel" style="'+inp+'" placeholder="(352) 555-0123">'
-      +'<div style="'+lab+'">Email</div><input id="nc-email" type="email" inputmode="email" autocapitalize="none" style="'+inp+'" placeholder="you@email.com">'
-      +'<div style="'+lab+'">Street address *</div><input id="nc-addr" style="'+inp+'" placeholder="123 Oak St, Inverness">'
-      +'<div style="'+lab+'">Zip</div><input id="nc-zip" inputmode="numeric" maxlength="5" style="'+inp+'" placeholder="34450">'
-      +'<div style="'+lab+'">Plan *</div><select id="nc-freq" style="'+inp+'">'+NC_FREQS.map(function(f){return '<option>'+f+'</option>';}).join('')+'</select>'
-      +'<div style="'+lab+'">⏰ Preferred time</div><select id="nc-pref" style="'+inp+'"><option value="">No preference</option><option>Mornings (8–11)</option><option>Midday (11–2)</option><option>Afternoons (2–5)</option><option>Exact time — put it in notes</option></select>'
-      +'<div style="'+lab+'">Type of clean *</div><select id="nc-service" style="'+inp+'"><option>Standard Clean</option><option>Better — Detail Clean</option><option>Deep Clean</option><option>Move In/Out Clean</option></select>'
+      +'<div style="display:flex;gap:8px;"><div style="flex:1;"><div style="'+lab+'">Phone</div><input id="nc-phone" type="tel" inputmode="tel" style="'+inp+'" placeholder="(352) 555-0123"></div>'
+      +'<div style="flex:1;"><div style="'+lab+'">Email</div><input id="nc-email" type="email" inputmode="email" autocapitalize="none" style="'+inp+'" placeholder="you@email.com"></div></div>'
+      +hd('📍 Where')
+      +'<div style="display:flex;gap:8px;"><div style="flex:2.4;"><div style="'+lab+'">Street address *</div><input id="nc-addr" style="'+inp+'" placeholder="123 Oak St, Inverness"></div>'
+      +'<div style="flex:1;"><div style="'+lab+'">Zip</div><input id="nc-zip" inputmode="numeric" maxlength="5" style="'+inp+'" placeholder="34450"></div></div>'
+      +hd('📅 Plan')
+      +'<div style="display:flex;gap:8px;"><div style="flex:1;"><div style="'+lab+'">Plan *</div><select id="nc-freq" style="'+inp+'">'+NC_FREQS.map(function(f){return '<option>'+f+'</option>';}).join('')+'</select></div>'
+      +'<div style="flex:1;"><div style="'+lab+'">First date *</div><input id="nc-date" type="date" style="'+inp+'"></div></div>'
+      +'<div style="display:flex;gap:8px;"><div style="flex:1;"><div style="'+lab+'">⏰ Preferred time</div><select id="nc-pref" style="'+inp+'"><option value="">No preference</option><option>Mornings (8–11)</option><option>Midday (11–2)</option><option>Afternoons (2–5)</option><option>Exact time — put it in notes</option></select></div>'
+      +'<div style="flex:1;"><div style="'+lab+'">Payment</div><select id="nc-pay" style="'+inp+'"><option value="card">💳 Card</option><option value="cash">💵 Cash</option></select></div></div>'
+      +hd('💲 Price')
+      +'<div style="'+lab+'">Standard clean per visit ($)</div><input id="nc-price" type="number" inputmode="decimal" style="'+inp+'" placeholder="leave blank for a quote visit">'
+      +'<div id="nc-svc-note" style="display:none;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:9px 11px;font-size:12.5px;font-weight:700;color:#166534;line-height:1.5;margin:-4px 0 10px;"></div>'
+      +'<details style="margin:6px 0 10px;"><summary style="font-size:13px;font-weight:800;color:#64748b;cursor:pointer;padding:6px 0;">🏠 Home details & notes'+ '</summary>'
+      +'<div style="'+lab+'margin-top:8px;">Type of clean</div><select id="nc-service" style="'+inp+'"><option>Standard Clean</option><option>Better — Detail Clean</option><option>Deep Clean</option><option>Move In/Out Clean</option></select>'
       +'<div style="display:flex;gap:8px;"><div style="flex:1;"><div style="'+lab+'">Beds</div><input id="nc-bed" type="number" inputmode="numeric" min="0" max="10" value="2" style="'+inp+'"></div><div style="flex:1;"><div style="'+lab+'">Baths</div><input id="nc-bath" type="number" inputmode="numeric" min="0" max="10" value="1" style="'+inp+'"></div><div style="flex:1;"><div style="'+lab+'">Extra rms</div><input id="nc-extra" type="number" inputmode="numeric" min="0" max="10" value="0" style="'+inp+'"></div></div>'
       +'<div style="'+lab+'">Home size</div><select id="nc-sqft" style="'+inp+'"><option>Under 1,000 sq ft</option><option selected>1,000–2,000 sq ft</option><option>2,000–3,000 sq ft</option><option>3,000+ sq ft</option></select>'
-      +'<div style="'+lab+'">Price per visit ($)</div><input id="nc-price" type="number" inputmode="decimal" style="'+inp+'" placeholder="leave blank for a quote visit">'
-      +'<div style="'+lab+'">First service date *</div><input id="nc-date" type="date" style="'+inp+'">'
-      +'<div style="'+lab+'">Payment</div><select id="nc-pay" style="'+inp+'"><option value="card">💳 Card</option><option value="cash">💵 Cash</option></select>'
       +'<div style="'+lab+'">Notes</div><textarea id="nc-notes" style="'+inp+'min-height:56px;resize:vertical;" placeholder="Gate code, pets, details…"></textarea>'
+      +'</details>'; })()
       +'</div>'
       +'<div style="padding:12px 16px calc(14px + env(safe-area-inset-bottom));border-top:1.5px solid #e2e8f0;">'
       +'<button onclick="ncSubmit()" style="width:100%;padding:15px;border:none;border-radius:12px;background:#16a34a;color:#fff;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;">✅ Add customer & schedule</button></div></div>';
