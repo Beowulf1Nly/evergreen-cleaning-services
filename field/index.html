@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.86 */
+/* APP_VER:2026-07-08.87 */
 (function(){
-  var V='2026-07-08.86'; window.__APP_VER=V;
+  var V='2026-07-08.87'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2738,8 +2738,8 @@ const QC2_ADDONS=[
   { id:'linens',  icon:'🛏', label:'Bed linens change', price:15, pr:15, rooms:1, noWhole:1, q:'How many beds?', unit:'bed', maxN:6 },               // ~18m per bed — strip, remake, pillowcases
   { id:'micro',   icon:'🍲', label:'Inside microwave',  price:10 }                                                                                     // ~12m
 ];
-let _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, deepAll:false, firstOnly:false, deepU:0 };
-function qc2Reset(){ _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, deepAll:false, firstOnly:false, deepU:0 }; }
+let _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, customs:[], deepAll:false, firstOnly:false, deepU:0 };
+function qc2Reset(){ _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, customs:[], deepAll:false, firstOnly:false, deepU:0 }; }
 function qc2Charged(id){ const n=_qc2.rooms[id]||0; return id==='bed'?Math.max(0,n-1):n; }   // 1st bed rides in the base
 function qc2RoomUnit(id){ if(_qc2.roomP[id]>0) return _qc2.roomP[id]; const r=QC2_ROOMS.find(function(x){return x.id===id;}); return (r&&r.unit)||QC2_ROOM_UNIT; }
 function qc2DeepUnit(){ return (_qc2.deepU>0)?_qc2.deepU:QC2_DEEP_UNIT; }
@@ -2777,6 +2777,7 @@ function qc2Spot(){
   let t=CLEAN_MIN_JOB;
   QC2_ROOMS.forEach(function(r){ t+=qc2Charged(r.id)*qc2RoomUnit(r.id); });
   QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) t+=qc2AddonPrice(a.id); });
+  (_qc2.customs||[]).forEach(function(c){ t+=(+c.price||0); });
   return Math.round(t);
 }
 function qc2DeepAmt(){
@@ -2788,7 +2789,7 @@ function qc2DeepAmt(){
 }
 function qc2Total(){ return qc2Spot()+qc2DeepAmt(); }
 function qc2CoreAmt(){ let t=CLEAN_MIN_JOB; QC2_ROOMS.forEach(function(r){ t+=qc2Charged(r.id)*qc2RoomUnit(r.id); }); return Math.round(t); }
-function qc2AddonsAmt(){ let t=0; QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) t+=qc2AddonPrice(a.id); }); return Math.round(t); }
+function qc2AddonsAmt(){ let t=0; QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]) t+=qc2AddonPrice(a.id); }); (_qc2.customs||[]).forEach(function(c){ t+=(+c.price||0); }); return Math.round(t); }
 function qc2Bump(id,d){ _qc2.rooms[id]=Math.max(0,(_qc2.rooms[id]||0)+d); _qc2.deep[id]=Math.min(_qc2.deep[id]||0,_qc2.rooms[id]); qcRender(); }
 function qc2DeepBump(id,d){ _qc2.deep[id]=Math.max(0,Math.min((_qc2.rooms[id]||0)+(id==='baseRooms'?0:0),(_qc2.deep[id]||0)+d)); if(_qc2.deep[id]>(_qc2.rooms[id]||0)) _qc2.deep[id]=_qc2.rooms[id]||0; qcRender(); }
 function qc2Tgl(id){
@@ -2905,6 +2906,55 @@ function qc2CfgPrice(id){
 }
 function qc2CfgRemove(id){ _qc2.addons[id]=false; qc2CfgClose(); }
 function qc2CfgClose(){ const ov=document.getElementById('qc2CfgOv'); if(ov) ov.remove(); qcRender(); }
+/* ── \u2728 custom add-ons: she types it, price & time stay matched at $/hr, add as many as needed ── */
+let _qc2Ci=-1, _qc2Cd=null;
+function qc2CustomOpen(i){
+  _qc2Ci=(i==null)?-1:i;
+  _qc2Cd=(i==null)?{name:'',price:50}:{name:_qc2.customs[i].name,price:+_qc2.customs[i].price||50};
+  qc2CustomRender();
+}
+function qc2CustomRender(){
+  let ov=document.getElementById('qc2CustOv');
+  if(!ov){ ov=document.createElement('div'); ov.id='qc2CustOv';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:3600;display:flex;align-items:flex-end;justify-content:center;';
+    ov.onclick=function(ev){ if(ev.target===ov) ov.remove(); };
+    document.body.appendChild(ov); }
+  const d=_qc2Cd, mins=Math.max(5,Math.round((+d.price||0)/CLEAN_MIN_RATE*60/5)*5);
+  ov.innerHTML='<div style="background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:18px 16px 28px;" onclick="event.stopPropagation()">'
+    +'<div style="font-size:17px;font-weight:900;margin-bottom:12px;">\u2728 Custom add-on</div>'
+    +'<div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">What is it?</div>'
+    +'<input id="qc2CustName" value="'+esc(d.name)+'" oninput="_qc2Cd.name=this.value" placeholder="e.g. Garage sweep-out, patio furniture wipe\u2026" style="width:100%;box-sizing:border-box;padding:13px;border:1.5px solid #cbd5e1;border-radius:12px;font-size:16px;font-family:inherit;margin-bottom:12px;">'
+    +'<div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 14px;margin-bottom:14px;">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;">'
+      +'<span style="font-size:13px;font-weight:800;color:#475569;">Price</span>'
+      +'<span style="display:flex;align-items:center;gap:8px;"><b style="font-size:20px;">$'+(+d.price||0)+'</b>'
+      +'<button onclick="qc2CustPrice()" style="background:#f1f5f9;border:none;border-radius:9px;padding:6px 12px;font-size:14px;font-weight:800;color:#475569;font-family:inherit;cursor:pointer;">\u270e $</button></span></div>'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px dashed #cbd5e1;">'
+      +'<span style="font-size:13px;font-weight:800;color:#475569;">\u23f1 Est. time</span>'
+      +'<span style="display:flex;align-items:center;gap:8px;"><b style="font-size:16px;">~'+mins+' min</b>'
+      +'<button onclick="qc2CustTime()" style="background:#f1f5f9;border:none;border-radius:9px;padding:6px 12px;font-size:14px;font-weight:800;color:#475569;font-family:inherit;cursor:pointer;">\u270e time</button></span></div>'
+      +'<div style="font-size:11px;color:#94a3b8;font-weight:600;margin-top:6px;">Edit either one \u2014 they stay matched at $'+CLEAN_MIN_RATE+'/hr</div></div>'
+    +'<div style="display:flex;gap:8px;">'
+      +(_qc2Ci>=0?'<button onclick="qc2CustomRemove()" style="flex:1;padding:14px 6px;border-radius:13px;border:2px solid #fecaca;background:#fef2f2;color:#b91c1c;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;">Remove</button>':'')
+      +'<button onclick="qc2CustomDone()" style="flex:2;padding:14px 6px;border-radius:13px;border:none;background:#16a34a;color:#fff;font-weight:900;font-size:15px;font-family:inherit;cursor:pointer;">\u2713 '+(_qc2Ci>=0?'Save':'Add')+' \u2014 $'+(+d.price||0)+'</button></div></div>';
+}
+function qc2CustPrice(){ qcMoneyWheel('\ud83d\udcb2 '+(_qc2Cd.name||'Custom add-on'),5,500,5,+_qc2Cd.price||50,function(v){ if(v>0)_qc2Cd.price=v; qc2CustomRender(); }); }
+function qc2CustTime(){
+  const MINS=[5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,105,120,150,180,240];
+  const cur=Math.max(5,Math.round((+_qc2Cd.price||0)/CLEAN_MIN_RATE*60/5)*5);
+  const vals=MINS.map(function(m){ return {v:m,label:(m<60?(m+' min'):(Math.floor(m/60)+'h'+(m%60?(' '+m%60+'m'):'')))}; });
+  let si=0,bd=1e9; MINS.forEach(function(m,i){ const dd=Math.abs(m-cur); if(dd<bd){bd=dd;si=i;} });
+  qcWheelOpen('\u23f1 How long will it take?',vals,si,function(v){ _qc2Cd.price=Math.max(5,Math.round(v/60*CLEAN_MIN_RATE/5)*5); qc2CustomRender(); });
+}
+function qc2CustomDone(){
+  const nm=String(_qc2Cd.name||'').trim();
+  if(!nm){ showToast('Type what the add-on is first'); return; }
+  const it={name:nm,price:Math.max(5,+_qc2Cd.price||5)};
+  if(_qc2Ci>=0) _qc2.customs[_qc2Ci]=it; else (_qc2.customs=_qc2.customs||[]).push(it);
+  const ov=document.getElementById('qc2CustOv'); if(ov) ov.remove();
+  qcRender();
+}
+function qc2CustomRemove(){ if(_qc2Ci>=0)(_qc2.customs||[]).splice(_qc2Ci,1); const ov=document.getElementById('qc2CustOv'); if(ov) ov.remove(); qcRender(); }
 function qc2DeepAllTgl(){ _qc2.deepAll=!_qc2.deepAll; qcRender(); }
 function qc2FirstTgl(){ _qc2.firstOnly=!_qc2.firstOnly; qcRender(); }
 function qc2EditRoom(id){ const r=QC2_ROOMS.find(function(x){return x.id===id;}); qcMoneyWheel('Price per '+(r?r.label.replace(' (extra)','').toLowerCase().replace(/s$/,''):'room'),5,60,5,qc2RoomUnit(id),function(v){ if(v>0)_qc2.roomP[id]=v; qcRender(); }); }
@@ -2915,6 +2965,7 @@ function qc2Lines(){
   QC2_ROOMS.forEach(function(r){ const ch=qc2Charged(r.id); if(ch>0) L.push({desc:ch+'× '+(r.id==='bed'?('extra bedroom'+(ch>1?'s':'')):r.label.toLowerCase()),price:ch*qc2RoomUnit(r.id)}); });
   const dr=qc2DeepRooms(); if(dr>0) L.push({desc:'🧼 Deep clean — '+(_qc2.deepAll?'whole home ('+dr+' rooms)':dr+' room'+(dr>1?'s':''))+(_qc2.firstOnly?' · FIRST visit only':''),price:qc2DeepAmt()});
   QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ const _dt=qc2AddonDetail(a.id); L.push({desc:a.label+(_dt?' \u2014 '+_dt:''),price:qc2AddonPrice(a.id)}); } });
+  (_qc2.customs||[]).forEach(function(c){ L.push({desc:'\u2728 '+c.name,price:+c.price||0}); });
   return L;
 }
 function qc2Summary(){ return qc2Lines().map(function(l){ return l.desc; }).join(' + '); }
@@ -2989,6 +3040,7 @@ function qcBookNow(){
   // the plain standard clean.
   var svc=[];
   QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ var dt=qc2AddonDetail(a.id); svc.push(a.label+(dt?(' ('+dt+')'):'')+': $'+qc2AddonPrice(a.id)); } });
+  (_qc2.customs||[]).forEach(function(c){ var nm=String(c.name||'').replace(/[;:]/g,' ').trim(); if(nm) svc.push(nm+': $'+(+c.price||0)); });
   var dp=qc2DeepAmt(); if(dp>0) svc.push('Deep clean upcharge'+(_qc2.firstOnly?' (first visit)':'')+': $'+dp);
   window._ncServices=svc.join('; ');
   try{ ncOpen(); }catch(e){ console.warn('ncOpen failed',e); showToast('⚠ Could not open the booking form — tell the office'); return; }
@@ -3131,6 +3183,15 @@ function qcRender(){
         +(on?'<div style="font-size:11px;font-weight:700;color:#15803d;margin-top:2px;">'+(qc2AddonDetail(a.id)||'added')+' \u00b7 tap to adjust</div>':'')
         +'</div>';
     }).join('')
+    +(_qc2.customs||[]).map(function(c,ci){
+      return '<div onclick="qc2CustomOpen('+ci+')" style="border:2px solid #a855f7;border-radius:14px;background:#faf5ff;padding:11px 10px;cursor:pointer;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:20px;">\u2728</span><span style="color:#7c3aed;font-weight:900;font-size:16px;">\u2713</span></div>'
+        +'<div style="font-size:13.5px;font-weight:800;margin-top:4px;">'+esc(c.name)+'</div>'
+        +'<div style="font-size:11px;font-weight:700;color:#7c3aed;margin-top:2px;">$'+(+c.price||0)+' \u00b7 ~'+Math.max(5,Math.round((+c.price||0)/CLEAN_MIN_RATE*60/5)*5)+'m \u00b7 tap to adjust</div>'
+        +'</div>';
+    }).join('')
+    +'<div onclick="qc2CustomOpen(null)" style="border:2px dashed #cbd5e1;border-radius:14px;background:#fff;padding:11px 10px;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:64px;">'
+      +'<span style="font-size:13.5px;font-weight:800;color:#64748b;">\uff0b Custom add-on</span></div>'
     +'</div>'
     +'<div style="margin-top:14px;padding:12px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;">'
       +'<div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Estimate breakdown</div>'
@@ -3162,6 +3223,7 @@ function qcRender(){
       if(_qc2.deepAll) asneeded.push({t:'Deep clean \u2014 every room, back under control'+(_qc2.firstOnly?' (first visit reset)':''),p:qc2DeepAmt()});
       else if(dr>0) asneeded.push({t:'Deep clean \u2014 '+dr+' room'+(dr>1?'s':'')+(_qc2.firstOnly?' (first visit reset)':''),p:qc2DeepAmt()});
       QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ const _dt=qc2AddonDetail(a.id); asneeded.push({t:(FLUFF[a.id]||a.label)+(_dt?' \u2014 '+_dt:''),p:qc2AddonPrice(a.id)}); } });
+      (_qc2.customs||[]).forEach(function(c){ asneeded.push({t:c.name,p:+c.price||0}); });
       const li=function(txt,extra){ return '<div style="display:flex;gap:9px;font-size:14px;line-height:1.85;font-weight:600;color:#334155;"><span style="color:#16a34a;font-weight:800;">\u2713</span><span>'+txt+(extra||'')+'</span></div>'; };
       const core=qc2CoreAmt(), hasX=asneeded.length>0, isFirst=(_qc2.firstOnly&&dr>0);
       // customer-safe: no crew cues on screen — the copy reads aloud naturally AND
@@ -3217,6 +3279,7 @@ function qcEmail(){
   QC2_ROOMS.forEach(function(r){ var ch=qc2Charged(r.id); if(ch>0) items.push({desc:ch+'× '+(r.id==='bed'?('extra bedroom'+(ch>1?'s':'')):r.label.toLowerCase()), price:ch*qc2RoomUnit(r.id), included:'false'}); });
   if(dr0>0) items.push({desc:'Deep clean — '+(_qc2.deepAll?'whole home':(dr0+' room'+(dr0>1?'s':'')))+(_qc2.firstOnly?' (first-visit reset, one time)':' (every visit)'), price:qc2DeepAmt(), included:'false', optional:_qc2.firstOnly?'true':'false'});
   QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ var dt=qc2AddonDetail(a.id); items.push({desc:a.label+(dt?(' — '+dt):'')+' (as needed)', price:qc2AddonPrice(a.id), included:'false', optional:'true'}); } });
+  (_qc2.customs||[]).forEach(function(c){ items.push({desc:String(c.name||'')+' (as needed)', price:+c.price||0, included:'false', optional:'true'}); });
   var emailNotes=[];
   if(_qc2.firstOnly&&dr0>0) emailNotes.push('First visit: ~$'+tot+' — a one-time reset to get the whole house under control.');
   emailNotes.push('Every visit after: $'+core+' flat.');
