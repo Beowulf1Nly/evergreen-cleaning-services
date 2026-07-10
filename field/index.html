@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.58 */
+/* APP_VER:2026-07-08.59 */
 (function(){
-  var V='2026-07-08.58'; window.__APP_VER=V;
+  var V='2026-07-08.59'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2728,13 +2728,28 @@ function qc2CfgOpen(id){
     +'<div style="display:flex;gap:8px;margin-bottom:14px;">'
       +chip(!c.deep,'Wipe down',"qc2CfgDeep('"+id+"',0)")
       +chip(!!c.deep,'Deep clean',"qc2CfgDeep('"+id+"',1)")+'</div>'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 14px;margin-bottom:14px;">'
+    +'<div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 14px;margin-bottom:14px;">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;">'
       +'<span style="font-size:13px;font-weight:800;color:#475569;">Price'+(ovr?' \u2014 your price':'')+'</span>'
       +'<span style="display:flex;align-items:center;gap:8px;"><b style="font-size:20px;">$'+qc2AddonPrice(id)+'</b>'
-      +'<button onclick="qc2CfgPrice(\''+id+'\')" style="background:#f1f5f9;border:none;border-radius:9px;padding:6px 12px;font-size:14px;font-weight:800;color:#475569;font-family:inherit;cursor:pointer;">\u270e Edit</button></span></div>'
+      +'<button onclick="qc2CfgPrice(\''+id+'\')" style="background:#f1f5f9;border:none;border-radius:9px;padding:6px 12px;font-size:14px;font-weight:800;color:#475569;font-family:inherit;cursor:pointer;">\u270e $</button></span></div>'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px dashed #cbd5e1;">'
+      +'<span style="font-size:13px;font-weight:800;color:#475569;">\u23f1 Est. time</span>'
+      +'<span style="display:flex;align-items:center;gap:8px;"><b style="font-size:16px;">~'+qc2AddonMins(id)+' min</b>'
+      +'<button onclick="qc2CfgTime(\''+id+'\')" style="background:#f1f5f9;border:none;border-radius:9px;padding:6px 12px;font-size:14px;font-weight:800;color:#475569;font-family:inherit;cursor:pointer;">\u270e time</button></span></div>'
+      +'<div style="font-size:11px;color:#94a3b8;font-weight:600;margin-top:6px;">Edit either one \u2014 they stay matched at $'+CLEAN_MIN_RATE+'/hr</div></div>'
     +'<div style="display:flex;gap:8px;">'
       +'<button onclick="qc2CfgRemove(\''+id+'\')" style="flex:1;padding:14px 6px;border-radius:13px;border:2px solid #fecaca;background:#fef2f2;color:#b91c1c;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;">Remove</button>'
       +'<button onclick="qc2CfgClose()" style="flex:2;padding:14px 6px;border-radius:13px;border:none;background:#16a34a;color:#fff;font-weight:900;font-size:15px;font-family:inherit;cursor:pointer;">\u2713 Done \u2014 $'+qc2AddonPrice(id)+'</button></div></div>';
+}
+function qc2AddonMins(id){ return Math.max(5,Math.round(qc2AddonPrice(id)/CLEAN_MIN_RATE*60/5)*5); }
+function qc2CfgTime(id){
+  const a=QC2_ADDONS.find(function(x){return x.id===id;});
+  const v=prompt('About how many MINUTES will '+(a?a.label.toLowerCase():'this')+' take?\n\nPrice adjusts to keep $'+CLEAN_MIN_RATE+'/hr.',String(qc2AddonMins(id)));
+  if(v==null) return;
+  const n=Math.round(parseFloat(v)||0);
+  if(n>0) _qc2.addonP[id]=Math.max(5,Math.round(n/60*CLEAN_MIN_RATE/5)*5); else delete _qc2.addonP[id];
+  qc2CfgOpen(id);
 }
 function qc2CfgScope(id,n){ (_qc2.addonCfg[id]=_qc2.addonCfg[id]||{}).scope=n; delete _qc2.addonP[id]; qc2CfgOpen(id); }
 function qc2CfgDeep(id,d){ (_qc2.addonCfg[id]=_qc2.addonCfg[id]||{}).deep=d?1:0; delete _qc2.addonP[id]; qc2CfgOpen(id); }
@@ -2884,6 +2899,8 @@ function qcRender(){
     +'<div style="margin-top:14px;padding:12px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;">'
       +'<div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Estimate breakdown</div>'
       +qc2Lines().map(function(l){ return '<div style="display:flex;justify-content:space-between;font-size:13px;line-height:1.9;"><span>'+esc(l.desc)+'</span><b>$'+l.price+'</b></div>'; }).join('')
+      +(function(){ const m=Math.round(qc2Total()/CLEAN_MIN_RATE*60/5)*5; const h=Math.floor(m/60), mm=m%60;
+        return '<div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px dashed #cbd5e1;"><span>\u23f1 Est. total time on site</span><b>~'+(h?h+'h ':'')+(mm?mm+'m':(h?'':'0m'))+'</b></div>'; })()
     +'</div>'
     +(function(){
       // the close: stack EVERYTHING they get, fluffed — then the price, then the ask
