@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.79 */
+/* APP_VER:2026-07-08.80 */
 (function(){
-  var V='2026-07-08.79'; window.__APP_VER=V;
+  var V='2026-07-08.80'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2722,8 +2722,7 @@ const QC2_ADDONS=[
   { id:'base',    icon:'📏', label:'Baseboards',       price:25, pr:5,  rooms:1, q:'Baseboards in how many rooms?', unit:'room', dx:2, depth:1, dq:'Dust or scrub?', d1:'Dust', d2:'Scrub' },  // dust ~30m house, ~6m/room; scrub doubles it
   { id:'pet',     icon:'🐾', label:'Pet hair (heavy)', price:30, pr:10, rooms:1, q:'Pet hair in how many rooms?', unit:'room' },  // ~36m house / ~12m per room
   { id:'couch',   icon:'🛋', label:'Couch steam clean', price:35, pr:35, rooms:1, noWhole:1, q:'How many couches / sofas?', unit:'couch', maxN:4 },   // ~42m per couch
-  { id:'linens',  icon:'🛏', label:'Bed linens change', price:5,  pr:5,  rooms:1, noWhole:1, q:'How many beds?', unit:'bed', maxN:6 },               // ~6m per bed
-  { id:'fans',    icon:'🌀', label:'Ceiling fans',      price:10, pr:2.5, rooms:1, noWhole:1, q:'How many fans?', unit:'fan', maxN:10 },              // ~3m per fan — 4 fans = $10 / 12m
+  { id:'linens',  icon:'🛏', label:'Bed linens change', price:15, pr:15, rooms:1, noWhole:1, q:'How many beds?', unit:'bed', maxN:6 },               // ~18m per bed — strip, remake, pillowcases
   { id:'micro',   icon:'🍲', label:'Inside microwave',  price:10 }                                                                                     // ~12m
 ];
 let _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, deepAll:false, firstOnly:false, deepU:0 };
