@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.96 */
+/* APP_VER:2026-07-08.97 */
 (function(){
-  var V='2026-07-08.96'; window.__APP_VER=V;
+  var V='2026-07-08.97'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2861,8 +2861,8 @@ const QC2_ADDONS=[
   { id:'linens',  icon:'🛏', label:'Bed linens change', price:15, pr:15, rooms:1, noWhole:1, q:'How many beds?', unit:'bed', maxN:6 },               // ~18m per bed — strip, remake, pillowcases
   { id:'micro',   icon:'🍲', label:'Inside microwave',  price:5 }                                                                                      // ~6m
 ];
-let _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, customs:[], deepAll:false, firstOnly:false, deepU:0 };
-function qc2Reset(){ _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, customs:[], deepAll:false, firstOnly:false, deepU:0 }; }
+let _qc2={ rooms:{bed:1,bath:0,living:0}, baseRooms:{kit:1,liv:1}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, customs:[], deepAll:false, firstOnly:false, deepU:0 };
+function qc2Reset(){ _qc2={ rooms:{bed:1,bath:0,living:0}, baseRooms:{kit:1,liv:1}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, customs:[], deepAll:false, firstOnly:false, deepU:0 }; }
 function qc2Charged(id){ const n=_qc2.rooms[id]||0; return id==='bed'?Math.max(0,n-1):n; }   // 1st bed rides in the base
 function qc2RoomUnit(id){ if(_qc2.roomP[id]>0) return _qc2.roomP[id]; const r=QC2_ROOMS.find(function(x){return x.id===id;}); return (r&&r.unit)||QC2_ROOM_UNIT; }
 function qc2DeepUnit(){ return (_qc2.deepU>0)?_qc2.deepU:QC2_DEEP_UNIT; }
@@ -2894,7 +2894,10 @@ function qc2AddonDetail(id){
   return parts.join(' \u00b7 ');
 }
 function qc2RoomCount(){ let n=0; QC2_ROOMS.forEach(function(r){ n+=(_qc2.rooms[r.id]||0); }); return n; }
-function qc2DeepRooms(){ if(_qc2.deepAll) return 2+qc2RoomCount(); let n=((_qc2.deepBase&&_qc2.deepBase.kit)?1:0)+((_qc2.deepBase&&_qc2.deepBase.liv)?1:0); QC2_ROOMS.forEach(function(r){ n+=Math.min(_qc2.deep[r.id]||0,_qc2.rooms[r.id]||0); }); return n; }
+function _qc2BR(id){ const b=_qc2.baseRooms||{kit:1,liv:1}; return Math.max(0,+b[id]||0); }
+function qc2DeepRooms(){ if(_qc2.deepAll) return _qc2BR('kit')+_qc2BR('liv')+qc2RoomCount(); let n=Math.min(_qc2.deepBase.kit||0,_qc2BR('kit'))+Math.min(_qc2.deepBase.liv||0,_qc2BR('liv')); QC2_ROOMS.forEach(function(r){ n+=Math.min(_qc2.deep[r.id]||0,_qc2.rooms[r.id]||0); }); return n; }
+function qc2BaseBump(id,d){ _qc2.baseRooms=_qc2.baseRooms||{kit:1,liv:1}; _qc2.baseRooms[id]=Math.max(0,Math.min(3,(_qc2.baseRooms[id]||0)+d)); _qc2.deepBase[id]=Math.min(_qc2.deepBase[id]||0,_qc2.baseRooms[id]); qcRender(); }
+function qc2BaseDeepBump(id,d){ _qc2.deepBase[id]=Math.max(0,Math.min(_qc2BR(id),(_qc2.deepBase[id]||0)+d)); qcRender(); }
 function qc2DeepBaseTgl(id){ _qc2.deepBase=_qc2.deepBase||{kit:0,liv:0}; _qc2.deepBase[id]=_qc2.deepBase[id]?0:1; qcRender(); }
 function qc2Spot(){
   let t=CLEAN_MIN_JOB;
@@ -2905,8 +2908,8 @@ function qc2Spot(){
 }
 function qc2DeepAmt(){
   if(_qc2.deepU>0) return qc2DeepRooms()*_qc2.deepU;
-  if(_qc2.deepAll){ let t=qc2DeepUnitFor('kit')+qc2DeepUnitFor('liv'); QC2_ROOMS.forEach(function(r){ t+=(_qc2.rooms[r.id]||0)*qc2DeepUnitFor(r.id); }); return t; }
-  let t=((_qc2.deepBase&&_qc2.deepBase.kit)?qc2DeepUnitFor('kit'):0)+((_qc2.deepBase&&_qc2.deepBase.liv)?qc2DeepUnitFor('liv'):0);
+  if(_qc2.deepAll){ let t=_qc2BR('kit')*qc2DeepUnitFor('kit')+_qc2BR('liv')*qc2DeepUnitFor('liv'); QC2_ROOMS.forEach(function(r){ t+=(_qc2.rooms[r.id]||0)*qc2DeepUnitFor(r.id); }); return t; }
+  let t=Math.min(_qc2.deepBase.kit||0,_qc2BR('kit'))*qc2DeepUnitFor('kit')+Math.min(_qc2.deepBase.liv||0,_qc2BR('liv'))*qc2DeepUnitFor('liv');
   QC2_ROOMS.forEach(function(r){ t+=Math.min(_qc2.deep[r.id]||0,_qc2.rooms[r.id]||0)*qc2DeepUnitFor(r.id); });
   return t;
 }
@@ -3340,6 +3343,24 @@ function qcRender(){
       +'<div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-size:16px;font-weight:800;letter-spacing:-.01em;">$'+CLEAN_MIN_JOB+' includes up to</span><span style="font-size:10.5px;font-weight:800;letter-spacing:.06em;color:#0369a1;">EVERY VISIT</span></div>'
       +'<div style="font-size:13px;color:#334155;font-weight:600;margin-top:3px;">1 bedroom, 1 kitchen &amp; 1 living room</div></div>'
     +'<div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin:6px 0 8px;">Rooms</div>'
+    +[{id:'kit',icon:'\ud83c\udf73',label:'Kitchen'},{id:'liv',icon:'\ud83d\udecb',label:'Living room'}].map(function(r){
+      const n=_qc2BR(r.id), dn=Math.min(_qc2.deepBase[r.id]||0,n);
+      return '<div style="border:1.5px solid '+(n>0?'#7dd3fc':'#e2e8f0')+';border-radius:14px;background:'+(n>0?'#f0f9ff':'#fff')+';padding:10px 12px;margin-bottom:8px;">'
+        +'<div style="display:flex;align-items:center;gap:10px;">'
+        +'<span style="font-size:24px;">'+r.icon+'</span>'
+        +'<span style="flex:1;"><span style="font-size:15px;font-weight:800;">'+r.label+'</span><span style="display:block;font-size:12px;color:#16a34a;font-weight:800;">included</span></span>'
+        +stepBtn('qc2BaseBump(\''+r.id+'\',-1)',-1,'\u2212')
+        +'<span style="width:36px;text-align:center;font-size:24px;font-weight:800;">'+n+'</span>'
+        +stepBtn('qc2BaseBump(\''+r.id+'\',1)',1,'+')
+        +'</div>'
+        +((n>0&&!_qc2.deepAll)?('<div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px dashed #cbd5e1;">'
+          +'<span style="flex:1;display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:#334155;">Deep \u00b7 +$'+qc2DeepUnitFor(r.id)+' each <button onclick="event.stopPropagation();qcDeepInfoOpen()" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:50%;width:20px;height:20px;line-height:1;font-size:12px;font-weight:900;color:#1d4ed8;cursor:pointer;font-family:inherit;padding:0;flex-shrink:0;">i</button></span>'
+          +stepBtn('qc2BaseDeepBump(\''+r.id+'\',-1)',-1,'\u2212',true)
+          +'<span style="width:28px;text-align:center;font-size:17px;font-weight:800;color:#0369a1;">'+dn+'</span>'
+          +stepBtn('qc2BaseDeepBump(\''+r.id+'\',1)',1,'+',true)
+          +'</div>'):'')
+        +'</div>';
+    }).join('')
     +QC2_ROOMS.map(function(r){
       const n=_qc2.rooms[r.id]||0, dn=Math.min(_qc2.deep[r.id]||0,n);
       const _sub=(r.id==='bed')?('1st included \u00b7 $'+qc2RoomUnit(r.id)+' each after'):('$'+qc2RoomUnit(r.id));
@@ -3359,13 +3380,6 @@ function qcRender(){
           +'</div>'):'')
         +'</div>';
     }).join('')
-    +(!_qc2.deepAll?[{id:'kit',icon:'🍳',lab:'Deep clean the kitchen'},{id:'liv',icon:'🛋',lab:'Deep clean the living room'}].map(function(x){
-      const on=!!(_qc2.deepBase&&_qc2.deepBase[x.id]);
-      return '<div onclick="qc2DeepBaseTgl(\''+x.id+'\')" style="display:flex;align-items:center;gap:10px;border:1.5px solid '+(on?'#7dd3fc':'#e2e8f0')+';border-radius:14px;background:'+(on?'#f0f9ff':'#fff')+';padding:10px 12px;margin-bottom:8px;cursor:pointer;">'
-        +'<span style="width:22px;height:22px;border-radius:6px;border:2px solid '+(on?'#0369a1':'#cbd5e1')+';background:'+(on?'#0369a1':'#fff')+';color:#fff;font-size:14px;line-height:19px;text-align:center;font-weight:800;flex-shrink:0;">'+(on?'\u2713':'')+'</span>'
-        +'<span style="flex:1;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:800;">'+x.icon+' '+x.lab+' '+'<button onclick="event.stopPropagation();qcDeepInfoOpen()" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:50%;width:20px;height:20px;line-height:1;font-size:12px;font-weight:900;color:#1d4ed8;cursor:pointer;font-family:inherit;padding:0;flex-shrink:0;">i</button>'+'</span>'
-        +'<span style="font-size:13px;font-weight:800;color:'+(on?'#0369a1':'#64748b')+';">+$'+qc2DeepUnitFor(x.id)+'</span></div>';
-    }).join(''):'')
     +'<div onclick="qc2DeepAllTgl()" style="display:flex;align-items:center;gap:10px;border:2px solid '+(_qc2.deepAll?'#16a34a':'#e2e8f0')+';border-radius:14px;background:'+(_qc2.deepAll?'#f0fdf4':'#fff')+';padding:12px;margin:4px 0 8px;cursor:pointer;">'
       +'<span style="width:22px;height:22px;border-radius:6px;border:2px solid '+(_qc2.deepAll?'#0369a1':'#cbd5e1')+';background:'+(_qc2.deepAll?'#0369a1':'#fff')+';color:#fff;font-size:14px;line-height:19px;text-align:center;font-weight:800;flex-shrink:0;">'+(_qc2.deepAll?'✓':'')+'</span>'
       +'<span style="flex:1;"><span style="display:inline-flex;align-items:center;gap:6px;font-size:14.5px;font-weight:800;">Deep clean — entire visit '+'<button onclick="event.stopPropagation();qcDeepInfoOpen()" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:50%;width:20px;height:20px;line-height:1;font-size:12px;font-weight:900;color:#1d4ed8;cursor:pointer;font-family:inherit;padding:0;flex-shrink:0;">i</button>'+'</span><button onclick="event.stopPropagation();qc2EditDeep()" style="display:block;background:none;border:none;padding:0;font-size:12px;color:#0369a1;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:underline;">'+(_qc2.deepU>0?('+$'+_qc2.deepU+'/room (custom)'):'kit +$50 \u00b7 bath +$30 \u00b7 bed +$20')+'</button></span>'
@@ -3415,8 +3429,9 @@ function qcRender(){
       const dr=qc2DeepRooms(), first=qc2Total(), spot=qc2Spot();
       const FLUFF={ grout:'Grout scrub', dishes:'Dishes', oven:'Inside of oven', fridge:'Inside of fridge', windows:'Interior windows', laundry:'Laundry', base:'Baseboards', pet:'Pet hair removal' };
       const every=[];
-      every.push('Kitchen \u2014 counters, sink, stovetop, appliance fronts, floors, trash out');
-      every.push('Living room \u2014 dusted top to bottom, floors done, tidied & reset');
+      const nk=_qc2BR('kit'), nl=_qc2BR('liv');
+      if(nk>0) every.push((nk>1?nk+' kitchens':'Kitchen')+' \u2014 counters, sink, stovetop, appliance fronts, floors, trash out');
+      if(nl>0) every.push((nl>1?nl+' living rooms':'Living room')+' \u2014 dusted top to bottom, floors done, tidied & reset');
       const nb=_qc2.rooms.bed||0; if(nb>0) every.push(nb+' bedroom'+(nb>1?'s':'')+' \u2014 dusted, floors, beds made');
       const na=_qc2.rooms.bath||0; if(na>0) every.push(na+' bathroom'+(na>1?'s':'')+' \u2014 toilet, shower, sink, mirror, floors');
       const nx=_qc2.rooms.living||0; if(nx>0) every.push(nx+' extra room'+(nx>1?'s':'')+' \u2014 full standard clean');
