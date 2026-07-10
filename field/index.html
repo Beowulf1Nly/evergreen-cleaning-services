@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.60 */
+/* APP_VER:2026-07-08.61 */
 (function(){
-  var V='2026-07-08.60'; window.__APP_VER=V;
+  var V='2026-07-08.61'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2658,14 +2658,14 @@ const QC2_ROOMS=[
 const QC2_ROOM_UNIT=15;      // beds + extra rooms; bathrooms carry their own
 const QC2_DEEP_UNIT=15;      // deep-clean upcharge per room (tappable)
 const QC2_ADDONS=[
-  { id:'grout',   icon:'🧽', label:'Grout scrub',      price:50, rooms:1, q:'How many tiled areas? (bathrooms, kitchen, entryway\u2026)', unit:'area' },  // scrubbing IS the deep version — no depth question
+  { id:'grout',   icon:'🧽', label:'Grout scrub',      price:50, pr:20, rooms:1, q:'How many tiled areas? (bathrooms, kitchen, entryway\u2026)', unit:'area' },  // ~60m house / ~25m per area — scrubbing IS the deep version
   { id:'dishes',  icon:'🍽', label:'Dishes',           price:15 },
   { id:'oven',    icon:'🔥', label:'Inside oven',      price:25, depth:1, dq:'Quick wipe or full degrease?', d1:'Quick wipe', d2:'Full degrease' },
   { id:'fridge',  icon:'🧊', label:'Inside fridge',    price:25, depth:1, dq:'Shelves only or full empty-out?', d1:'Shelves only', d2:'Full empty-out' },
-  { id:'windows', icon:'🪟', label:'Interior windows', price:30, rooms:1, q:'Windows in how many rooms?', unit:'room', depth:1, dq:'Glass only or tracks & sills too?', d1:'Glass only', d2:'Tracks & sills' },
-  { id:'laundry', icon:'🧺', label:'Laundry',          price:20 },
-  { id:'base',    icon:'📏', label:'Baseboards',       price:25, rooms:1, q:'Baseboards in how many rooms?', unit:'room', depth:1, dq:'Dust or scrub?', d1:'Dust', d2:'Scrub' },
-  { id:'pet',     icon:'🐾', label:'Pet hair (heavy)', price:20, rooms:1, q:'Pet hair in how many rooms?', unit:'room' }
+  { id:'windows', icon:'🪟', label:'Interior windows', price:40, pr:10, rooms:1, q:'Windows in how many rooms?', unit:'room', depth:1, dq:'Glass only or tracks & sills too?', d1:'Glass only', d2:'Tracks & sills' },  // ~48m house / ~12m per room
+  { id:'laundry', icon:'🧺', label:'Laundry',          price:15 },  // ~18m of LABOR (load, switch, fold) — machines run on their own time
+  { id:'base',    icon:'📏', label:'Baseboards',       price:25, pr:5,  rooms:1, q:'Baseboards in how many rooms?', unit:'room', depth:1, dq:'Dust or scrub?', d1:'Dust', d2:'Scrub' },  // dusting is quick: ~30m house / ~6m per room; scrub +50%
+  { id:'pet',     icon:'🐾', label:'Pet hair (heavy)', price:30, pr:10, rooms:1, q:'Pet hair in how many rooms?', unit:'room' }  // ~36m house / ~12m per room
 ];
 let _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, deepAll:false, firstOnly:false, deepU:0 };
 function qc2Reset(){ _qc2={ rooms:{bed:1,bath:0,living:0}, deep:{bed:0,bath:0,living:0}, deepBase:{kit:0,liv:0}, roomP:{}, addons:{}, addonP:{}, addonCfg:{}, deepAll:false, firstOnly:false, deepU:0 }; }
@@ -2677,7 +2677,7 @@ function qc2AddonPrice(id){
   const a=QC2_ADDONS.find(function(x){return x.id===id;}); if(!a) return 0;
   const c=_qc2.addonCfg[id]||{};
   let p=a.price;
-  if(a.rooms&&c.scope>0) p=Math.max(10,Math.ceil(a.price/3/5)*5)*c.scope;
+  if(a.rooms&&c.scope>0) p=(a.pr||Math.max(10,Math.ceil(a.price/3/5)*5))*c.scope;
   if(a.depth&&c.deep) p=Math.round(p*1.5/5)*5;
   return Math.max(5,Math.round(p));
 }
@@ -2914,15 +2914,13 @@ function qcRender(){
       const nx=_qc2.rooms.living||0; if(nx>0) inc.push(nx+' extra room'+(nx>1?'s':''));
       if(_qc2.deepAll) inc.push('Deep clean — every room'+(_qc2.firstOnly?' (first visit)':' (every visit)'));
       else if(dr>0) inc.push('Deep clean — '+dr+' room'+(dr>1?'s':'')+(_qc2.firstOnly?' (first visit)':''));
-      QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ const _dt=qc2AddonDetail(a.id); inc.push((FLUFF[a.id]||a.label)+(_dt?' \u2014 '+_dt:'')); } });
-      inc.push('Supplies included · same cleaner each visit');
+      QC2_ADDONS.forEach(function(a){ if(_qc2.addons[a.id]){ const _dt=qc2AddonDetail(a.id); inc.push((FLUFF[a.id]||a.label)+(_dt?' \u2014 '+_dt:'')+' (as needed)'); } });
       return '<div style="margin-top:10px;padding:12px 14px;background:#fdf4ff;border:1.5px solid #e9d5ff;border-radius:14px;">'
         +'<div style="font-size:11px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">Everything they get</div>'
         +inc.map(function(p){ return '<div style="display:flex;gap:8px;font-size:13.5px;line-height:1.75;font-weight:600;color:#3b0764;"><span style="color:#16a34a;font-weight:800;">✓</span><span>'+esc(p)+'</span></div>'; }).join('')
         +'<div style="margin-top:9px;padding-top:9px;border-top:1px dashed #e9d5ff;display:flex;justify-content:space-between;align-items:baseline;">'
           +'<span style="font-size:13px;font-weight:800;color:#6d28d9;">All of it:</span>'
           +'<span style="font-size:17px;font-weight:800;color:#3b0764;">'+((_qc2.firstOnly&&dr>0)?('$'+first+' today · $'+spot+'/visit after'):('$'+first+(qc2RoomCount()||dr||1?'':'')+' a visit'))+'</span></div>'
-        +'<div style="margin-top:7px;font-size:14.5px;font-weight:800;color:#6d28d9;">“Want me to get started today?”</div>'
         +'</div>';
     })();
   const tot=document.getElementById('qcTotal');
