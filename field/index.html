@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.70 */
+/* APP_VER:2026-07-08.71 */
 (function(){
-  var V='2026-07-08.70'; window.__APP_VER=V;
+  var V='2026-07-08.71'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2255,7 +2255,7 @@ function fmAdjustPrice(){
     +'<div class="fm-sheet-title">💲 Price — '+esc(bk.name||'')+'</div>'
     +'<div class="fm-sheet-sub">Scope changed? Set what it actually costs. The booked number is a starting point, not law.</div>'
     +'<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin:6px 0 12px;"><span style="font-size:30px;font-weight:800;">$</span><input id="fmPriceNew" type="number" inputmode="decimal" value="'+cur+'" style="width:130px;padding:12px;border:2px solid #cbd5e1;border-radius:14px;font-size:30px;font-weight:800;text-align:center;font-family:inherit;" oninput="_fmPriceHint()">'
-    +'<button onclick="_fmPriceWheel()" style="padding:12px 14px;border:2px solid #7dd3fc;border-radius:14px;background:#f0f9ff;font-family:inherit;font-weight:800;font-size:14px;color:#0369a1;cursor:pointer;">scroll \u25be</button></div>'
+    +'<button onclick="_fmPriceWheel()" style="padding:12px 14px;border:2px solid #7dd3fc;border-radius:14px;background:#f0f9ff;font-family:inherit;font-weight:800;font-size:14px;color:#0369a1;cursor:pointer;">Select \u25be</button></div>'
     +'<div style="display:flex;gap:7px;margin-bottom:12px;">'
     +[-20,-10,10,20,40].map(function(d){ return '<button onclick="var e=document.getElementById(\'fmPriceNew\');e.value=Math.max(0,(parseFloat(e.value)||0)+'+d+');_fmPriceHint()" style="flex:1;padding:10px 4px;border:1.5px solid #cbd5e1;border-radius:10px;background:#f8fafc;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;color:'+(d<0?'#b91c1c':'#15803d')+';">'+(d>0?'+':'')+d+'</button>'; }).join('')
     +'</div>'
@@ -2743,7 +2743,7 @@ function qc2CfgOpen(id){
     +(a.rooms?(sec(a.q||'How much of the house?')
       +'<button onclick="qc2CfgScopeWheel(\''+id+'\')" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:14px;border-radius:13px;border:2px solid #7dd3fc;background:#f0f9ff;font-family:inherit;cursor:pointer;margin-bottom:12px;">'
       +'<span style="font-size:16px;font-weight:800;color:#0f172a;">'+((c.scope>0)?(c.scope+' '+(a.unit||'room')+(c.scope>1?'s':'')):'Whole house')+'</span>'
-      +'<span style="font-size:13px;font-weight:800;color:#0369a1;">scroll to change \u25be</span></button>'):'')
+      +'<span style="font-size:13px;font-weight:800;color:#0369a1;">Select \u25be</span></button>'):'')
     +(a.depth?(sec(a.dq||'How deep?')
     +'<div style="display:flex;gap:8px;margin-bottom:14px;">'
       +chip(!c.deep,a.d1||'Wipe down',"qc2CfgDeep('"+id+"',0)")
@@ -2756,7 +2756,7 @@ function qc2CfgOpen(id){
       +'<div style="margin-top:10px;padding-top:8px;border-top:1px dashed #cbd5e1;">'
       +'<button onclick="qc2CfgTimeWheel(\''+id+'\')" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:14px;border-radius:13px;border:2px solid #e2e8f0;background:#fff;font-family:inherit;cursor:pointer;">'
       +'<span style="font-size:13px;font-weight:800;color:#475569;">\u23f1 Est. time</span>'
-      +'<span style="font-size:16px;font-weight:800;color:#0f172a;">~'+qc2AddonMins(id)+' min <span style="font-size:13px;color:#0369a1;">scroll \u25be</span></span></button>'
+      +'<span style="font-size:16px;font-weight:800;color:#0f172a;">~'+qc2AddonMins(id)+' min <span style="font-size:13px;color:#0369a1;">Select \u25be</span></span></button>'
       +'<div style="font-size:11px;color:#94a3b8;font-weight:600;margin-top:6px;">Pick the time \u2014 the price follows at $'+CLEAN_MIN_RATE+'/hr</div></div></div>'
     +'<div style="display:flex;gap:8px;">'
       +'<button onclick="qc2CfgRemove(\''+id+'\')" style="flex:1;padding:14px 6px;border-radius:13px;border:2px solid #fecaca;background:#fef2f2;color:#b91c1c;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;">Remove</button>'
