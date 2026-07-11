@@ -1557,6 +1557,14 @@ if(!localStorage.getItem('eg_vid')){localStorage.setItem('eg_vid',Math.random().
 window.trackEvt=function(evtPage){try{
   var vid=localStorage.getItem('eg_vid')||'';var ref='direct';
   try{if(document.referrer)ref=new URL(document.referrer).hostname;}catch(e){}
+  // 🎯 attribution: a gclid/utm on the LANDING url is remembered for the whole visit —
+  // paid clicks used to log as 'direct' and ad spend was untraceable to bookings
+  try{
+    var q=new URLSearchParams(location.search);
+    var g=q.get('gclid'), us=q.get('utm_source'), uc=q.get('utm_campaign');
+    if(g||us){ localStorage.setItem('eg_src', (us||'gads')+(uc?('/'+uc):'')+(g?'/gclid':'')); }
+    var src=localStorage.getItem('eg_src'); if(src) ref=ref+'|'+src;
+  }catch(e){}
   var p=new URLSearchParams({action:'track_visit',page:evtPage,ref:ref,ua:navigator.userAgent.substring(0,200),vid:vid});
   (function(u){var n=0;(function go(){fetch(u,{method:'GET',keepalive:true}).then(function(r){if(!r.ok&&n<3){n++;setTimeout(go,500*Math.pow(2,n)+Math.random()*400);}}).catch(function(){if(n<3){n++;setTimeout(go,500*Math.pow(2,n)+Math.random()*400);}});})();})(AURL+'?'+p.toString());
 }catch(e){}};
