@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.102 */
+/* APP_VER:2026-07-08.103 */
 (function(){
-  var V='2026-07-08.102'; window.__APP_VER=V;
+  var V='2026-07-08.103'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -2102,6 +2102,15 @@ function fmJobCatCustom(){
   });
 }
 let _fmJobGo={}; try{ _fmJobGo=JSON.parse(localStorage.getItem('evg_fm_jobgo')||'{}'); }catch(e){}
+// 🧹 per-stop stores are keyed email|date — old days purge at boot so localStorage never bloats
+(function(){ try{
+  const tod=todayISOStr();
+  [['evg_fm_extraadd',_fmExtraAdd],['evg_fm_addonpx',_fmAddonPx],['evg_fm_jobgo',_fmJobGo],['evg_fm_addonsel',_fmAddonSel],['evg_fm_insafter',_fmInsertAfter],['evg_fm_drive',_fmDrivePhase]].forEach(function(pair){
+    const key=pair[0], obj=pair[1]; if(!obj) return; let dirty=false;
+    Object.keys(obj).forEach(function(k){ const d=String(k).split('|')[1]||''; if(d&&d<tod){ delete obj[k]; dirty=true; } });
+    if(dirty) try{ localStorage.setItem(key,JSON.stringify(obj)); }catch(e){}
+  });
+}catch(e){} })();
 function fmJobGo(){
   const bk=window._fmCurBk; if(!bk) return; const k=_stopKey(bk);
   _fmJobGo[k]=Date.now(); try{ localStorage.setItem('evg_fm_jobgo',JSON.stringify(_fmJobGo)); }catch(e){}
