@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.107 */
+/* APP_VER:2026-07-08.108 */
 (function(){
-  var V='2026-07-08.107'; window.__APP_VER=V;
+  var V='2026-07-08.108'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -3274,10 +3274,16 @@ function qcQuoteAlready(){
 function qcClose(){ const o=document.getElementById('qcOverlay'); if(o) o.style.display='none'; _qcEditBk=null; }
 /* ── quote-visit mode: same builder, but every outcome CLOSES the quote job ── */
 let _qcQuoteBk=null, _qcQuoteKey='', _qcQuoteNext=false;
+function _qcCurQuoteStop(){
+  // fallback: the stop being viewed, if it's a quote job — covers the case where the
+  // builder binding was lost (reopen after a local-done, app reload mid-flow, etc.)
+  try{ const st=_fmStops()[_fmViewIdx]; if(st&&st.bk&&_isQuoteJob(st.bk)) return st.bk; }catch(e){}
+  return null;
+}
 function qcOpenSmart(){
   try{
     const st=_fmStops()[_fmViewIdx], bk=st&&st.bk;
-    if(bk&&_isQuoteJob(bk)&&!_fmResolved(st)){ qcOpenForQuote(bk); return; }
+    if(bk&&_isQuoteJob(bk)){ qcOpenForQuote(bk); return; }   // ALWAYS bind on a quote stop — outcomes are idempotent
   }catch(e){}
   qcOpen();
 }
@@ -3309,7 +3315,8 @@ function qcNotInterested(){
     _fmFlushQueue();
   }
   qcClose(); qc2Reset();
-  if(_qcQuoteBk) _qcQuoteDone('Quote LOST \u2014 declined at $'+qc2Total()+(why.trim()?(' ('+why.trim()+')'):'')+' \u2014 '+(adminName||'crew'));
+  const _qbNI=_qcQuoteBk||_qcCurQuoteStop();
+  if(_qbNI){ _qcQuoteBk=_qbNI; _qcQuoteDone('Quote LOST \u2014 declined at $'+qc2Total()+(why.trim()?(' ('+why.trim()+')'):'')+' \u2014 '+(adminName||'crew')); }
   showToast('Logged for the office.');
 }
 function qcBookNow(){
@@ -3582,7 +3589,8 @@ function qcEmail(){
   _fmEnqueue({ kind:'quoteest', idemKey:'qe:calc:'+em+'|'+Date.now(), method:'GET', params:{ action:'send_quote_email', submittedBy:adminName||'Crew', name:nm, email:em, phone:String((bk&&bk.phone)||''), address:String((bk&&bk.address)||''), summary:qc2Summary(), items:JSON.stringify(items), notes:JSON.stringify(emailNotes), estimateDate:todayISOStr(), validThru:vt.getFullYear()+'-'+pad(vt.getMonth()+1)+'-'+pad(vt.getDate()), frequency:'Cleaning estimate', adminToken:adminToken } });
   _fmFlushQueue();
   qcClose();
-  if(_qcQuoteBk) _qcQuoteDone('Quote \u2014 estimate emailed to '+em+' ($'+qc2Total()+') by '+(adminName||'crew'));
+  const _qbEM=_qcQuoteBk||_qcCurQuoteStop();
+  if(_qbEM){ _qcQuoteBk=_qbEM; _qcQuoteDone('Quote \u2014 estimate emailed to '+em+' ($'+qc2Total()+') by '+(adminName||'crew')); }
   showToast('\u2709\ufe0f Estimate emailed to '+em);
 }
 function ncClose(){ const o=document.getElementById('ncOverlay'); if(o) o.style.display='none'; }
@@ -3686,7 +3694,7 @@ function ncSubmit(){
     _fmEnqueue({ kind:'comm', idemKey:'cm:nc:'+email+'|'+date, method:'GET', params:{ action:'log_commission', key:'cm:nc:'+email+'|'+date+'|'+name, date:todayISOStr(), names:_ncNames.join(', '), jobName:name, email:email, jobDate:date, base:String(parseFloat(price)), pct:'80', type:'lead + close (80%)', adminToken } });
   }
   _fmFlushQueue();
-  const _qbk2=window._ncQuoteBk||_qcQuoteBk;
+  const _qbk2=window._ncQuoteBk||_qcQuoteBk||_qcCurQuoteStop();
   if(_qbk2){ _qcQuoteBk=_qbk2; _qcQuoteDone('Quote WON \u2014 '+freq+' $'+(price||'?')+'/visit \u2014 booked at quote visit by '+(adminName||'crew')); }
   window._ncQuoteBk=null;
   if(date===todayISOStr()){
