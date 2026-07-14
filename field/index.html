@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.121 */
+/* APP_VER:2026-07-08.122 */
 (function(){
-  var V='2026-07-08.121'; window.__APP_VER=V;
+  var V='2026-07-08.122'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -3792,7 +3792,7 @@ function ncSubmit(){
   if(!isQuote&&parseFloat(price)>0){
     // crew sourced AND closed this one on the spot → 80% of the first job
     const _ncNames=[adminName||'Crew'].concat((_helpers||[]).map(function(h){ return (typeof h==='string')?h:((h&&h.name)||''); })).filter(Boolean);
-    _fmEnqueue({ kind:'comm', idemKey:'cm:nc:'+email+'|'+date, method:'GET', params:{ action:'log_commission', key:'cm:nc:'+email+'|'+date+'|'+name, date:todayISOStr(), names:_ncNames.join(', '), jobName:name, email:email, jobDate:date, base:String(parseFloat(price)), pct:'80', type:'lead + close (80%)', adminToken } });
+    _fmEnqueue({ kind:'comm', idemKey:'cm:nc:'+email+'|'+date, method:'GET', params:{ action:'log_commission', key:'cm:nc:'+email+'|'+date+'|'+name, date:todayISOStr(), names:_ncNames.join(', '), jobName:name, email:email, jobDate:date, base:String(parseFloat(price)), pct:'40', type:'lead + close (40%)', adminToken } });
   }
   _fmFlushQueue();
   const _qbk2=window._ncQuoteBk||_qcQuoteBk||_qcCurQuoteStop();
@@ -3836,24 +3836,19 @@ function qjSrcTgl(){ _qjSourced=!_qjSourced; qjRefresh(); }
 function _qjCommNames(){ return [adminName||'Crew'].concat((_helpers||[]).map(function(h){ return (typeof h==='string')?h:((h&&h.name)||''); })).filter(Boolean); }
 function _qjSourceName(bk){ var m=String((bk&&bk.notes)||'').match(/added on route by\s+([^\u2014|\n]+)/i); return m?m[1].trim():''; } // who added the lead on /field (blank = office/website lead)
 function _qjCommLine(firstPrice){
-  const closers=_qjCommNames(), src=_qjSourceName(_qjBk);
-  const money=function(p){ return '$'+(Math.round(firstPrice*p)/100).toFixed(2); };
-  const closerIsSource = src && closers.some(function(n){ return String(n).toLowerCase()===String(src).toLowerCase(); });
-  if(src && closerIsSource) return '\n💰 Commission: 80% ('+money(80)+') — you found AND closed it'+(closers.length>1?(' · split '+closers.length+' ways'):'');
-  if(src) return '\n💰 Commission: 40% close ('+money(40)+') to '+closers.join(', ')+' + 40% lead ('+money(40)+') to '+src;
-  return '\n💰 Commission: 40% close ('+money(40)+')'+(closers.length>1?(' · split '+closers.length+' ways'):'');
+  return '';   // commission is intentionally NOT shown to the crew (owner decision 2026-07-14)
 }
 function _qjLogCommission(base,firstPrice,bk,date){
   const closers=_qjCommNames(), src=_qjSourceName(bk);
   const closerIsSource = src && closers.some(function(n){ return String(n).toLowerCase()===String(src).toLowerCase(); });
   if(src && closerIsSource){
     // same person(s) found AND closed → 80%
-    _fmEnqueue({ kind:'comm', idemKey:'cm:'+base, method:'GET', params:{ action:'log_commission', key:'cm:'+base, date:todayISOStr(), names:closers.join(', '), jobName:bk.name||'', email:String(bk.email||'').toLowerCase(), jobDate:date, base:String(firstPrice), pct:'80', type:'lead + close (80%)', adminToken } });
+    _fmEnqueue({ kind:'comm', idemKey:'cm:'+base, method:'GET', params:{ action:'log_commission', key:'cm:'+base, date:todayISOStr(), names:closers.join(', '), jobName:bk.name||'', email:String(bk.email||'').toLowerCase(), jobDate:date, base:String(firstPrice), pct:'40', type:'lead + close (40%)', adminToken } });
   } else {
     // close credit → 40% to whoever closed it
-    _fmEnqueue({ kind:'comm', idemKey:'cm:'+base+':c', method:'GET', params:{ action:'log_commission', key:'cm:'+base+':c', date:todayISOStr(), names:closers.join(', '), jobName:bk.name||'', email:String(bk.email||'').toLowerCase(), jobDate:date, base:String(firstPrice), pct:'40', type:'quote close (40%)', adminToken } });
+    _fmEnqueue({ kind:'comm', idemKey:'cm:'+base+':c', method:'GET', params:{ action:'log_commission', key:'cm:'+base+':c', date:todayISOStr(), names:closers.join(', '), jobName:bk.name||'', email:String(bk.email||'').toLowerCase(), jobDate:date, base:String(firstPrice), pct:'20', type:'quote close (20%)', adminToken } });
     // source credit → 40% to whoever added the lead (different person)
-    if(src) _fmEnqueue({ kind:'comm', idemKey:'cm:'+base+':s', method:'GET', params:{ action:'log_commission', key:'cm:'+base+':s', date:todayISOStr(), names:src, jobName:bk.name||'', email:String(bk.email||'').toLowerCase(), jobDate:date, base:String(firstPrice), pct:'40', type:'lead source (40%)', adminToken } });
+    if(src) _fmEnqueue({ kind:'comm', idemKey:'cm:'+base+':s', method:'GET', params:{ action:'log_commission', key:'cm:'+base+':s', date:todayISOStr(), names:src, jobName:bk.name||'', email:String(bk.email||'').toLowerCase(), jobDate:date, base:String(firstPrice), pct:'20', type:'lead source (20%)', adminToken } });
   }
 }
 
