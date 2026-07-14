@@ -8438,7 +8438,7 @@ async function buildRoute() {
 
     // Geocode all job addresses — uses persistent localStorage cache so each address
     // is only ever looked up once, even across sessions.
-    const _GEO_CACHE_KEY = 'evg_geocache_v2';
+    const _GEO_CACHE_KEY = 'evg_geocache_v6';
     let geoCache = {};
     try { geoCache = JSON.parse(localStorage.getItem(_GEO_CACHE_KEY) || '{}'); } catch(e) {}
     let _geoCacheDirty = false;
