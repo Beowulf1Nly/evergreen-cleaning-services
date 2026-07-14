@@ -8444,7 +8444,7 @@ async function buildRoute() {
 
     // Geocode all job addresses — uses persistent localStorage cache so each address
     // is only ever looked up once, even across sessions.
-    const _GEO_CACHE_KEY = 'evg_geocache_v6';
+    const _GEO_CACHE_KEY = 'evg_geocache_v7';
     let geoCache = {};
     try { geoCache = JSON.parse(localStorage.getItem(_GEO_CACHE_KEY) || '{}'); } catch(e) {}
     let _geoCacheDirty = false;
@@ -8897,7 +8897,7 @@ async function geocodeAddr(addr) {
   try{
     const _grr=await fetch(SCRIPT_URL+'?action=hq_geocode&adminToken='+encodeURIComponent(adminToken)+'&address='+encodeURIComponent(addr));
     const _gr=await _grr.json();
-    if(_gr&&_gr.success&&_gr.lat!=null){
+    if(_gr&&_gr.success&&_gr.lat!=null&&_gr.quality==='exact'&&!_gr.partial){   // approx = town centroid, skip
       const _gc={ lat:+_gr.lat, lon:+_gr.lon };
       if(_gc.lat>=24&&_gc.lat<=31.6&&_gc.lon>=-88&&_gc.lon>=-88&&_gc.lon<=-79.4) return _gc;
     }
