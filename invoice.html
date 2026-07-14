@@ -8886,6 +8886,16 @@ const ZIP_CITY = {
 // ── Geocode a US address → { lat, lon }
 // Tries multiple sources + fallback strategies for rural FL addresses
 async function geocodeAddr(addr) {
+  // 0. Google via the backend (Apps Script Maps geocoder) — Google's data knows
+  // new-construction homes the free services haven't mapped yet. Same step /hq uses.
+  try{
+    const _grr=await fetch(SCRIPT_URL+'?action=hq_geocode&adminToken='+encodeURIComponent(adminToken)+'&address='+encodeURIComponent(addr));
+    const _gr=await _grr.json();
+    if(_gr&&_gr.success&&_gr.lat!=null){
+      const _gc={ lat:+_gr.lat, lon:+_gr.lon };
+      if(_gc.lat>=24&&_gc.lat<=31.6&&_gc.lon>=-88&&_gc.lon>=-88&&_gc.lon<=-79.4) return _gc;
+    }
+  }catch(e){}
   const zipMatch   = addr.match(/,\s*(\d{5})/);
   const zip        = zipMatch ? zipMatch[1] : '';
   const city       = ZIP_CITY[zip] || '';
