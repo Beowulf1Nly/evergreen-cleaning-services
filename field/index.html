@@ -11,9 +11,9 @@
      param) and, if a newer APP_VER is live, reload once. Also reloads when a new service
      worker takes control. This is what un-sticks installed home-screen PWAs. Loop-guarded. -->
 <script>
-/* APP_VER:2026-07-08.122 */
+/* APP_VER:2026-07-08.123 */
 (function(){
-  var V='2026-07-08.122'; window.__APP_VER=V;
+  var V='2026-07-08.123'; window.__APP_VER=V;
   // Loop-proof auto-update: fetch the newest index.html from the network (cache-bust so
   // the service worker can't answer with the old shell). If a newer APP_VER is live AND
   // we have not already reloaded for that exact version, reload ONCE. The localStorage
@@ -702,7 +702,18 @@ function customerServicesFor(email,name){
   if(!c&&!em&&name){ const nm=String(name).toLowerCase().trim(); c=(allCustomers||[]).find(x=>String(x.Name||'').toLowerCase().trim()===nm); }
   return parseServices(c?(c.Services||''):'');
 }
-function _fmMapsUrl(bk){ return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent((bk.address||'')+(bk.zip?', '+bk.zip:'')+', FL'); }
+function _fmMapsUrl(bk){
+  // Navigate to the EXACT coordinates the router resolved (Google-quality geocode).
+  // Address-string navigation let Maps "correct" house numbers it doesn't know
+  // (1923 → 1223) and sent the crew to the wrong house.
+  try{
+    const city=(typeof ZIP_CITY!=='undefined'&&ZIP_CITY[bk.zip])?ZIP_CITY[bk.zip]:'';
+    const fullAddr=(bk.address||'')+(bk.zip?', '+bk.zip:'')+(city?', '+city:'')+', FL';
+    const c=_geoCacheLoad()[fullAddr];
+    if(c&&c.lat!=null) return 'https://www.google.com/maps/dir/?api=1&destination='+c.lat.toFixed(6)+','+c.lon.toFixed(6);
+  }catch(e){}
+  return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent((bk.address||'')+(bk.zip?', '+bk.zip:'')+', FL');
+}
 let _toastT=null; function showToast(msg,ms){ const t=document.getElementById('toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); clearTimeout(_toastT); _toastT=setTimeout(()=>t.classList.remove('show'),ms||3200); }
 function authParam(){ return 'adminToken='+encodeURIComponent(adminToken); }
 // Money visibility: owners/managers always; employees only for cash jobs (they collect it).
