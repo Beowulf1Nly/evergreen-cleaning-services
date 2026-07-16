@@ -1545,7 +1545,7 @@ async function _fmFlushQueue(){
     let _qi=0;
     while(_qi<q.length){
       const item=q[_qi];
-      const _base=(item.params?(String(item.params.email||'')+'|'+String(item.params.serviceDate||'')):'')||String(item.idemKey||'');
+      const _base=(function(){ var p=item.params||{}, em=String(p.email||'').trim(); if(em) return em+'|'+String(p.serviceDate||''); var ri=String(p.rowIndex||''); return ri?('row:'+ri+'|'+String(p.serviceDate||'')):('idem:'+String(item.idemKey||'')); })();   // no-email walk-ups must NOT all collapse to '|date' (one bad one would block every other walk-up)
       if(_blocked[_base]){ _qi++; continue; }
       try{
         // Always send with the CURRENT session token — queued items captured at enqueue
@@ -1558,7 +1558,9 @@ async function _fmFlushQueue(){
         if(item.method==='POST') res=await fetch(SCRIPT_URL,{ method:'POST', body:JSON.stringify(item.body) });
         else res=await fetch(SCRIPT_URL+'?'+new URLSearchParams(item.params).toString());
         if(!res.ok) throw new Error('HTTP '+res.status);
-        try{ const j=JSON.parse(await res.text()); if(j&&j.success===false) { item.lastErr=String(j.error||'rejected'); throw new Error('backend: '+item.lastErr); } }catch(pe){ if(String(pe.message||'').indexOf('backend:')===0) throw pe; }   // queue rejections show in the badge — they never log anyone out
+        let _j=null; try{ _j=JSON.parse(await res.text()); }catch(_pe){}   // non-JSON body tolerated as success (as before)
+        if(_j&&_j.success===false){ item.lastErr=String(_j.error||'rejected'); throw new Error('backend: '+item.lastErr); }   // queue rejections show in the badge — they never log anyone out
+        if(_j && item.kind==='done' && _j.charged===false){ try{ showToast('⚠️ Card declined for '+((item.params&&item.params.email)||'a completed job')+' — office emailed. Collect cash/invoice if you can.',9000); }catch(_te){} }   // field_complete returns success:true,charged:false on a decline — crew never heard about it before
         _fmMarkKeyDone(item.idemKey); q.splice(_qi,1); _fmQueueSave(q);
       }catch(netErr){
         const _isLogical=/^backend:|^HTTP \d/.test(String((netErr&&netErr.message)||''));
@@ -1701,7 +1703,7 @@ function _startTimers(){
     if(document.hidden || navigator.onLine===false || !adminToken) return;
     _fmPollTick++;
     if(_fmStarted && _fmPollTick%2===0) _fmHeartbeat();
-    if(_anySheetOpen()){ if(_fmPollTick%3===0) loadData(); return; }   // data still refreshes mid-interaction; only the re-render waits (removal alerts must land)
+    if(_anySheetOpen()){ if(!_fmcStop && _fmPollTick%3===0) loadData(); return; }   // refresh mid-interaction — but NEVER while the Complete sheet is open: loadData() replaces allBookings and would invalidate the captured row for this job
     if(_fmPollTick%3===0){ loadData(); return; }   // full refresh (~30s)
     _fmCheckRouteUpdate();                          // light route-order check (~10s)
   },10000);
@@ -1720,7 +1722,11 @@ function _autoClockOut(){
   _clockOutTime=new Date(); _clockedOut=true;
   const hours=Math.max(0,(_clockOutTime.getTime()-_clockInTime.getTime())/3600000);
   const _coKey='clockout:'+(_clockInTime?_clockInTime.toISOString():todayISOStr());
-  _fmEnqueue({ kind:'clockout', idemKey:_coKey, method:'GET', params:{ action:'employee_clock_out', hours:hours.toFixed(2), date:todayISOStr(), markedBy:adminName||'Crew', helpers:JSON.stringify((_helpers||[]).map(function(h){return (typeof h==='string')?{name:h}:{name:h&&h.name,hourlyRate:(h&&h.hourlyRate)||0};})), adminToken } });
+  // Attribute the shift to the day the crew CLOCKED IN (local), not "today" — a route running past
+  // midnight, or an app left open overnight, must not stamp the hours to the wrong date.
+  const _ci=_clockInTime, _workDay=_ci?(_ci.getFullYear()+'-'+String(_ci.getMonth()+1).padStart(2,'0')+'-'+String(_ci.getDate()).padStart(2,'0')):todayISOStr();
+  if(hours>16){ try{ showToast('⚠️ '+hours.toFixed(1)+'h on the clock — looks like a missed clock-out. Logged to '+_workDay+'; have the office double-check.',9000); }catch(e){} }
+  _fmEnqueue({ kind:'clockout', idemKey:_coKey, method:'GET', params:{ action:'employee_clock_out', hours:hours.toFixed(2), date:_workDay, markedBy:adminName||'Crew', helpers:JSON.stringify((_helpers||[]).map(function(h){return (typeof h==='string')?{name:h}:{name:h&&h.name,hourlyRate:(h&&h.hourlyRate)||0};})), adminToken } });
   _fmSendClockedOut(); _fmFlushQueue(); _persist(); _stopGeo(); _releaseWake();
 }
 
@@ -2719,13 +2725,13 @@ function _fmcBuildChecklist(bk){
 }
 function _fmcRenderEndChk(){
   const wrap=document.getElementById('fmcChecklist'); const items=Object.keys(_fmcEndChk);
-  wrap.innerHTML=items.map(l=>'<button class="fm-check'+(_fmcEndChk[l]?' on':'')+'" onclick="fmToggleEndChk(\''+l.replace(/'/g,"\\'")+'\')"><span class="box">✓</span><span>'+esc(l)+'</span></button>').join('');
+  wrap.innerHTML=items.map(l=>'<button class="fm-check'+(_fmcEndChk[l]?' on':'')+'" onclick="fmToggleEndChk(\''+l.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;')+'\')"><span class="box">✓</span><span>'+esc(l)+'</span></button>').join('');
   const allChecked=items.every(l=>_fmcEndChk[l]);
   const st=document.getElementById('fmcCheckState'); if(st){ st.textContent=allChecked?'✓ done':'required'; st.className=allChecked?'ok':'req'; }
   const ct=document.getElementById('fmcCheckTitle'); if(ct){ var _b=_fmcStop&&_fmcStop.bk; ct.textContent='Before you leave'+(_b?(' · '+String(QC_TIER_LABEL[_fmVisitTier(_b)]||'Standard Clean').replace(/^[^—]*— /,'')):''); }
   _fmcUpdateSubmit();
 }
-function fmcCheckAll(){ Object.keys(_fmcEndChk).forEach(function(l){ _fmcEndChk[l]=true; }); _fmcRenderCheck(); _fmcRefreshSubmit(); }
+function fmcCheckAll(){ Object.keys(_fmcEndChk).forEach(function(l){ _fmcEndChk[l]=true; }); if('Collected cash' in _fmcEndChk){ _fmcCash=true; _fmcRenderPay(); } _fmcRenderEndChk(); }
 function fmToggleEndChk(label){ _fmcEndChk[label]=!_fmcEndChk[label]; if(label==='Collected cash') _fmcCash=_fmcEndChk[label], _fmcRenderPay(); _fmcRenderEndChk(); }
 function _fmcEndChkDone(){ return Object.keys(_fmcEndChk).every(l=>_fmcEndChk[l]); }
 function _fmcCanFinish(){ return _fmcPayResolved()&&_fmcEndChkDone(); }
@@ -2772,7 +2778,8 @@ async function fmSubmitComplete(){
   const _fchk=_clnFloorCheck(_fmcGrand(),bk);
   if(!_fchk.ok){ errEl.textContent='🚫 '+_fchk.msg; errEl.style.display='block'; return; }
   submitBtn.disabled=true; submitBtn.textContent='Saving…'; errEl.style.display='none';
-  const rowIndex=bk._rowIndex||((_fmcRowIdx>=0?_fmcRowIdx:0)+2), email=bk.email||'', svcDate=dateOf(bk), base=rowIndex+':'+svcDate;
+  const _liveIdx=(allBookings||[]).indexOf(bk);   // fresh, not the index captured when the sheet opened
+  const rowIndex=bk._rowIndex||((_liveIdx>=0?_liveIdx:(_fmcRowIdx>=0?_fmcRowIdx:0))+2), email=bk.email||'', svcDate=dateOf(bk), base=rowIndex+':'+svcDate;
   const selAddons=(_fmcAddons||[]).filter(a=>a.on&&a.price>0).map(a=>({name:a.name,price:a.price}));
   const grand=_fmcGrand(), ownerNote=String(document.getElementById('fmcOwnerNote').value||'').trim();
   // Done action: autopay uses field_complete (marks done + charges + emails owner on fail); others mark_done.
@@ -2799,14 +2806,20 @@ async function fmSubmitComplete(){
   delete _jobTimers[_jk]; try{ delete _fmDrivePhase[_jk]; localStorage.setItem('evg_fm_drive',JSON.stringify(_fmDrivePhase)); }catch(e){}
   _fmcPhotos.forEach((p,i)=>extra.push({ kind:'photo', idemKey:'photo:'+base+':'+_uuid(), method:'POST', body:{ action:'upload_job_photo', base64Data:p.b64, fileName:p.fileName, mimeType:p.mimeType, rowIndex, email, serviceDate:svcDate, jobLabel:(bk.name||'')+' - '+svcDate+(_fmcPhotos.length>1?' ('+(i+1)+')':''), markedBy:adminName||'Crew', adminToken } }));
 
-  const finish=(offline)=>{
+  const finish=(offline, chargeFailed)=>{
     _fmMarkSeq(bk);   // completion order — done list shows the day as driven
     // fresh anchor: re-solve the remaining stops from where the crew is standing
     setTimeout(function(){ try{ if(_fmStarted&&_fmOpenStops().length>2) _fmAutoRoute(); }catch(e){} },1500);
     const lbl=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    if(_fmcRowIdx>=0){ allBookings[_fmcRowIdx].done='✓ Done — '+lbl; allBookings[_fmcRowIdx].markedBy=adminName; if(selAddons.length) allBookings[_fmcRowIdx].price='$'+grand.toFixed(0); } else bk.done='✓ Done — '+lbl;
+    // Re-resolve the row by IDENTITY, not the positional index captured when the sheet opened —
+    // if a refresh replaced allBookings, a stale index would mark the WRONG customer done (or be
+    // out of bounds and throw). Fall back to writing the captured bk object itself.
+    let _wi=(allBookings||[]).indexOf(bk);
+    if(_wi<0){ const _em=String(bk.email||'').toLowerCase().trim(), _dt=dateOf(bk); _wi=(allBookings||[]).findIndex(function(x){ return dateOf(x)===_dt && (_em?String(x.email||'').toLowerCase().trim()===_em:String(x.name||'')===String(bk.name||'')); }); }
+    const _tgt=(_wi>=0?allBookings[_wi]:bk);
+    _tgt.done='✓ Done — '+lbl; _tgt.markedBy=adminName; if(selAddons.length) _tgt.price='$'+grand.toFixed(0);
     if(_fmcPayType==='cash') _fmCashTotal+=grand;
-    _fmBilledTotal+=grand;
+    if(!chargeFailed) _fmBilledTotal+=grand;   // a declined autopay charge must not inflate "total billed today"
     try{ localStorage.setItem('evg_field_bookings', JSON.stringify(allBookings)); }catch(e){}
     fmCloseComplete(); showToast(offline?'📴 Saved — will sync when back online':'✅ '+(bk.name||'Job')+' done!');
     _fmViewIdx=null; _persist(); _fmRender();
@@ -2821,12 +2834,27 @@ async function fmSubmitComplete(){
       // field_complete reports success even when the CHARGE fails (owner is emailed) —
       // tell the crew too, so they can collect another way while still at the door.
       const _chargeWarn=(data && doneAction==='field_complete' && data.charged===false);
-      _fmMarkKeyDone(doneItem.idemKey); extra.forEach(_fmEnqueue); _fmFlushQueue(); finish(false);
+      _fmMarkKeyDone(doneItem.idemKey); extra.forEach(_fmEnqueue); _fmFlushQueue(); finish(false, _chargeWarn);
       if(_chargeWarn) setTimeout(function(){ showToast('⚠️ Card charge FAILED — office was emailed. Collect cash or invoice if you can.'); },1500);
       return;
     }catch(netErr){ /* offline fallback */ }
   }
-  _fmEnqueue(doneItem); extra.forEach(_fmEnqueue); _fmFlushQueue(); finish(true);
+  // OFFLINE fallback — but first confirm the work actually persisted to localStorage.
+  // If phone storage is full, _fmQueueSave() silently drops the items; showing "Saved"
+  // here would lose the job, payment, and photos. Verify each item landed, and if any
+  // didn't, keep the crew on this screen so they can free space / get online and retry.
+  const _allItems=[doneItem].concat(extra);
+  _allItems.forEach(_fmEnqueue);
+  const _qk=new Set(_fmQueueLoad().map(function(x){ return x.idemKey; })), _dk=_fmDoneKeys();
+  const _lost=_allItems.filter(function(it){ return !_qk.has(it.idemKey) && !_dk.has(it.idemKey); });
+  if(_lost.length){
+    errEl.textContent='⚠️ Phone storage is full — this job did NOT save ('+_lost.length+' item'+(_lost.length!==1?'s':'')+'). Free up space or get back online, then tap Complete again.';
+    errEl.style.display='block';
+    submitBtn.disabled=false; _fmcUpdateSubmit();
+    try{ showToast('⚠️ NOT saved — storage full. Don\'t leave; retry.',9000); }catch(e){}
+    return;
+  }
+  _fmFlushQueue(); finish(true);
 }
 
 /* ───────── Done ───────── */
@@ -3806,7 +3834,7 @@ function ncSubmit(){
   if(!isQuote&&parseFloat(price)>0){
     // crew sourced AND closed this one on the spot → 80% of the first job
     const _ncNames=[adminName||'Crew'].concat((_helpers||[]).map(function(h){ return (typeof h==='string')?h:((h&&h.name)||''); })).filter(Boolean);
-    _fmEnqueue({ kind:'comm', idemKey:'cm:nc:'+email+'|'+date, method:'GET', params:{ action:'log_commission', key:'cm:nc:'+email+'|'+date+'|'+name, date:todayISOStr(), names:_ncNames.join(', '), jobName:name, email:email, jobDate:date, base:String(parseFloat(price)), pct:'40', type:'lead + close (40%)', adminToken } });
+    _fmEnqueue({ kind:'comm', idemKey:'cm:nc:'+email+'|'+date+'|'+name, method:'GET', params:{ action:'log_commission', key:'cm:nc:'+email+'|'+date+'|'+name, date:todayISOStr(), names:_ncNames.join(', '), jobName:name, email:email, jobDate:date, base:String(parseFloat(price)), pct:'40', type:'lead + close (40%)', adminToken } });
   }
   _fmFlushQueue();
   const _qbk2=window._ncQuoteBk||_qcQuoteBk||_qcCurQuoteStop();

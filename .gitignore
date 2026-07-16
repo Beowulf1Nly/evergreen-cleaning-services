@@ -1,0 +1,46 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Evergreen Cleaning Services — NEVER publish these to GitHub Pages / the live site
+# (mirrors the Lawn Care .gitignore)
+# ─────────────────────────────────────────────────────────────────────────
+
+# Google Apps Script source — contains the live Stripe secret key.
+# PASTE-ONLY into the Apps Script editor; it must never be served or committed.
+cleaning-apps-script.txt
+cleaning-apps-script*.txt
+apps-script.txt
+apps-script*.txt
+*-BACKEND-ADDONS.gs
+
+# Stripe secrets / backup codes
+stripe*.txt
+
+# Local databases (not part of the website)
+*.db
+
+# Internal multi-agent "operating system" scaffold + all backups (key-bearing)
+_Evergreen-OS/
+
+# Editor / manual backups (these embed old copies of the key + SCRIPT_URL)
+*.bak
+*.bak-*
+*.bak.*
+*.bak-*.html
+*.bak-*.txt
+index.html.bak*
+
+# Working notes / internal docs — not for the live site
+CHAT_CONTEXT.md
+*.md
+*.docx
+site-audit-report.html
+
+# Raw data export (review before serving)
+data.json
+
+# Unused photo staging
+Photos/Unused/
+
+# OS noise
+.DS_Store
+Thumbs.db
+_synctest.txt
