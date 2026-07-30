@@ -669,9 +669,13 @@ function _payType(bk){
   // HARD GATE: 'autopay' requires an actual card on file (cardLast4 from the
   // Customers sheet). A payMethod that merely says "auto"/"stripe" is NOT enough —
   // that's how a no-card customer got a charge button. No card → invoice.
-  const _card=String(bk.cardLast4||'').trim();
-  if(bk.portalAutopay===true && _card) return 'autopay';
-  if((s.includes('auto')||s.includes('stripe')) && !s.includes('not paid') && !s.includes('pending') && _card) return 'autopay';
+  // Card present = a Stripe payment method is on file (bk.hasCard from the backend), OR — for
+  // older backends that don't send hasCard yet — the display digits. Gating on cardLast4 alone
+  // wrongly blocked charging real autopay customers whose CardLast4 cell was blank but who had
+  // a chargeable payment method (that's the "Elba is on autopay but I can't charge her" bug).
+  const _hasCard=(bk.hasCard===true) || !!String(bk.cardLast4||'').trim();
+  if(bk.portalAutopay===true && _hasCard) return 'autopay';
+  if((s.includes('auto')||s.includes('stripe')) && !s.includes('not paid') && !s.includes('pending') && _hasCard) return 'autopay';
   return 'invoice';
 }
 function _custTierText(bk){ try{ var em=String((bk&&bk.email)||'').toLowerCase().trim(); if(!em) return ''; var c=(allCustomers||[]).find(function(x){ return String(x.Email||'').toLowerCase().trim()===em; }); if(!c) return ''; return ' '+String(c.Plan||'')+' '+String(c.Service||c.serviceType||'')+' '+String(c.Notes||''); }catch(e){ return ''; } }
@@ -1757,7 +1761,8 @@ function _fmAddLocalSameDay(nb,anchorKey){
   }catch(e){}
 }
 
-function _fmTodayRawJobs(){ const ds=todayISOStr(); return (allBookings||[]).filter(b=>!b.rowCancelled&&dateOf(b)===ds&&_crewMatch(b)); } // completed jobs stay so progress counts them as done
+function _isQuoteCall(b){ return /quote call/i.test(String((b&&(b.service||b.serviceType))||'')); } // office phone lead — not a crew stop
+function _fmTodayRawJobs(){ const ds=todayISOStr(); return (allBookings||[]).filter(b=>!b.rowCancelled&&!_isQuoteCall(b)&&dateOf(b)===ds&&_crewMatch(b)); } // completed jobs stay so progress counts them as done; Quote Calls are office tasks, hidden from the crew
 function _fmStops(){
   const jobs=_fmTodayRawJobs().map(bk=>({bk}));
   const order=(_fmStarted&&_routeLock&&_routeLock.length)?_routeLock              // mid-route: FROZEN order — nothing reshuffles a route in progress
@@ -2683,10 +2688,10 @@ function _fmcRenderPay(){
   const wrap=document.getElementById('fmcPayControls'); const grand=_fmcGrand();
   const state=document.getElementById('fmcPayState');
   const see=_isMoneyRole();
-  const bk=_fmcStop&&_fmcStop.bk; const _l4=bk?String(bk.cardLast4||'').trim():''; const hasCard=!!_l4;
+  const bk=_fmcStop&&_fmcStop.bk; const _l4=bk?String(bk.cardLast4||'').trim():''; const hasCard=(bk&&bk.hasCard===true)||!!_l4;
   const methods=[
     {k:'cash',   lbl:'💵 Cash'},
-    {k:'autopay',lbl:'💳 Card'+(hasCard?(' ••'+_l4.slice(-4)):''), dis:!hasCard, tip:'No card on file — collect cash or send an invoice'},
+    {k:'autopay',lbl:'💳 Card'+(_l4?(' ••'+_l4.slice(-4)):(hasCard?' on file':'')), dis:!hasCard, tip:'No card on file — collect cash or send an invoice'},
     {k:'invoice',lbl:'🧾 Invoice'}
   ];
   const bar='<div style="display:flex;gap:7px;margin-bottom:10px;">'+methods.map(function(m){ const on=_fmcPayType===m.k;
