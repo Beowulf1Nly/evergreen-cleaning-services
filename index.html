@@ -949,22 +949,8 @@
       <div class="form-row"><label>Phone Number</label><input type="tel" id="q-phone" placeholder="(352) 555-0123" autocomplete="tel"/></div>
       <div class="form-row"><label>Service Address</label><input type="text" id="q-address" placeholder="123 Oak St, Inverness, FL" autocomplete="street-address"/></div>
       <div class="form-row"><label>Zip Code</label><input type="text" id="q-zip" placeholder="34450" inputmode="numeric" autocomplete="postal-code"/></div>
-      <div class="form-row"><label>Preferred Date</label>
-        <div class="cal-widget">
-          <div class="cal-header">
-            <button class="cal-nav" id="cqCalPrev" type="button" onclick="cqCalPrev()" aria-label="Previous month">‹</button>
-            <span class="cal-month-label" id="cqCalMonthLabel"></span>
-            <button class="cal-nav" id="cqCalNext" type="button" onclick="cqCalNext()" aria-label="Next month">›</button>
-          </div>
-          <div class="cal-day-names">
-            <div class="cal-day-name wknd">Su</div><div class="cal-day-name">Mo</div><div class="cal-day-name">Tu</div><div class="cal-day-name">We</div><div class="cal-day-name">Th</div><div class="cal-day-name">Fr</div><div class="cal-day-name wknd">Sa</div>
-          </div>
-          <div class="cal-grid" id="cqCalGrid" role="grid" aria-label="Service date picker"></div>
-          <div class="cal-picked none" id="cqCalPicked">Select a date above</div>
-        </div>
-        <input type="hidden" id="q-date"/>
-      </div>
-      <div class="form-row"><label>Anything else? <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label><textarea id="q-notes" rows="2" placeholder="Preferred time, gate code, special requests..."></textarea></div>
+      <input type="hidden" id="q-date"/>
+      <div class="form-row"><label>Anything else? <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label><textarea id="q-notes" rows="2" placeholder="Gate code, pets, special requests..."></textarea></div>
       <div id="q-error" style="color:#e53e3e;font-size:13px;margin-bottom:12px;display:none;">Please add your name and phone number so we can reach you.</div>
       <button id="ctaBookNow" class="btn-primary" style="width:100%;font-size:16px;padding:15px;" onclick="submitQuote()">Book Now →</button>
       <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;">Prefer to talk? Call <a href="tel:+13524620627" style="color:var(--blue-mid);font-weight:600;">(352) 462-0627</a></div>
@@ -1192,7 +1178,6 @@ function submitQuote() {
   const err     = document.getElementById('q-error');
 
   if (!name || !phone) { err.textContent = 'Please add your name and phone number so we can reach you.'; err.style.display = 'block'; return; }
-  if (!date) { err.textContent = 'Please pick a preferred date.'; err.style.display = 'block'; return; }
   err.style.display = 'none';
 
   const baseService = SVC_NAME[BLD.service];
@@ -1211,20 +1196,26 @@ function submitQuote() {
   else if (isRecurring)              note += '. Recurring ' + baseService;
   if (notes) note += '. ' + notes;
 
-  const params = new URLSearchParams({
-    name:           name,
-    email:          email,
-    phone:          phone,
-    address:        address || '',
-    zip:            zip,
-    service:        svcOut,
-    price:          (window.QUOTE_ONLY_MODE ? 'Quote requested' : String(priceOut)),
-    frequency:      (window.QUOTE_ONLY_MODE ? 'Quote Visit' : (_recurring ? _freq : 'One-time visit')),
-    serviceDateRaw: date || '',
-    serviceDate:    date || '',
-    notes:          (window.QUOTE_ONLY_MODE ? notes : note),
-    payMethod:      'Pay After Service'
-  });
+  // Quote-first: no date. Lands on dispatch as a "Quote Call" (same day if a weekday before 5pm,
+  // else next business day) and the customer is emailed that we'll contact them ASAP. The home
+  // details ride along in notes so you know what to quote on the call.
+  const params = window.QUOTE_ONLY_MODE
+    ? new URLSearchParams({
+        action:  'xl_quote_visit',
+        name:    name,
+        email:   email,
+        phone:   phone,
+        address: address || '',
+        zip:     zip,
+        notes:   note
+      })
+    : new URLSearchParams({
+        name:           name, email: email, phone: phone, address: address || '', zip: zip,
+        service:        svcOut, price: String(priceOut),
+        frequency:      (_recurring ? _freq : 'One-time visit'),
+        serviceDateRaw: date || '', serviceDate: date || '',
+        notes:          note, payMethod: 'Pay After Service'
+      });
   // Fire-and-forget to the Apps Script backend → Bookings sheet + Google Calendar event + emails.
   // keepalive lets the request finish even after we navigate away to /booked.
   try{ if(typeof trackEvt==='function') trackEvt('/evt/payment_attempted'); }catch(e){}
@@ -1476,7 +1467,7 @@ if (window.QUOTE_ONLY_MODE) document.addEventListener('DOMContentLoaded', functi
 /* Quote-first simple form: skip builder, reframe header, block weekends (gated) */
 if (window.QUOTE_ONLY_MODE) document.addEventListener('DOMContentLoaded', function () {
   var pill = document.getElementById('bfhPill'); if (pill) pill.textContent = '🫧 Get Your Free Estimate';
-  var sub  = document.getElementById('bfhSub');  if (sub)  sub.textContent  = 'Enter your details and preferred date — we confirm your exact price and clean on your day. No card required.';
+  var sub  = document.getElementById('bfhSub');  if (sub)  sub.textContent  = 'Enter your details and we\'ll reach out ASAP with your free, no-obligation estimate. No card required.';
   var back = document.getElementById('bookBackBtn'); if (back) back.style.display = 'none';
   var sum  = document.getElementById('bookSummary'); if (sum) sum.style.display = 'none';
   var dz = document.getElementById('q-date');
