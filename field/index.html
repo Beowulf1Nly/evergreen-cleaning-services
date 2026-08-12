@@ -247,7 +247,8 @@
       </div>
       <button class="fm-btn fm-btn-xl fm-btn-start" id="fmStartBtn" onclick="fmStartTapped()" style="min-width:260px;">Start Working</button>
       <button class="fm-skip" id="fmStartEndBtn" style="color:#fca5a5;display:none;margin-top:12px;" onclick="fmEmergencyEnd()">End day &amp; sign off</button>
-      <div style="display:flex;gap:10px;width:100%;max-width:380px;margin:18px auto 0;"><button onclick="qcOpen()" style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:13px 8px;color:#fff;font-family:inherit;font-weight:800;font-size:13.5px;cursor:pointer;line-height:1.5;">🧮 Quote calc<br><span style="font-weight:600;font-size:11px;color:#9cc8e3;">price a clean</span></button><button onclick="ncOpen()" style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:13px 8px;color:#fff;font-family:inherit;font-weight:800;font-size:13.5px;cursor:pointer;line-height:1.5;">➕ New customer<br><span style="font-weight:600;font-size:11px;color:#9cc8e3;">book on the spot</span></button></div>
+      <div style="width:100%;max-width:380px;margin:18px auto 0;"><button onclick="sqOpen()" style="width:100%;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.20);border-radius:14px;padding:15px 10px;color:#fff;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;line-height:1.5;">💬 Price a job<br><span style="font-weight:600;font-size:11.5px;color:#9cc8e3;">write what they need &amp; put a price</span></button>
+      <button onclick="ncOpen()" style="display:block;margin:9px auto 0;background:none;border:none;color:#9cc8e3;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline;padding:4px 8px;">or use the long booking form</button></div>
     </div>
   </div>
   <!-- START-OF-ROUTE CHECKLIST -->
@@ -268,7 +269,7 @@
   <div class="fm-screen" id="fmScreenJob">
     <div class="fm-top">
       <button class="fm-top-exit" onclick="fmBackToStart()">‹ Route</button>
-      <div style="display:flex;align-items:center;gap:8px;"><button class="fm-top-exit" onclick="qcOpenSmart()" title="Quote Calculator">🧮 Quote</button><button class="fm-sync" onclick="_fmFlushQueue()" style="display:none;"></button><div class="fm-top-timer" id="fmJobTimer" style="display:none;"><span class="fm-dot"></span><span id="fmJobTimerVal">0:00:00</span></div></div>
+      <div style="display:flex;align-items:center;gap:8px;"><button class="fm-top-exit" onclick="sqOpenSmart()" title="Price a job">💬 Quote</button><button class="fm-sync" onclick="_fmFlushQueue()" style="display:none;"></button><div class="fm-top-timer" id="fmJobTimer" style="display:none;"><span class="fm-dot"></span><span id="fmJobTimerVal">0:00:00</span></div></div>
     </div>
     <div class="fm-progress-wrap">
       <div class="fm-progress-meta"><span>Stop <b id="fmStopPos">1</b> of <span id="fmStopTotal">1</span></span><span id="fmDoneCount">0 done</span></div>
@@ -2412,7 +2413,7 @@ function _fmRenderJob(stops,idx){
     +_extras.map(function(x2,i2){ return '<button class="fm-addon-chip on" onclick="fmJobExtraEdit('+i2+')"><span>\u2728 '+esc(x2.name)+'</span><span class="fm-addon-price">$'+(+x2.price||0).toFixed(0)+'</span>'
       +'<span onclick="event.stopPropagation();fmJobExtraRm('+i2+')" style="margin-left:5px;padding:2px 7px;border-radius:7px;background:rgba(248,113,113,.18);color:#f87171;font-size:11px;font-weight:800;">\u00d7</span></button>'; }).join('')
     +'<button class="fm-addon-chip" style="border-style:dashed;" onclick="fmJobAddonPicker()"><span>\u2795 Add-on\u2026</span></button>'
-    +'<button class="fm-addon-chip" style="border-color:#a78bfa;color:#c4b5fd;" onclick="fmEditPlan()"><span>🧮 Edit whole plan\u2026</span></button>'
+    +(_fmIsBoss()?'<button class="fm-addon-chip" style="border-color:#a78bfa;color:#c4b5fd;" onclick="fmEditPlan()"><span>🧮 Edit whole plan\u2026</span></button>':'')
     +'</div><div style="font-size:11px;color:#94a3b8;margin-top:6px;">Tap = doing it today \u00b7 \u270e = price for this visit \u00b7 everything pre-fills the finish screen.</div></div>'):'';
   const _navBtn=done
     ? '<button class="fm-btn fm-btn-lg" style="background:#64748b;color:#e2e8f0;cursor:not-allowed;" disabled>✓ Completed — no need to drive</button>'
@@ -2502,7 +2503,7 @@ function fmRecordSkip(reason){
 function fmOpenComplete(){
   // Quote visits close with an OUTCOME (book / email estimate / no) — not a payment.
   const _qbk=(_fmStops()[_fmViewIdx]||{}).bk;
-  if(_qbk&&_isQuoteJob(_qbk)){ qcOpenForQuote(_qbk); return; }
+  if(_qbk&&_isQuoteJob(_qbk)){ sqOpenForQuote(_qbk); return; }
   if(_qbk&&!_fmJobGo[_stopKey(_qbk)]){ fmJobGo(); showToast('▶ Job started — tap ✓ Done again when the house is finished.',5000); return; }
   const stop=_fmStops()[_fmViewIdx]; if(!stop) return;
   const bk=stop.bk;
@@ -3852,6 +3853,290 @@ function ncSubmit(){
   } else {
     ncClose(); showToast('✅ '+name+' added — they’ll show up on the schedule');
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   💬 QUICK QUOTE — the crew-facing way to price a job.
+   Type what the customer needs, put in a price, then either email them an
+   estimate they can accept or decline, or book them on the spot.
+   Everything the app already knows about them is filled in and editable.
+   (The old Estimate Builder still exists — owners/managers reach it from
+   "Edit whole plan…" on a job — but no one has to touch it to quote.)
+   ══════════════════════════════════════════════════════════════════════════ */
+const SQ_FREQS=[
+  {v:'One-time visit', label:'One time',    hint:'just this once'},
+  {v:'Weekly Plan',    label:'Every week',  hint:'same day weekly'},
+  {v:'Bi-Weekly Plan', label:'Every 2 wks', hint:'most popular'},
+  {v:'Monthly Plan',   label:'Every month', hint:'once a month'}
+];
+// Tap-to-add phrases — saves her typing the same things over and over.
+const SQ_PHRASES=['Standard clean','Deep clean','Whole house','Kitchen','Bathrooms','Bedrooms','Inside fridge','Inside oven','Inside windows','Baseboards','Ceiling fans','Laundry','Move-out clean'];
+let _sq={ freq:'One-time visit', pay:'card', bk:null, key:null };
+
+function _sqV(id){ return String((document.getElementById(id)||{}).value||'').trim(); }
+function _sqSet(id,v){ const el=document.getElementById(id); if(el&&v!=null&&String(v).trim()) el.value=v; }
+function _sqPrice(){ return Math.round((parseFloat(_sqV('sq-price').replace(/[^0-9.]/g,''))||0)*100)/100; }
+
+/* ── open ──────────────────────────────────────────────────────────────── */
+function sqOpen(bk){
+  _sq.bk=bk||null;
+  if(!document.getElementById('sqOverlay')) _sqBuild();
+  // Reopening the SAME person keeps whatever she already typed — closing the
+  // sheet by accident shouldn't cost her the quote she was in the middle of.
+  const key=bk?_stopKey(bk):'walk-in';
+  if(_sq.key!==key){
+    _sq.key=key;
+    _sqReset();
+    if(bk) _sqFillFrom(bk);
+    else { const cur=_sqCurStopBk(); if(cur) _sqFillFrom(cur); }
+  }
+  const dl=document.getElementById('sq-declined'); if(dl) dl.style.display=(_qcQuoteBk||_qcCurQuoteStop())?'block':'none';
+  _sqRenderFreq(); _sqRenderPay(); _sqSyncButtons();
+  document.getElementById('sqOverlay').style.display='flex';
+}
+function _sqCurStopBk(){ try{ const st=_fmStops()[_fmViewIdx]; return (st&&st.bk)||null; }catch(e){ return null; } }
+// From the job screen: a quote stop binds so the outcome closes the quote job.
+function sqOpenSmart(){
+  const bk=_sqCurStopBk();
+  if(bk&&_isQuoteJob(bk)){ sqOpenForQuote(bk); return; }
+  sqOpen(bk||null);
+}
+function sqOpenForQuote(bk){
+  _qcQuoteBk=bk;
+  sqOpen(bk);
+  showToast('📋 Quote visit — write what they need, put a price, then Email or Book',5000);
+}
+function sqClose(){ const o=document.getElementById('sqOverlay'); if(o) o.style.display='none'; }
+
+function _sqReset(){
+  ['sq-name','sq-phone','sq-email','sq-addr','sq-needs','sq-price','sq-find'].forEach(function(id){ const el=document.getElementById(id); if(el) el.value=''; });
+  const res=document.getElementById('sq-find-res'); if(res) res.innerHTML='';
+  _sq.freq='One-time visit'; _sq.pay='card';
+  const d=new Date(); d.setDate(d.getDate()+1);
+  const dt=document.getElementById('sq-date'); if(dt) dt.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const dl=document.getElementById('sq-declined'); if(dl) dl.style.display=(_qcQuoteBk||_qcCurQuoteStop())?'block':'none';
+}
+// Prefill from a booking/stop, then top it up from their customer file.
+function _sqFillFrom(bk){
+  if(!bk) return;
+  _sqSet('sq-name',bk.name); _sqSet('sq-phone',bk.phone);
+  _sqSet('sq-email',String(bk.email||'').toLowerCase()); _sqSet('sq-addr',bk.address);
+  try{
+    const em=String(bk.email||'').toLowerCase().trim();
+    const c=(allCustomers||[]).find(function(x){
+      return em ? String(x.Email||'').toLowerCase().trim()===em
+                : String(x.Name||'').toLowerCase().trim()===String(bk.name||'').toLowerCase().trim();
+    });
+    if(c){ _sqSet('sq-phone',c.Phone); _sqSet('sq-email',String(c.Email||'').toLowerCase()); _sqSet('sq-addr',c.Address); }
+  }catch(e){}
+  if(!_sqV('sq-email')) _sq.pay='cash';
+  _sqRenderPay(); _sqSyncButtons();
+}
+/* ── existing-customer lookup ──────────────────────────────────────────── */
+function sqFind(q){
+  const box=document.getElementById('sq-find-res'); if(!box) return;
+  q=String(q||'').toLowerCase().trim();
+  if(q.length<2){ box.innerHTML=''; return; }
+  const hits=(allCustomers||[]).filter(function(c){
+    return ['Name','Address','Phone','Email'].some(function(k){ return String(c[k]||'').toLowerCase().indexOf(q)>=0; });
+  }).slice(0,5);
+  window._sqMatches=hits;
+  box.innerHTML=hits.map(function(c,i){
+    return '<button onclick="sqPick('+i+')" style="display:block;width:100%;text-align:left;padding:12px 13px;margin-bottom:6px;border:2px solid #bae6fd;border-radius:12px;background:#f0f9ff;font-family:inherit;cursor:pointer;">'
+      +'<div style="font-size:16px;font-weight:800;color:#0f172a;">'+esc(c.Name||'?')+'</div>'
+      +'<div style="font-size:13px;color:#475569;margin-top:2px;">'+esc(c.Address||'')+(c.Phone?(' · '+esc(c.Phone)):'')+'</div></button>';
+  }).join('')||'<div style="font-size:14px;color:#94a3b8;padding:2px 0 8px;">Nobody by that name — just type them in below.</div>';
+}
+function sqPick(i){
+  const c=(window._sqMatches||[])[i]; if(!c) return;
+  _sqSet('sq-name',c.Name); _sqSet('sq-phone',c.Phone);
+  _sqSet('sq-email',String(c.Email||'').toLowerCase()); _sqSet('sq-addr',c.Address);
+  const box=document.getElementById('sq-find-res'); if(box) box.innerHTML='';
+  const f=document.getElementById('sq-find'); if(f) f.value='';
+  _sqSyncButtons();
+  showToast('✓ '+(c.Name||'Customer')+' filled in');
+}
+/* ── the three little choosers ─────────────────────────────────────────── */
+function sqPhrase(i){
+  const t=document.getElementById('sq-needs'); if(!t) return;
+  const cur=String(t.value||'').trim();
+  t.value=cur?(cur.replace(/[,\s]+$/,'')+', '+SQ_PHRASES[i]):SQ_PHRASES[i];
+  t.focus();
+}
+function sqFreq(v){ _sq.freq=v; _sqRenderFreq(); _sqSyncButtons(); }
+function _sqRenderFreq(){
+  const box=document.getElementById('sq-freq'); if(!box) return;
+  box.innerHTML=SQ_FREQS.map(function(f){
+    const on=_sq.freq===f.v;
+    return '<button onclick="sqFreq('+JSON.stringify(f.v).replace(/"/g,'&quot;')+')" style="flex:1 1 46%;padding:13px 6px;border-radius:14px;cursor:pointer;font-family:inherit;line-height:1.35;'
+      +'border:2.5px solid '+(on?'#16a34a':'#cbd5e1')+';background:'+(on?'#dcfce7':'#fff')+';color:'+(on?'#14532d':'#334155')+';">'
+      +'<div style="font-size:15px;font-weight:800;">'+(on?'✓ ':'')+f.label+'</div>'
+      +'<div style="font-size:11.5px;font-weight:600;opacity:.7;">'+f.hint+'</div></button>';
+  }).join('');
+  const row=document.getElementById('sq-date-row');
+  if(row) row.querySelector('#sq-date-lbl').textContent=(_sq.freq==='One-time visit')?'What day?':'First day?';
+}
+function sqPay(v){ _sq.pay=v; _sqRenderPay(); _sqSyncButtons(); }
+function _sqRenderPay(){
+  const box=document.getElementById('sq-pay'); if(!box) return;
+  box.innerHTML=[{v:'card',l:'💳 Card'},{v:'cash',l:'💵 Cash'}].map(function(p){
+    const on=_sq.pay===p.v;
+    return '<button onclick="sqPay('+JSON.stringify(p.v).replace(/"/g,'&quot;')+')" style="flex:1;padding:12px 6px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:15px;font-weight:800;'
+      +'border:2.5px solid '+(on?'#0284c7':'#cbd5e1')+';background:'+(on?'#e0f2fe':'#fff')+';color:'+(on?'#075985':'#334155')+';">'+(on?'✓ ':'')+p.l+'</button>';
+  }).join('');
+}
+/* ── live "why is this button off" hints ───────────────────────────────── */
+function _sqSyncButtons(){
+  const name=_sqV('sq-name'), email=_sqV('sq-email').toLowerCase(), addr=_sqV('sq-addr');
+  const needs=_sqV('sq-needs'), price=_sqPrice(), okEmail=email.indexOf('@')>0&&email.indexOf('.')>0;
+  const eBtn=document.getElementById('sqEmailBtn'), bBtn=document.getElementById('sqBookBtn');
+  const hint=document.getElementById('sq-hint');
+  const missing=[];
+  if(!name)  missing.push('their name');
+  if(!needs) missing.push('what they need');
+  if(!(price>0)) missing.push('a price');
+  const emailReady = !missing.length && okEmail;
+  const bookReady  = !missing.length && !!addr && (_sq.pay!=='card' || okEmail);
+  if(eBtn){ eBtn.disabled=!emailReady; eBtn.style.opacity=emailReady?'1':'.45'; }
+  if(bBtn){ bBtn.disabled=!bookReady;  bBtn.style.opacity=bookReady?'1':'.45'; }
+  if(hint){
+    let msg='';
+    if(missing.length) msg='Still need: '+missing.join(', ')+'.';
+    else if(!okEmail&&!addr) msg='Add their email to send an estimate, or their address to book them.';
+    else if(!okEmail) msg='No email yet — you can book them, but you can’t send an estimate.';
+    else if(!addr) msg='Add their address to book them.';
+    else if(_sq.pay==='card'&&!okEmail) msg='Card customers need an email — or switch to Cash.';
+    hint.textContent=msg;
+    hint.style.display=msg?'block':'none';
+  }
+  const amt=document.getElementById('sq-amt');
+  if(amt) amt.textContent=price>0?('$'+price.toFixed(price%1?2:0)+(_sq.freq==='One-time visit'?'':' / visit')):'';
+}
+/* ── outcome 1: email them an estimate they can accept or decline ──────── */
+function sqSendEstimate(){
+  const name=_sqV('sq-name'), email=_sqV('sq-email').toLowerCase(), phone=_sqV('sq-phone'), addr=_sqV('sq-addr');
+  const needs=_sqV('sq-needs'), price=_sqPrice();
+  if(!name||!needs||!(price>0)){ showToast('Fill in the name, what they need, and a price'); return; }
+  if(email.indexOf('@')<1||email.indexOf('.')<0){ showToast('Need a good email to send the estimate'); return; }
+  if(!_tapConfirm('sqEmailBtn','Tap again — email '+name)) return;
+  const oneTime=_sq.freq==='One-time visit';
+  const vt=new Date(); vt.setDate(vt.getDate()+14);
+  const pad=function(n){ return String(n).padStart(2,'0'); };
+  const items=[{ desc:needs, price:price, included:'false' }];
+  const notes=[ oneTime?('One-time visit — $'+price.toFixed(2)+' total.')
+                       :('$'+price.toFixed(2)+' per visit, '+_sq.freq.replace(/ Plan$/,'').toLowerCase()+'.'),
+                'Quoted in person by '+(adminName||'our crew')+'. Good for 14 days.' ];
+  _fmEnqueue({ kind:'quoteest', idemKey:'sqe:'+email+'|'+Date.now(), method:'GET', params:{
+    action:'send_quote_email', submittedBy:adminName||'Crew',
+    name:name, email:email, phone:phone, address:addr,
+    summary:needs, items:JSON.stringify(items), notes:JSON.stringify(notes),
+    estimateDate:todayISOStr(), validThru:vt.getFullYear()+'-'+pad(vt.getMonth()+1)+'-'+pad(vt.getDate()),
+    frequency:_sq.freq, adminToken:adminToken } });
+  _fmFlushQueue();
+  sqClose(); _sq.key=null;
+  const qb=_qcQuoteBk||_qcCurQuoteStop();
+  if(qb){ _qcQuoteBk=qb; _qcQuoteDone('Quote — estimate emailed to '+email+' ($'+price.toFixed(2)+' · '+_sq.freq+') by '+(adminName||'crew')+' — '+needs); }
+  showToast('✉️ Estimate sent to '+email+' — they can accept or say no from the email',5000);
+}
+/* ── outcome 2: book them right now, confirmation email goes out ───────── */
+function sqBookNow(){
+  const name=_sqV('sq-name'), email=_sqV('sq-email').toLowerCase(), phone=_sqV('sq-phone'), addr=_sqV('sq-addr');
+  const needs=_sqV('sq-needs'), price=_sqPrice(), date=_sqV('sq-date');
+  if(!name||!needs||!(price>0)){ showToast('Fill in the name, what they need, and a price'); return; }
+  if(!addr){ showToast('Need their address to put them on the schedule'); return; }
+  if(!date){ showToast('Pick the first day'); return; }
+  if(email&&(email.indexOf('@')<1||email.indexOf('.')<0)){ showToast('That email looks wrong'); return; }
+  if(_sq.pay==='card'&&!email){ showToast('Card customers need an email — or switch to Cash'); return; }
+  if(!_tapConfirm('sqBookBtn','Tap again — book '+name)) return;
+  _fmEnqueue({ kind:'newcust', idemKey:'sqb:'+_uuid(), method:'GET', params:{
+    action:'manual_schedule', name:name, email:email, phone:phone, address:addr, zip:'',
+    frequency:_sq.freq, service:'Standard Clean', price:String(price), serviceDate:date,
+    notes:needs+' — quoted & booked on the route by '+(adminName||'crew'),
+    payMethod:_sq.pay, services:'',
+    crew:(String(adminCrews||'').toUpperCase().split(/[^A-Z0-9]+/)[0]||''), adminToken:adminToken } });
+  // crew sourced AND closed it on the spot → commission, same as the old booking form
+  const names=[adminName||'Crew'].concat((_helpers||[]).map(function(h){ return (typeof h==='string')?h:((h&&h.name)||''); })).filter(Boolean);
+  _fmEnqueue({ kind:'comm', idemKey:'cm:sq:'+email+'|'+date+'|'+name, method:'GET', params:{
+    action:'log_commission', key:'cm:sq:'+email+'|'+date+'|'+name, date:todayISOStr(),
+    names:names.join(', '), jobName:name, email:email, jobDate:date,
+    base:String(price), pct:'40', type:'lead + close (40%)', adminToken } });
+  _fmFlushQueue();
+  const qb=_qcQuoteBk||_qcCurQuoteStop();
+  if(qb){ _qcQuoteBk=qb; _qcQuoteDone('Quote WON — '+_sq.freq+' $'+price.toFixed(2)+(_sq.freq==='One-time visit'?'':'/visit')+' — booked at the door by '+(adminName||'crew')+' — '+needs); }
+  if(date===todayISOStr()){
+    const cur=(function(){ try{ const st=_fmStops(); return st[_fmViewIdx]?_stopKey(st[_fmViewIdx].bk):null; }catch(e){ return null; } })();
+    _fmAddLocalSameDay({ name:name, email:email, phone:phone, address:addr, zip:'', frequency:_sq.freq, price:'$'+price, serviceDate:date, notes:needs+' (booked on route today)', crew:'', jobTime:'', payMethod:_sq.pay }, cur);
+    sqClose(); _sq.key=null; showToast('✅ '+name+' booked — they’re your next stop, confirmation emailed');
+    return;
+  }
+  sqClose(); _sq.key=null; showToast('✅ '+name+' booked for '+date+' — confirmation emailed');
+}
+/* ── outcome 3: they passed (only shows on a real quote visit) ──────────── */
+function sqDeclined(){
+  const price=_sqPrice(), needs=_sqV('sq-needs');
+  if(!_tapConfirm('sqDeclBtn','Tap again — they said no')) return;
+  const why=prompt('They passed'+(price>0?(' at $'+price.toFixed(2)):'')+' — why? (optional)','');
+  if(why===null){ _tapArm['sqDeclBtn']=0; const b=document.getElementById('sqDeclBtn'); if(b&&b._origTxt) b.textContent=b._origTxt; return; }
+  sqClose(); _sq.key=null;
+  const qb=_qcQuoteBk||_qcCurQuoteStop();
+  if(qb){ _qcQuoteBk=qb; _qcQuoteDone('Quote LOST — declined'+(price>0?(' at $'+price.toFixed(2)):'')+(needs?(' ('+needs+')'):'')+(why.trim()?(' — '+why.trim()):'')+' — '+(adminName||'crew')); }
+  showToast('Logged for the office.');
+}
+/* ── the sheet itself ──────────────────────────────────────────────────── */
+function _sqBuild(){
+  const inp='width:100%;box-sizing:border-box;padding:14px;border:2px solid #cbd5e1;border-radius:12px;font-size:17px;font-family:inherit;margin:5px 0 12px;color:#0f172a;background:#fff;';
+  const lab='font-size:13px;font-weight:800;color:#475569;letter-spacing:.02em;';
+  const hd=function(n,t,s){ return '<div style="margin:16px 0 4px;"><div style="font-size:17px;font-weight:900;color:#0f172a;">'+n+'. '+t+'</div>'
+    +(s?'<div style="font-size:13px;color:#64748b;margin-top:1px;">'+s+'</div>':'')+'</div>'; };
+  const o=document.createElement('div');
+  o.id='sqOverlay';
+  o.style.cssText='display:none;position:fixed;inset:0;z-index:3400;background:rgba(0,0,0,.6);align-items:flex-end;justify-content:center;';
+  o.onclick=function(e){ if(e.target===o) sqClose(); };
+  o.innerHTML='<div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:calc(100dvh - max(20px, env(safe-area-inset-top)) - 8px);display:flex;flex-direction:column;color:#0f2740;">'
+    +'<div style="padding:16px 18px 13px;border-bottom:2px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;">'
+      +'<div><div style="font-size:19px;font-weight:900;">💬 Price a job</div>'
+      +'<div style="font-size:13px;color:#64748b;margin-top:2px;">Write what they want, put a price, done.</div></div>'
+      +'<button onclick="sqClose()" style="background:#f1f5f9;border:none;font-size:24px;color:#334155;cursor:pointer;line-height:1;padding:10px 16px;border-radius:12px;">×</button></div>'
+    +'<div style="overflow-y:auto;padding:6px 16px 10px;flex:1;" oninput="_sqSyncButtons()">'
+
+      +hd(1,'Who is it for?','Already a customer? Search and it fills itself in.')
+      +'<input id="sq-find" style="'+inp+'border-color:#7dd3fc;background:#f0f9ff;" placeholder="🔎 Search a customer…" oninput="sqFind(this.value)" autocomplete="off">'
+      +'<div id="sq-find-res" style="margin:-6px 0 8px;"></div>'
+      +'<div style="'+lab+'">Name</div><input id="sq-name" style="'+inp+'" placeholder="Jane Smith" autocomplete="off">'
+      +'<div style="display:flex;gap:9px;"><div style="flex:1;"><div style="'+lab+'">Phone</div><input id="sq-phone" type="tel" inputmode="tel" style="'+inp+'" placeholder="(352) 555-0123"></div>'
+      +'<div style="flex:1;"><div style="'+lab+'">Email</div><input id="sq-email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" style="'+inp+'" placeholder="jane@email.com"></div></div>'
+      +'<div style="'+lab+'">Address</div><input id="sq-addr" style="'+inp+'" placeholder="123 Oak St, Inverness">'
+
+      +hd(2,'What do they need?','Say it however you’d say it out loud.')
+      +'<textarea id="sq-needs" style="'+inp+'min-height:110px;resize:vertical;line-height:1.5;" placeholder="Deep clean the whole house — 3 bedrooms, 2 baths, inside the fridge and oven, and the front windows."></textarea>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 4px;">'
+      +SQ_PHRASES.map(function(p,i){ return '<button onclick="sqPhrase('+i+')" style="padding:11px 14px;border:2px solid #e2e8f0;border-radius:999px;background:#f8fafc;color:#475569;font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;">+ '+p+'</button>'; }).join('')
+      +'</div>'
+
+      +hd(3,'How much?','')
+      +'<div style="display:flex;align-items:center;gap:10px;margin:5px 0 6px;">'
+      +'<span style="font-size:34px;font-weight:900;color:#16a34a;">$</span>'
+      +'<input id="sq-price" type="text" inputmode="decimal" placeholder="0" size="1" style="flex:1 1 0;min-width:0;box-sizing:border-box;padding:12px 14px;border:2.5px solid #86efac;border-radius:14px;background:#f0fdf4;font-family:inherit;font-size:34px;font-weight:900;color:#14532d;">'
+      +'</div>'
+      +'<div id="sq-amt" style="font-size:14px;font-weight:800;color:#16a34a;min-height:18px;margin-bottom:6px;"></div>'
+
+      +hd(4,'How often?','')
+      +'<div id="sq-freq" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;"></div>'
+      +'<div id="sq-date-row" style="display:flex;gap:9px;align-items:flex-end;">'
+      +'<div style="flex:1;"><div style="'+lab+'" id="sq-date-lbl">What day?</div><input id="sq-date" type="date" style="'+inp+'"></div>'
+      +'<div style="flex:1;"><div style="'+lab+'">Paying by</div><div id="sq-pay" style="display:flex;gap:8px;margin:5px 0 12px;"></div></div></div>'
+      +'<div style="font-size:12.5px;color:#94a3b8;line-height:1.5;padding-bottom:4px;">The day and payment only matter if you book them now.</div>'
+    +'</div>'
+    +'<div style="padding:11px 16px calc(13px + env(safe-area-inset-bottom));border-top:2px solid #e2e8f0;background:#fff;">'
+      +'<div id="sq-hint" style="display:none;font-size:13px;font-weight:700;color:#b45309;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:8px 11px;margin-bottom:9px;line-height:1.45;"></div>'
+      +'<button id="sqBookBtn" onclick="sqBookNow()" style="width:100%;padding:17px;border:none;border-radius:14px;background:#16a34a;color:#fff;font-family:inherit;font-size:17px;font-weight:900;cursor:pointer;">✅ Book it now</button>'
+      +'<div style="font-size:12px;color:#64748b;text-align:center;margin:5px 0 10px;">puts them on the schedule &amp; emails their confirmation</div>'
+      +'<button id="sqEmailBtn" onclick="sqSendEstimate()" style="width:100%;padding:16px;border:none;border-radius:14px;background:#0284c7;color:#fff;font-family:inherit;font-size:16px;font-weight:900;cursor:pointer;">✉️ Email them the estimate</button>'
+      +'<div style="font-size:12px;color:#64748b;text-align:center;margin-top:5px;">they can accept or say no right from the email</div>'
+      +'<div id="sq-declined" style="display:none;text-align:center;margin-top:10px;">'
+      +'<button id="sqDeclBtn" onclick="sqDeclined()" style="border:none;background:none;color:#94a3b8;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;text-decoration:underline;padding:5px 10px;">customer said no</button></div>'
+    +'</div></div>';
+  document.body.appendChild(o);
 }
 
 /* ═══════════ QUOTE CLOSER — a quote visit ends in an OUTCOME, not a payment ═══════════ */
